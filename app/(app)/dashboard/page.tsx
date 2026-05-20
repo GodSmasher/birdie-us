@@ -115,10 +115,10 @@ export default function DashboardPage() {
         <div className="flex-1 px-8 py-7 flex flex-col gap-6">
           {/* Top KPIs */}
           <div className="flex gap-4">
-            <KpiCard label="AKTIVE BOTS" value="12" sub="von 14 konfiguriert" delta="+2" />
-            <KpiCard label="HEUTE AUSGEFÜHRT" value="347" sub="ggü. gestern" delta="+18%" />
-            <KpiCard label="FEHLERQUOTE" value="0.4%" sub="letzte 24h" delta="−0.2%" />
-            <KpiCard label="CONNECTOREN" value="8/8" sub="alle synchron" />
+            <KpiCard label="AKTIVE BOTS" value="12" sub="von 14 konfiguriert" delta="+2" spark={[10, 10, 11, 11, 12, 11, 12]} sparkColor="#4ADE80" />
+            <KpiCard label="HEUTE AUSGEFÜHRT" value="347" sub="ggü. gestern" delta="+18%" spark={[212, 238, 254, 271, 289, 294, 347]} sparkColor="#4ADE80" />
+            <KpiCard label="FEHLERQUOTE" value="0.4%" sub="letzte 24h" delta="−0.2%" spark={[1.1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]} sparkColor="#4ADE80" />
+            <KpiCard label="CONNECTOREN" value="8/8" sub="alle synchron" spark={[8, 8, 7, 8, 8, 8, 8]} sparkColor="#FACC15" />
           </div>
 
           {/* Datenübersicht — connector data snapshots */}

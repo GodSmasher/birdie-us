@@ -54,7 +54,7 @@ export default function ConnectorsPage() {
             {rows.map((r, i) => (
               <div
                 key={r.name}
-                className={`grid grid-cols-[320px_160px_180px_220px_140px] h-[60px] items-center px-5 ${
+                className={`grid grid-cols-[320px_160px_180px_220px_140px] h-[60px] items-center px-5 hover:bg-surface-2/40 transition-colors ${
                   i < rows.length - 1 ? 'border-b border-line' : ''
                 }`}
               >

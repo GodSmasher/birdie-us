@@ -30,10 +30,10 @@ export default function FinancePage() {
         <TopBar title="Finanzmanagement" subtitle="Bexio · DATEV · automatische Mahnläufe" />
         <div className="flex-1 px-8 py-7 flex flex-col gap-5">
           <div className="flex gap-4">
-            <KpiCard label="OFFENE RECHNUNGEN" value="€ 142.380" sub="23 Rechnungen" />
-            <KpiCard label="ÜBERFÄLLIG" value="€ 18.920" sub="4 · Mahnstufe 1-2" valueColor="text-warning" />
-            <KpiCard label="EINGANG / WOCHE" value="€ 87.440" sub="12 Zahlungen erhalten" valueColor="text-success" />
-            <KpiCard label="LIQUIDITÄT 30T" value="+€ 240k" sub="Prognose Bexio + Cashflow" />
+            <KpiCard label="OFFENE RECHNUNGEN" value="€ 142.380" sub="23 Rechnungen" spark={[118, 124, 132, 128, 136, 140, 142]} sparkColor="#FACC15" />
+            <KpiCard label="ÜBERFÄLLIG" value="€ 18.920" sub="4 · Mahnstufe 1-2" valueColor="text-warning" spark={[24, 22, 21, 19, 20, 19, 18]} sparkColor="#FBBF24" />
+            <KpiCard label="EINGANG / WOCHE" value="€ 87.440" sub="12 Zahlungen erhalten" valueColor="text-success" spark={[42, 51, 58, 64, 72, 81, 87]} sparkColor="#4ADE80" />
+            <KpiCard label="LIQUIDITÄT 30T" value="+€ 240k" sub="Prognose Bexio + Cashflow" spark={[180, 195, 210, 218, 225, 232, 240]} sparkColor="#4ADE80" />
           </div>
 
           <div className="flex gap-4">
@@ -56,7 +56,7 @@ export default function FinancePage() {
               {invoices.map((iv, i) => (
                 <div
                   key={iv.nr}
-                  className={`grid grid-cols-[70px_1fr_120px_130px_140px] h-[50px] items-center px-5 ${
+                  className={`grid grid-cols-[70px_1fr_120px_130px_140px] h-[50px] items-center px-5 hover:bg-surface-2/40 transition-colors cursor-pointer ${
                     i < invoices.length - 1 ? 'border-b border-line' : ''
                   }`}
                 >

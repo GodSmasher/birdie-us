@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Sparkline } from './sparkline';
 
 export function LogoMark({ size = 28 }: { size?: number }) {
   return (
@@ -74,6 +75,8 @@ export function KpiCard({
   delta,
   deltaTone = 'success',
   valueColor,
+  spark,
+  sparkColor,
 }: {
   label: string;
   value: string;
@@ -81,6 +84,8 @@ export function KpiCard({
   delta?: string;
   deltaTone?: 'success' | 'error';
   valueColor?: string;
+  spark?: number[];
+  sparkColor?: string;
 }) {
   return (
     <div className="flex-1 min-w-0 bg-surface border border-line rounded-xl p-5 flex flex-col gap-2">
@@ -96,8 +101,15 @@ export function KpiCard({
           </span>
         )}
       </div>
-      <div className={`font-semibold text-[28px] leading-none tracking-tightest ${valueColor ?? 'text-fg'}`}>
-        {value}
+      <div className="flex items-end gap-3">
+        <div className={`font-semibold text-[28px] leading-none tracking-tightest ${valueColor ?? 'text-fg'}`}>
+          {value}
+        </div>
+        {spark && (
+          <div className="ml-auto opacity-80">
+            <Sparkline data={spark} color={sparkColor ?? '#FACC15'} fill width={88} height={32} />
+          </div>
+        )}
       </div>
       <div className="text-[11px] text-fg3">{sub}</div>
     </div>
