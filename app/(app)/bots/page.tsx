@@ -15,11 +15,11 @@ type BotState = 'success' | 'warning' | 'error' | 'neutral';
 
 const bots: { name: string; cat: string; desc: string; state: BotState; pill: string; runs: string; conns: string }[] = [
   { name: 'Mahnbot', cat: 'FIN', desc: 'Sendet automatische Zahlungserinnerungen anhand Bexio-Status', state: 'success', pill: 'LIVE', runs: '247', conns: 'Bexio · Gmail' },
-  { name: 'Lead-Sync', cat: 'VTR', desc: 'Importiert Leads aus Reonic + reichert mit Telefon/Mail an', state: 'success', pill: 'LIVE', runs: "1'382", conns: 'Reonic · Gmail' },
+  { name: 'Lead-Sync', cat: 'VTR', desc: 'Importiert Leads aus Reonic + reichert mit Telefon/Mail an', state: 'success', pill: 'LIVE', runs: '1.382', conns: 'Reonic · Gmail' },
   { name: 'Termin-Bot', cat: 'VTR', desc: 'Erstellt Termine bei Anfrage + verschickt Google Meet Einladung', state: 'success', pill: 'LIVE', runs: '89', conns: 'Calendar · WA' },
   { name: 'Call-Bot', cat: 'VTR', desc: 'Wertet 3CX-Anrufe aus, schlägt Rückrufe vor', state: 'success', pill: 'LIVE', runs: '412', conns: '3CX · Reonic' },
   { name: 'Rechnungs-Bot', cat: 'FIN', desc: "Erstellt Bexio-Rechnung sobald Projekt-Status 'fertig'", state: 'success', pill: 'LIVE', runs: '63', conns: 'Bexio · Reonic' },
-  { name: 'WhatsApp-Concierge', cat: 'KOM', desc: 'Antwortet auf Standardfragen, eskaliert komplexe Themen', state: 'success', pill: 'LIVE', runs: "1'847", conns: 'WhatsApp · Reonic' },
+  { name: 'WhatsApp-Concierge', cat: 'KOM', desc: 'Antwortet auf Standardfragen, eskaliert komplexe Themen', state: 'success', pill: 'LIVE', runs: '1.847', conns: 'WhatsApp · Reonic' },
   { name: 'Tagesreport', cat: 'ALL', desc: 'Generiert jeden Morgen 7:00 das Briefing für Geschäftsführung', state: 'success', pill: 'LIVE', runs: '138', conns: 'Claude · Mail' },
   { name: 'DATEV-Export', cat: 'FIN', desc: 'Exportiert monatlich Buchungen als DATEV-CSV', state: 'neutral', pill: 'PAUSE', runs: '12', conns: 'Bexio · Drive' },
   { name: 'Mahnstufe-3', cat: 'FIN', desc: 'Inkasso-Übergabe nach 60 Tagen, manueller Trigger', state: 'warning', pill: 'HINWEIS', runs: '—', conns: 'Bexio · Mail' },
@@ -31,7 +31,7 @@ export default function BotsPage() {
       <Sidebar active="bots" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar title="Bots" subtitle="14 Bots · 12 aktiv · alle nur lesbar — Anpassungen über Sarah" />
-        <div className="flex-1 px-8 py-7 flex flex-col gap-5 max-w-[1400px]">
+        <div className="flex-1 px-8 py-7 flex flex-col gap-5">
           {/* Tabs */}
           <div className="flex gap-2">
             {tabs.map(([n, active, cnt]) => (

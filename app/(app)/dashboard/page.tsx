@@ -6,7 +6,7 @@ const activities = [
   ['10:42', 'Mahnbot', "3 Rechnungen mit Status 'überfällig' erkannt — Erinnerungsmails versendet", 'success'],
   ['10:38', 'Lead-Sync (Reonic)', '12 neue Leads importiert, 2 mit fehlender Telefonnummer markiert', 'info'],
   ['10:31', 'Termin-Bot', 'Beratungstermin von Michael K. bestätigt + Google Meet erstellt', 'success'],
-  ['10:24', 'Bexio-Sync', "Rechnung #2026-0341 erstellt für 'Familie Huber' (CHF 24'500)", 'info'],
+  ['10:24', 'Bexio-Sync', "Rechnung #2026-0341 erstellt für 'Familie Huber' (€ 24.500)", 'info'],
   ['10:12', 'WhatsApp-Bot', '5 Kundenanfragen automatisch beantwortet · 1 an Sarah eskaliert', 'warning'],
   ['09:58', 'Call-Bot', '8 verpasste Anrufe erkannt — Rückruftermine vorgeschlagen', 'info'],
   ['09:45', 'Mahnbot', 'Auto-Mahnstufe 2 für Rechnung #2026-0298 ausgelöst', 'warning'],
@@ -35,7 +35,7 @@ export default function DashboardPage() {
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar title="Guten Morgen, Sarah" subtitle="Mittwoch · 20. Mai 2026" />
 
-        <div className="flex-1 px-8 py-7 flex flex-col gap-6 max-w-[1400px]">
+        <div className="flex-1 px-8 py-7 flex flex-col gap-6">
           <div className="flex gap-4">
             <KpiCard label="AKTIVE BOTS" value="12" sub="von 14 konfiguriert" delta="+2" />
             <KpiCard label="HEUTE AUSGEFÜHRT" value="347" sub="ggü. gestern" delta="+18%" />

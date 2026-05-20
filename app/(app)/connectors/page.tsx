@@ -24,7 +24,7 @@ export default function ConnectorsPage() {
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar title="Connectoren" subtitle="Übersicht aller verbundenen Tools · konfiguriert durch .birdie Team" />
 
-        <div className="flex-1 px-8 py-7 flex flex-col gap-5 max-w-[1400px]">
+        <div className="flex-1 px-8 py-7 flex flex-col gap-5">
           {/* Banner */}
           <div className="bg-surface border border-line rounded-[10px] px-4 py-3.5 flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-info-bg flex items-center justify-center text-info font-bold text-sm">

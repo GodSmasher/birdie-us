@@ -5,20 +5,20 @@ import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 type State = 'info' | 'warning' | 'error';
 
 const invoices: { nr: string; kunde: string; faellig: string; betrag: string; state: State; pill: string }[] = [
-  { nr: '#0341', kunde: 'Familie Huber', faellig: '01.06.2026', betrag: "CHF 24'500", state: 'info', pill: 'OFFEN' },
-  { nr: '#0298', kunde: 'Schmid AG', faellig: '15.05.2026', betrag: "CHF 12'400", state: 'error', pill: 'MAHNUNG 2' },
-  { nr: '#0312', kunde: 'Bau Locher GmbH', faellig: '22.05.2026', betrag: "CHF 8'920", state: 'info', pill: 'OFFEN' },
-  { nr: '#0287', kunde: 'M. Egger', faellig: '08.05.2026', betrag: "CHF 4'200", state: 'warning', pill: 'MAHNUNG 1' },
-  { nr: '#0356', kunde: 'Familie Frey', faellig: '28.05.2026', betrag: "CHF 36'800", state: 'info', pill: 'OFFEN' },
-  { nr: '#0334', kunde: 'Solar Berg AG', faellig: '20.05.2026', betrag: "CHF 18'400", state: 'info', pill: 'OFFEN' },
-  { nr: '#0301', kunde: 'K. Lüthi', faellig: '12.05.2026', betrag: "CHF 6'300", state: 'warning', pill: 'MAHNUNG 1' },
-  { nr: '#0362', kunde: 'Holzbau Meier', faellig: '30.05.2026', betrag: "CHF 14'100", state: 'info', pill: 'OFFEN' },
+  { nr: '#0341', kunde: 'Familie Huber', faellig: '01.06.2026', betrag: '€ 24.500', state: 'info', pill: 'OFFEN' },
+  { nr: '#0298', kunde: 'Schmid AG', faellig: '15.05.2026', betrag: '€ 12.400', state: 'error', pill: 'MAHNUNG 2' },
+  { nr: '#0312', kunde: 'Bau Locher GmbH', faellig: '22.05.2026', betrag: '€ 8.920', state: 'info', pill: 'OFFEN' },
+  { nr: '#0287', kunde: 'M. Egger', faellig: '08.05.2026', betrag: '€ 4.200', state: 'warning', pill: 'MAHNUNG 1' },
+  { nr: '#0356', kunde: 'Familie Frey', faellig: '28.05.2026', betrag: '€ 36.800', state: 'info', pill: 'OFFEN' },
+  { nr: '#0334', kunde: 'Solar Berg AG', faellig: '20.05.2026', betrag: '€ 18.400', state: 'info', pill: 'OFFEN' },
+  { nr: '#0301', kunde: 'K. Lüthi', faellig: '12.05.2026', betrag: '€ 6.300', state: 'warning', pill: 'MAHNUNG 1' },
+  { nr: '#0362', kunde: 'Holzbau Meier', faellig: '30.05.2026', betrag: '€ 14.100', state: 'info', pill: 'OFFEN' },
 ];
 
 const steps = [
   ['+7 Tage', 'Freundliche Erinnerung per Mail', '12 versendet'],
-  ['+14 Tage', 'Mahnung 1 mit Gebühr CHF 15', '4 versendet'],
-  ['+30 Tage', 'Mahnung 2 mit Gebühr CHF 30', '2 versendet'],
+  ['+14 Tage', 'Mahnung 1 mit Gebühr € 15', '4 versendet'],
+  ['+30 Tage', 'Mahnung 2 mit Gebühr € 30', '2 versendet'],
   ['+60 Tage', 'Manueller Trigger Inkasso', '0'],
 ];
 
@@ -28,12 +28,12 @@ export default function FinancePage() {
       <Sidebar active="finance" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar title="Finanzmanagement" subtitle="Bexio · DATEV · automatische Mahnläufe" />
-        <div className="flex-1 px-8 py-7 flex flex-col gap-5 max-w-[1400px]">
+        <div className="flex-1 px-8 py-7 flex flex-col gap-5">
           <div className="flex gap-4">
-            <KpiCard label="OFFENE RECHNUNGEN" value="CHF 142'380" sub="23 Rechnungen" />
-            <KpiCard label="ÜBERFÄLLIG" value="CHF 18'920" sub="4 · Mahnstufe 1-2" valueColor="text-warning" />
-            <KpiCard label="EINGANG / WOCHE" value="CHF 87'440" sub="12 Zahlungen erhalten" valueColor="text-success" />
-            <KpiCard label="LIQUIDITÄT 30T" value="+CHF 240k" sub="Prognose Bexio + Cashflow" />
+            <KpiCard label="OFFENE RECHNUNGEN" value="€ 142.380" sub="23 Rechnungen" />
+            <KpiCard label="ÜBERFÄLLIG" value="€ 18.920" sub="4 · Mahnstufe 1-2" valueColor="text-warning" />
+            <KpiCard label="EINGANG / WOCHE" value="€ 87.440" sub="12 Zahlungen erhalten" valueColor="text-success" />
+            <KpiCard label="LIQUIDITÄT 30T" value="+€ 240k" sub="Prognose Bexio + Cashflow" />
           </div>
 
           <div className="flex gap-4">
