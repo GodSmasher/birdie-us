@@ -89,15 +89,23 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                 </p>
                 {project?.ready ? (
                   <a
-                    href={`/api/netzanmeldung/document?offerId=${project.offerId}`}
+                    href={`/api/netzanmeldung/document?offerId=${project.offerId}&form=e2`}
                     className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs text-center"
                   >
-                    E.2 erzeugen ⤓
+                    E.2 Anmeldung erzeugen ⤓
                   </a>
                 ) : (
                   <button disabled className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs opacity-40 cursor-not-allowed">
                     E.2 erzeugen (Daten fehlen)
                   </button>
+                )}
+                {project?.battery && (
+                  <a
+                    href={`/api/netzanmeldung/document?offerId=${project.offerId}&form=e3`}
+                    className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-center"
+                  >
+                    E.3 Speicher erzeugen ⤓
+                  </a>
                 )}
               </div>
             </Card>

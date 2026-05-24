@@ -7,6 +7,14 @@ import { downloadDriveFile } from './google-server';
 import type { ProjectData } from './projektdaten';
 
 const E2_TEMPLATE_ID = process.env.VDE_E2_TEMPLATE_ID || '1chcs6b0Zp6PYXJxGviY4au2zCDqegxYE';
+const E3_TEMPLATE_ID = process.env.VDE_E3_TEMPLATE_ID || '1t_ErQV7Xj7NWmKvr2H_XTXE5gTEn4PpZ';
+
+// Installer (Errichter) — constant across all forms. Overridable via env.
+const INSTALLER = {
+  company: process.env.INSTALLER_COMPANY || 'Volta Energietechnik GmbH',
+  address: process.env.INSTALLER_ADDRESS || '',
+  contact: process.env.INSTALLER_CONTACT || '',
+};
 
 export async function fillE2(project: ProjectData, customerName: string): Promise<Uint8Array | null> {
   const bytes = await downloadDriveFile(E2_TEMPLATE_ID);
@@ -52,5 +60,37 @@ export async function fillE2(project: ProjectData, customerName: string): Promis
   } catch {
     /* appearances generated on save */
   }
+  return pdf.save();
+}
+
+// VDE-AR-N 4105 E.3 — Errichtungsbestätigung Stromspeicher (battery projects).
+export async function fillE3(project: ProjectData, customerName: string): Promise<Uint8Array | null> {
+  const bytes = await downloadDriveFile(E3_TEMPLATE_ID);
+  if (!bytes) return null;
+  const pdf = await PDFDocument.load(bytes);
+  const form = pdf.getForm();
+  const text = (name: string, val?: string) => {
+    if (!val) return;
+    try { form.getTextField(name).setText(val); } catch { /* absent */ }
+  };
+
+  // Anlagenanschrift
+  text('E3_Text1', customerName);
+  if (project.address) {
+    text('E3_Text2', project.address.line);
+    text('E3_Text3', [project.address.zip, project.address.city].filter(Boolean).join(' '));
+  }
+  // Errichter (Volta — konstant)
+  text('E3_Text4', INSTALLER.company);
+  text('E3_Text5', INSTALLER.address);
+  text('E3_Text6', INSTALLER.contact);
+  // Speichersystem
+  if (project.battery) {
+    text('E3_Text7', project.battery);
+    text('E3_Text8', '1');
+  }
+  if (project.batteryKwh) text('E3_Text9', String(project.batteryKwh).replace('.', ','));
+
+  try { form.updateFieldAppearances(); } catch { /* on save */ }
   return pdf.save();
 }

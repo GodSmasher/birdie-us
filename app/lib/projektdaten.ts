@@ -19,6 +19,7 @@ export interface ProjectData {
   moduleType?: string;
   inverter?: string;
   battery?: string;
+  batteryKwh?: number;
   annualKwh?: number;
   missing: string[];
   ready: boolean;
@@ -68,6 +69,8 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
     }
   }
   kwp = Math.round(kwp * 100) / 100;
+  const batMatch = battery ? /(\d+(?:[.,]\d+)?)\s*kwh/i.exec(battery) : null;
+  const batteryKwh = batMatch ? Number(batMatch[1].replace(',', '.')) : undefined;
 
   // Address + name from the linked contact
   let address: ProjectData['address'];
@@ -107,6 +110,7 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
     moduleType,
     inverter,
     battery,
+    batteryKwh,
     annualKwh,
     missing,
     ready: missing.length === 0,
