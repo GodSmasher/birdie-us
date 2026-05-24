@@ -65,9 +65,20 @@ export async function getEntities<T = unknown>(kind: string, slug = VOLTA_SLUG):
   if (!db) return [];
   const tid = await tenantId(slug);
   if (!tid) return [];
-  const { data, error } = await db.from('entities').select('data').eq('tenant_id', tid).eq('kind', kind).limit(5000);
-  if (error || !data) return [];
-  return data.map((r) => (r as { data: T }).data);
+  const out: T[] = [];
+  const pageSize = 1000; // PostgREST caps responses at 1000 rows → paginate
+  for (let from = 0; from < 20000; from += pageSize) {
+    const { data, error } = await db
+      .from('entities')
+      .select('data')
+      .eq('tenant_id', tid)
+      .eq('kind', kind)
+      .range(from, from + pageSize - 1);
+    if (error || !data || data.length === 0) break;
+    out.push(...data.map((r) => (r as { data: T }).data));
+    if (data.length < pageSize) break;
+  }
+  return out;
 }
 
 /** Append time-series readings. */
