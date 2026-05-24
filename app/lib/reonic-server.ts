@@ -89,6 +89,59 @@ interface RawOffer {
   customerNumber?: string;
   totalPlannedPrice?: number;
   lostReason?: string;
+  assignedToId?: string;
+  assignedTeamIds?: string[];
+}
+
+export interface SellerStat { name: string; wonCount: number; wonValue: number; openValue: number }
+
+async function fetchNameMap(
+  auth: NonNullable<ReturnType<typeof reonicAuth>>,
+  resource: 'users' | 'teams',
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  try {
+    for (let page = 1; page <= 3; page++) {
+      const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/${resource}?page=${page}`, {
+        headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' },
+        next: { revalidate: 600 },
+      });
+      if (!res.ok) break;
+      const data = (await res.json()) as Array<{ id: string; fullName?: string; name?: string }>;
+      const list = Array.isArray(data) ? data : [];
+      for (const item of list) map.set(item.id, item.fullName || item.name || '—');
+      if (list.length < 100) break;
+    }
+  } catch {
+    /* names stay unresolved */
+  }
+  return map;
+}
+
+function topStats(
+  offers: RawOffer[],
+  keyOf: (o: RawOffer) => string | undefined,
+  names: Map<string, string>,
+): SellerStat[] {
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  const m = new Map<string, SellerStat>();
+  for (const o of offers) {
+    const id = keyOf(o);
+    if (!id) continue;
+    const s = m.get(id) ?? { name: names.get(id) || '—', wonCount: 0, wonValue: 0, openValue: 0 };
+    if (o.state === 'Won') {
+      s.wonCount++;
+      s.wonValue += num(o.totalPlannedPrice);
+    } else if (o.state === 'Open') {
+      s.openValue += num(o.totalPlannedPrice);
+    }
+    m.set(id, s);
+  }
+  return [...m.values()]
+    .map((s) => ({ ...s, wonValue: Math.round(s.wonValue), openValue: Math.round(s.openValue) }))
+    .filter((s) => s.name !== '—' && (s.wonValue > 0 || s.openValue > 0))
+    .sort((a, b) => b.wonValue - a.wonValue || b.openValue - a.openValue)
+    .slice(0, 8);
 }
 
 function customerName(c: unknown, fallback?: string): string {
@@ -123,6 +176,8 @@ export interface Pipeline {
   wonValue: number;
   byStatus: { status: string; count: number }[];
   byType: { type: string; count: number }[];
+  bySeller: SellerStat[];
+  byTeam: SellerStat[];
   recent: OfferRow[];
 }
 
@@ -144,6 +199,7 @@ export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
       if (!data.hasNextPage || results.length === 0) break;
     }
 
+    const [userNames, teamNames] = await Promise.all([fetchNameMap(auth, 'users'), fetchNameMap(auth, 'teams')]);
     const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
     const open = all.filter((o) => o.state === 'Open');
     const won = all.filter((o) => o.state === 'Won');
@@ -168,6 +224,8 @@ export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
       wonValue: Math.round(won.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
       byStatus: countBy('status').slice(0, 10).map(({ k, count }) => ({ status: k, count })),
       byType: countBy('type').map(({ k, count }) => ({ type: k, count })),
+      bySeller: topStats(all, (o) => o.assignedToId, userNames),
+      byTeam: topStats(all, (o) => o.assignedTeamIds?.[0], teamNames),
       recent: all.slice(0, 40).map((o) => ({
         id: o.id,
         name: o.name || '—',
@@ -183,7 +241,7 @@ export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
   }
 
   function empty(): Pipeline {
-    return { configured: false, total: 0, open: 0, won: 0, lost: 0, pipelineValueOpen: 0, wonValue: 0, byStatus: [], byType: [], recent: [] };
+    return { configured: false, total: 0, open: 0, won: 0, lost: 0, pipelineValueOpen: 0, wonValue: 0, byStatus: [], byType: [], bySeller: [], byTeam: [], recent: [] };
   }
 }
 
