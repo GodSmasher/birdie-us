@@ -295,8 +295,9 @@ export async function getReonicDirectoryRaw(resource: 'users' | 'teams'): Promis
       headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
     });
     if (!res.ok) break;
-    const list = (await res.json()) as { id: string; fullName?: string; name?: string }[];
-    if (!Array.isArray(list)) break;
+    const json = (await res.json()) as unknown;
+    const list = (Array.isArray(json) ? json : ((json as { results?: unknown[] })?.results ?? [])) as { id: string; fullName?: string; name?: string }[];
+    if (list.length === 0) break;
     for (const item of list) out.push({ id: item.id, data: { id: item.id, name: item.fullName || item.name || '—' } });
     if (list.length < 100) break;
   }
