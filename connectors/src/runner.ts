@@ -33,6 +33,8 @@ function envConfig(id: string): Record<string, string> {
     sevdesk: { apiKey: e.SEVDESK_API_KEY },
     'google-calendar': { accessToken: e.GOOGLE_ACCESS_TOKEN, refreshToken: e.GOOGLE_REFRESH_TOKEN, clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET, calendarId: e.GOOGLE_CALENDAR_ID },
     gmail: { accessToken: e.GOOGLE_ACCESS_TOKEN, refreshToken: e.GOOGLE_REFRESH_TOKEN, clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET },
+    'google-drive': { accessToken: e.GOOGLE_ACCESS_TOKEN, refreshToken: e.GOOGLE_REFRESH_TOKEN, clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET, folderId: e.GOOGLE_DRIVE_FOLDER_ID },
+    whatsapp: { accessToken: e.WHATSAPP_TOKEN, phoneNumberId: e.WHATSAPP_PHONE_ID, wabaId: e.WHATSAPP_WABA_ID },
   };
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(map[id] ?? {})) if (v) out[k] = v;

@@ -8,9 +8,11 @@ import { reonic } from './connectors/reonic.js';
 import { sevdesk } from './connectors/sevdesk.js';
 import { googleCalendar } from './connectors/google-calendar.js';
 import { gmail } from './connectors/gmail.js';
+import { whatsapp } from './connectors/whatsapp.js';
+import { googleDrive } from './connectors/google-drive.js';
 
 // All implemented connectors. Add new adapters here.
-export const connectors: Connector[] = [awattar, tibber, solcast, openweathermap, ecoflow, reonic, sevdesk, googleCalendar, gmail];
+export const connectors: Connector[] = [awattar, tibber, solcast, openweathermap, ecoflow, reonic, sevdesk, googleCalendar, gmail, whatsapp, googleDrive];
 
 // Planned connectors — surfaced in manifests so the frontend can show a roadmap.
 export const plannedManifests: ConnectorManifest[] = [
@@ -23,7 +25,6 @@ export const plannedManifests: ConnectorManifest[] = [
   { id: 'bluetti', name: 'Bluetti', vendor: 'Bluetti', category: 'battery', regions: ['DE', 'AT', 'CH'], authType: 'token', protocol: 'MQTT (inoffiziell)', capabilities: ['read'], config: [], docsUrl: 'https://github.com/warhammerkid/bluetti_mqtt', status: 'planned' },
   { id: 'bexio', name: 'Bexio', vendor: 'Bexio AG', category: 'accounting', regions: ['CH'], authType: 'oauth2', protocol: 'REST + OAuth2', capabilities: ['read', 'write'], config: [], docsUrl: 'https://docs.bexio.com', status: 'planned' },
   { id: 'datev', name: 'DATEV', vendor: 'DATEV eG', category: 'accounting', regions: ['DE'], authType: 'oauth2', protocol: 'DATEVconnect (Partnerprogramm)', capabilities: ['read', 'write'], config: [], docsUrl: 'https://developer.datev.de', status: 'planned' },
-  { id: 'whatsapp', name: 'WhatsApp Business', vendor: 'Meta', category: 'comms', regions: ['DE', 'AT', 'CH'], authType: 'token', protocol: 'Cloud API + Webhook', capabilities: ['read', 'write', 'webhook'], config: [], docsUrl: 'https://developers.facebook.com/docs/whatsapp/cloud-api', status: 'planned' },
 ];
 
 export function getConnector(id: string): Connector | undefined {
