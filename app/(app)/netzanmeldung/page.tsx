@@ -63,6 +63,7 @@ export default async function NetzanmeldungPage() {
                               {r.dueDate && <span className={overdue(r) ? 'text-error' : ''}>bis {new Date(r.dueDate).toLocaleDateString('de-DE')}</span>}
                             </div>
                             <StageSelect offerId={r.offerId} status={r.status} />
+                            <a href={`/netzanmeldung/${r.offerId}`} className="text-[11px] font-medium text-accent self-end">Details & Check →</a>
                           </Card>
                         ))}
                       </div>
