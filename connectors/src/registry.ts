@@ -3,9 +3,10 @@ import { awattar } from './connectors/awattar.js';
 import { tibber } from './connectors/tibber.js';
 import { solcast } from './connectors/solcast.js';
 import { openweathermap } from './connectors/openweathermap.js';
+import { ecoflow } from './connectors/ecoflow.js';
 
 // All implemented connectors. Add new adapters here.
-export const connectors: Connector[] = [awattar, tibber, solcast, openweathermap];
+export const connectors: Connector[] = [awattar, tibber, solcast, openweathermap, ecoflow];
 
 // Planned connectors — surfaced in manifests so the frontend can show a roadmap.
 export const plannedManifests: ConnectorManifest[] = [
@@ -13,7 +14,6 @@ export const plannedManifests: ConnectorManifest[] = [
   { id: 'sma', name: 'SMA', vendor: 'SMA Solar', category: 'inverter', regions: ['DE', 'AT', 'CH'], authType: 'oauth2', protocol: 'ennexOS API / Modbus SunSpec', capabilities: ['read'], config: [], docsUrl: 'https://www.sma.de/en/products/monitoring-control', status: 'planned' },
   { id: 'kostal', name: 'Kostal', vendor: 'Kostal Solar', category: 'inverter', regions: ['DE', 'AT', 'CH'], authType: 'modbus', protocol: 'Modbus TCP (lokal)', capabilities: ['read'], config: [], docsUrl: 'https://www.kostal-solar-electric.com', status: 'planned' },
   { id: 'sungrow', name: 'Sungrow', vendor: 'Sungrow', category: 'inverter', regions: ['DE', 'AT', 'CH'], authType: 'apikey', protocol: 'iSolarCloud API / Modbus TCP', capabilities: ['read'], config: [], docsUrl: 'https://developer.isolarcloud.com', status: 'planned' },
-  { id: 'ecoflow', name: 'EcoFlow', vendor: 'EcoFlow', category: 'battery', regions: ['DE', 'AT', 'CH'], authType: 'apikey', protocol: 'IoT Developer API (REST + MQTT)', capabilities: ['read', 'write', 'realtime'], config: [], docsUrl: 'https://developer.ecoflow.com', status: 'planned' },
   { id: 'victron', name: 'Victron Energy', vendor: 'Victron', category: 'battery', regions: ['DE', 'AT', 'CH'], authType: 'token', protocol: 'VRM API / Modbus TCP / MQTT', capabilities: ['read', 'realtime'], config: [], docsUrl: 'https://vrm-api-docs.victronenergy.com', status: 'planned' },
   { id: 'anker-solix', name: 'Anker SOLIX', vendor: 'Anker', category: 'battery', regions: ['DE', 'AT', 'CH'], authType: 'token', protocol: 'Cloud (inoffiziell)', capabilities: ['read'], config: [], docsUrl: 'https://github.com/thomluther/anker-solix-api', status: 'planned' },
   { id: 'bluetti', name: 'Bluetti', vendor: 'Bluetti', category: 'battery', regions: ['DE', 'AT', 'CH'], authType: 'token', protocol: 'MQTT (inoffiziell)', capabilities: ['read'], config: [], docsUrl: 'https://github.com/warhammerkid/bluetti_mqtt', status: 'planned' },
