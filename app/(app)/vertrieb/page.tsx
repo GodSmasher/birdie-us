@@ -1,7 +1,8 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, KpiCard, Pill, Tag } from '@/components/ui';
-import { getReonicPipeline, getReonicLeads, type SellerStat } from '@/app/lib/reonic-server';
+import { type SellerStat } from '@/app/lib/reonic-server';
+import { loadPipeline, loadLeads } from '@/app/lib/reonic-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,9 @@ function StatTable({ title, rows }: { title: string; rows: SellerStat[] }) {
 }
 
 export default async function VertriebPage() {
-  const [p, leads] = await Promise.all([getReonicPipeline(), getReonicLeads()]);
+  const [pipe, leadsRes] = await Promise.all([loadPipeline(), loadLeads()]);
+  const p = pipe.data;
+  const leads = leadsRes.data;
   const configured = p.configured;
   const closeRate = p.won + p.lost > 0 ? Math.round((p.won / (p.won + p.lost)) * 100) : 0;
   const maxStatus = Math.max(1, ...p.byStatus.map((s) => s.count));

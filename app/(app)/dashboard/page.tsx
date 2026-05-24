@@ -1,7 +1,7 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
-import { getReonicDashboard, type ReonicDashboard } from '@/app/lib/reonic-server';
+import { loadDashboard, type DashboardData } from '@/app/lib/reonic-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,14 +14,14 @@ function fmtDate(iso: string): string {
 }
 
 export default async function DashboardPage() {
-  const data = await getReonicDashboard();
+  const data = await loadDashboard();
   return (
     <>
       <Sidebar active="dashboard" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar
           title="Guten Morgen, Sarah"
-          subtitle={data.configured ? 'Live aus Reonic · Volta' : 'Mittwoch · 20. Mai 2026'}
+          subtitle={data.configured ? `Volta · ${data.source === 'DB-Cache' ? 'aus DB-Cache' : 'live aus Reonic'}` : 'Mittwoch · 20. Mai 2026'}
         />
         {data.configured ? <RealDashboard data={data} /> : <MockDashboard />}
       </main>
@@ -29,8 +29,8 @@ export default async function DashboardPage() {
   );
 }
 
-// ============ REAL — Reonic live ============
-function RealDashboard({ data }: { data: ReonicDashboard }) {
+// ============ REAL — Reonic ============
+function RealDashboard({ data }: { data: DashboardData }) {
   const { pipeline: p, leads, events } = data;
   const closeRate = p.won + p.lost > 0 ? Math.round((p.won / (p.won + p.lost)) * 100) : 0;
   const maxStatus = Math.max(1, ...p.byStatus.map((s) => s.count));

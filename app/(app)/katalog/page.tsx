@@ -1,19 +1,11 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill, Tag } from '@/components/ui';
-import { getReonicCatalog, buildCatalog, type CatalogComponent } from '@/app/lib/reonic-server';
-import { getEntities } from '@/app/lib/db';
+import { loadCatalog } from '@/app/lib/reonic-data';
 
 export const dynamic = 'force-dynamic';
 
 const MAX_ROWS = 150;
-
-// Prefer the DB-synced catalog (fast, 1 query); fall back to live Reonic if empty.
-async function loadCatalog() {
-  const cached = await getEntities<CatalogComponent>('component');
-  if (cached.length) return { catalog: buildCatalog(cached), source: 'DB-Cache' as const };
-  return { catalog: await getReonicCatalog(), source: 'live' as const };
-}
 
 const euro = (n: number) =>
   n === 0 ? '—' : '€ ' + n.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -28,7 +20,7 @@ const typeTone: Record<string, 'success' | 'warning' | 'info' | 'accent' | 'purp
 };
 
 export default async function KatalogPage() {
-  const { catalog, source } = await loadCatalog();
+  const { data: catalog, source } = await loadCatalog();
 
   return (
     <>

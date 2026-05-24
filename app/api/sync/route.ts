@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { tenantId, upsertEntities, recordSyncRun } from '@/app/lib/db';
-import { getReonicCatalog, getReonicOffersRaw, getReonicContactsRaw } from '@/app/lib/reonic-server';
+import { getReonicCatalog, getReonicOffersRaw, getReonicContactsRaw, getReonicDirectoryRaw } from '@/app/lib/reonic-server';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -41,6 +41,10 @@ async function run(req: Request) {
     await sync('offer', async () => (await getReonicOffersRaw()).map((o) => ({ externalId: o.id, data: o.data })));
   if (resource === 'contacts' || resource === 'all')
     await sync('contact', async () => (await getReonicContactsRaw()).map((c) => ({ externalId: c.id, data: c.data })));
+  if (resource === 'directory' || resource === 'all') {
+    await sync('user', async () => (await getReonicDirectoryRaw('users')).map((u) => ({ externalId: u.id, data: u.data })));
+    await sync('team', async () => (await getReonicDirectoryRaw('teams')).map((t) => ({ externalId: t.id, data: t.data })));
+  }
 
   return NextResponse.json({ ok: true, tenant: 'volta', synced: results });
 }

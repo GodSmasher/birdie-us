@@ -79,7 +79,7 @@ function reonicAuth(): { apiKey: string; clientId: string; baseUrl: string } | n
   };
 }
 
-interface RawOffer {
+export interface RawOffer {
   id: string;
   name?: string;
   type?: string;
@@ -183,7 +183,7 @@ export interface Pipeline {
 
 export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
   const auth = reonicAuth();
-  if (!auth) return empty();
+  if (!auth) return emptyPipeline();
 
   try {
     const all: RawOffer[] = [];
@@ -192,7 +192,7 @@ export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
         headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' },
         next: { revalidate: 300 },
       });
-      if (!res.ok) return { ...empty(), configured: true, error: `Reonic HTTP ${res.status}` };
+      if (!res.ok) return { ...emptyPipeline(), configured: true, error: `Reonic HTTP ${res.status}` };
       const data = (await res.json()) as { results?: RawOffer[]; hasNextPage?: boolean };
       const results = data.results ?? [];
       all.push(...results);
@@ -200,49 +200,54 @@ export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
     }
 
     const [userNames, teamNames] = await Promise.all([fetchNameMap(auth, 'users'), fetchNameMap(auth, 'teams')]);
-    const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
-    const open = all.filter((o) => o.state === 'Open');
-    const won = all.filter((o) => o.state === 'Won');
-    const lost = all.filter((o) => o.state === 'Lost');
-
-    const countBy = (key: keyof RawOffer) => {
-      const m = new Map<string, number>();
-      for (const o of all) {
-        const k = (o[key] as string) || '—';
-        m.set(k, (m.get(k) ?? 0) + 1);
-      }
-      return [...m.entries()].map(([k, count]) => ({ k, count })).sort((a, b) => b.count - a.count);
-    };
-
-    return {
-      configured: true,
-      total: all.length,
-      open: open.length,
-      won: won.length,
-      lost: lost.length,
-      pipelineValueOpen: Math.round(open.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
-      wonValue: Math.round(won.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
-      byStatus: countBy('status').slice(0, 10).map(({ k, count }) => ({ status: k, count })),
-      byType: countBy('type').map(({ k, count }) => ({ type: k, count })),
-      bySeller: topStats(all, (o) => o.assignedToId, userNames),
-      byTeam: topStats(all, (o) => o.assignedTeamIds?.[0], teamNames),
-      recent: all.slice(0, 40).map((o) => ({
-        id: o.id,
-        name: o.name || '—',
-        customer: customerName(o.customer, o.customerNumber),
-        status: o.status || '—',
-        state: o.state || '—',
-        type: o.type || '—',
-        value: num(o.totalPlannedPrice),
-      })),
-    };
+    return buildPipeline(all, userNames, teamNames);
   } catch (e) {
-    return { ...empty(), configured: true, error: (e as Error).message };
+    return { ...emptyPipeline(), configured: true, error: (e as Error).message };
   }
+}
 
-  function empty(): Pipeline {
-    return { configured: false, total: 0, open: 0, won: 0, lost: 0, pipelineValueOpen: 0, wonValue: 0, byStatus: [], byType: [], bySeller: [], byTeam: [], recent: [] };
-  }
+export function emptyPipeline(): Pipeline {
+  return { configured: false, total: 0, open: 0, won: 0, lost: 0, pipelineValueOpen: 0, wonValue: 0, byStatus: [], byType: [], bySeller: [], byTeam: [], recent: [] };
+}
+
+/** Aggregate raw offers into the Pipeline view. Reused for live + DB-backed reads. */
+export function buildPipeline(all: RawOffer[], userNames: Map<string, string>, teamNames: Map<string, string>): Pipeline {
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  const open = all.filter((o) => o.state === 'Open');
+  const won = all.filter((o) => o.state === 'Won');
+  const lost = all.filter((o) => o.state === 'Lost');
+
+  const countBy = (key: keyof RawOffer) => {
+    const m = new Map<string, number>();
+    for (const o of all) {
+      const k = (o[key] as string) || '—';
+      m.set(k, (m.get(k) ?? 0) + 1);
+    }
+    return [...m.entries()].map(([k, count]) => ({ k, count })).sort((a, b) => b.count - a.count);
+  };
+
+  return {
+    configured: true,
+    total: all.length,
+    open: open.length,
+    won: won.length,
+    lost: lost.length,
+    pipelineValueOpen: Math.round(open.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
+    wonValue: Math.round(won.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
+    byStatus: countBy('status').slice(0, 10).map(({ k, count }) => ({ status: k, count })),
+    byType: countBy('type').map(({ k, count }) => ({ type: k, count })),
+    bySeller: topStats(all, (o) => o.assignedToId, userNames),
+    byTeam: topStats(all, (o) => o.assignedTeamIds?.[0], teamNames),
+    recent: all.slice(0, 40).map((o) => ({
+      id: o.id,
+      name: o.name || '—',
+      customer: customerName(o.customer, o.customerNumber),
+      status: o.status || '—',
+      state: o.state || '—',
+      type: o.type || '—',
+      value: num(o.totalPlannedPrice),
+    })),
+  };
 }
 
 // ---------------- Raw fetchers (for DB sync) ----------------
@@ -281,9 +286,26 @@ export async function getReonicContactsRaw(maxPages = 12): Promise<{ id: string;
   return all;
 }
 
+export async function getReonicDirectoryRaw(resource: 'users' | 'teams'): Promise<{ id: string; data: unknown }[]> {
+  const auth = reonicAuth();
+  if (!auth) return [];
+  const out: { id: string; data: unknown }[] = [];
+  for (let page = 1; page <= 3; page++) {
+    const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/${resource}?page=${page}`, {
+      headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
+    });
+    if (!res.ok) break;
+    const list = (await res.json()) as { id: string; fullName?: string; name?: string }[];
+    if (!Array.isArray(list)) break;
+    for (const item of list) out.push({ id: item.id, data: { id: item.id, name: item.fullName || item.name || '—' } });
+    if (list.length < 100) break;
+  }
+  return out;
+}
+
 // ---------------- Leads (contacts) ----------------
 
-interface RawContact {
+export interface RawContact {
   id: string; firstName?: string; lastName?: string; city?: string;
   utmSource?: string; createdAt?: string;
 }
@@ -317,27 +339,32 @@ export async function getReonicLeads(maxPages = 8): Promise<Leads> {
       if (page === maxPages) capped = true;
     }
 
-    const m = new Map<string, number>();
-    for (const c of all) {
-      const s = c.utmSource?.trim() || 'Direkt';
-      m.set(s, (m.get(s) ?? 0) + 1);
-    }
-    const bySource = [...m.entries()].map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count);
-
-    const recent = [...all]
-      .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
-      .slice(0, 6)
-      .map((c) => ({
-        name: [c.firstName, c.lastName].filter(Boolean).join(' ').trim() || '—',
-        source: c.utmSource?.trim() || 'Direkt',
-        city: c.city,
-        createdAt: c.createdAt,
-      }));
-
-    return { configured: true, total: all.length, capped, bySource, recent };
+    return buildLeads(all, capped);
   } catch {
     return { ...base, configured: true };
   }
+}
+
+/** Aggregate raw contacts into the Leads view. Reused for live + DB-backed reads. */
+export function buildLeads(all: RawContact[], capped = false): Leads {
+  const m = new Map<string, number>();
+  for (const c of all) {
+    const s = c.utmSource?.trim() || 'Direkt';
+    m.set(s, (m.get(s) ?? 0) + 1);
+  }
+  const bySource = [...m.entries()].map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count);
+
+  const recent = [...all]
+    .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+    .slice(0, 6)
+    .map((c) => ({
+      name: [c.firstName, c.lastName].filter(Boolean).join(' ').trim() || '—',
+      source: c.utmSource?.trim() || 'Direkt',
+      city: c.city,
+      createdAt: c.createdAt,
+    }));
+
+  return { configured: true, total: all.length, capped, bySource, recent };
 }
 
 // ---------------- Upcoming appointments ----------------
