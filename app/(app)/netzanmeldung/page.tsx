@@ -1,0 +1,78 @@
+import { Sidebar } from '@/components/sidebar';
+import { TopBar } from '@/components/topbar';
+import { Card, KpiCard, Pill } from '@/components/ui';
+import { StageSelect } from '@/components/stage-select';
+import { getRegistrations, STAGES, type StageId } from '@/app/lib/netzanmeldung';
+
+export const dynamic = 'force-dynamic';
+
+const euro = (n: number) => (n > 0 ? '€ ' + Math.round(n).toLocaleString('de-DE') : '—');
+const overdue = (r: { status: StageId; dueDate?: string }) =>
+  r.status === 'mastr' && !!r.dueDate && Date.parse(r.dueDate) < Date.now();
+
+export default async function NetzanmeldungPage() {
+  const regs = await getRegistrations();
+  const byStage = (id: StageId) => regs.filter((r) => r.status === id);
+  const open = regs.filter((r) => r.status !== 'abschluss').length;
+  const done = regs.filter((r) => r.status === 'abschluss').length;
+  const overdueCount = regs.filter(overdue).length;
+
+  return (
+    <>
+      <Sidebar active="netzanmeldung" />
+      <main className="flex-1 min-w-0 flex flex-col bg-bg">
+        <TopBar title="Netzanmeldung" subtitle={`${regs.length} Anlagen · Status-Tracking · MaStR & Netzbetreiber`} />
+        <div className="flex-1 px-8 py-7 flex flex-col gap-6">
+          {regs.length === 0 ? (
+            <Card className="p-8 text-center text-sm text-fg3 max-w-[620px] mx-auto mt-8">
+              Noch keine Netzanmeldungen. Sie werden automatisch aus gewonnenen Reonic-Projekten angelegt
+              (Sync · <code className="text-accent">/api/sync?resource=registrations</code>).
+            </Card>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-4">
+                <KpiCard label="IN BEARBEITUNG" value={String(open)} sub="laufende Anmeldungen" />
+                <KpiCard label="MaStR ÜBERFÄLLIG" value={String(overdueCount)} sub="Frist 1 Monat überschritten" valueColor={overdueCount > 0 ? 'text-error' : 'text-fg'} />
+                <KpiCard label="ABGESCHLOSSEN" value={String(done)} sub="vollständig gemeldet" valueColor="text-success" />
+                <KpiCard label="GESAMT" value={String(regs.length)} sub="aus gewonnenen Projekten" />
+              </div>
+
+              <div className="flex gap-4 items-start overflow-x-auto pb-2">
+                {STAGES.map((stage) => {
+                  const items = byStage(stage.id);
+                  return (
+                    <div key={stage.id} className="w-[260px] shrink-0 flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-[13px] text-fg">{stage.label}</h3>
+                        <span className="text-[11px] text-fg3">{items.length}</span>
+                      </div>
+                      <p className="text-[11px] text-fg3 -mt-2">{stage.desc}</p>
+                      <div className="flex flex-col gap-2">
+                        {items.length === 0 && (
+                          <div className="border border-dashed border-line rounded-lg py-6 text-center text-[11px] text-fg4">leer</div>
+                        )}
+                        {items.map((r) => (
+                          <Card key={r.offerId} className="p-3 flex flex-col gap-2">
+                            <div className="flex items-start gap-2">
+                              <span className="text-[13px] font-medium text-fg leading-tight truncate flex-1">{r.customer}</span>
+                              {overdue(r) && <Pill label="FRIST" tone="error" dot={false} />}
+                            </div>
+                            <div className="flex items-center justify-between text-[11px] text-fg3">
+                              <span>{euro(r.value)}</span>
+                              {r.dueDate && <span className={overdue(r) ? 'text-error' : ''}>bis {new Date(r.dueDate).toLocaleDateString('de-DE')}</span>}
+                            </div>
+                            <StageSelect offerId={r.offerId} status={r.status} />
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </main>
+    </>
+  );
+}

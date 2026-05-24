@@ -45,6 +45,16 @@ export default async function EinstellungenPage() {
             </div>
           </Card>
 
+          <Card className="p-5 flex flex-col gap-3">
+            <div className="flex items-center">
+              <h3 className="font-semibold text-[13px] text-fg">Dateien & Wissen</h3>
+              <Link href="/dateien" className="ml-auto text-[11px] font-medium text-accent">Öffnen →</Link>
+            </div>
+            <p className="text-xs text-fg2 leading-[18px]">
+              Eure Drive-Ablage pro Bereich — Anleitungen, Dienstanweisungen, Belege. Direkt aus .birdie durchblätterbar.
+            </p>
+          </Card>
+
           <Card className="p-5 flex flex-col gap-4">
             <h3 className="font-semibold text-[13px] text-fg">Sicherheit</h3>
             <div className="flex flex-col gap-2.5">

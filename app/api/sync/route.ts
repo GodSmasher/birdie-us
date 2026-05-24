@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { tenantId, upsertEntities, recordSyncRun } from '@/app/lib/db';
 import { getReonicCatalog, getReonicOffersRaw, getReonicContactsRaw, getReonicDirectoryRaw } from '@/app/lib/reonic-server';
+import { seedRegistrations } from '@/app/lib/netzanmeldung';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -44,6 +45,14 @@ async function run(req: Request) {
   if (resource === 'directory' || resource === 'all') {
     await sync('user', async () => (await getReonicDirectoryRaw('users')).map((u) => ({ externalId: u.id, data: u.data })));
     await sync('team', async () => (await getReonicDirectoryRaw('teams')).map((t) => ({ externalId: t.id, data: t.data })));
+  }
+
+  if (resource === 'registrations' || resource === 'all') {
+    try {
+      results.registration = await seedRegistrations();
+    } catch (e) {
+      results.registration = `error: ${(e as Error).message}`;
+    }
   }
 
   return NextResponse.json({ ok: true, tenant: 'volta', synced: results });

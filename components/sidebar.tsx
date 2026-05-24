@@ -3,16 +3,16 @@ import { Brand } from './ui';
 
 type NavKey =
   | 'dashboard' | 'anlagen' | 'vertrieb' | 'katalog' | 'postfach' | 'kalender'
-  | 'bots' | 'workflows' | 'connectors' | 'finance' | 'dateien' | 'team' | 'einstellungen' | 'support';
+  | 'bots' | 'workflows' | 'connectors' | 'finance' | 'netzanmeldung' | 'dateien' | 'team' | 'einstellungen' | 'support';
 
 const items: { label: string; icon: string; href: string; key: NavKey }[] = [
   { label: 'Dashboard', icon: '◇', href: '/dashboard', key: 'dashboard' },
   { label: 'Anlagen', icon: '☀', href: '/anlagen', key: 'anlagen' },
   { label: 'Vertrieb', icon: '↗', href: '/vertrieb', key: 'vertrieb' },
+  { label: 'Netzanmeldung', icon: '⚡', href: '/netzanmeldung', key: 'netzanmeldung' },
   { label: 'Katalog', icon: '▦', href: '/katalog', key: 'katalog' },
   { label: 'Postfach', icon: '✉', href: '/postfach', key: 'postfach' },
   { label: 'Kalender', icon: '◷', href: '/kalender', key: 'kalender' },
-  { label: 'Dateien', icon: '▤', href: '/dateien', key: 'dateien' },
   { label: 'Bots', icon: '◈', href: '/bots', key: 'bots' },
   { label: 'Workflows', icon: '→', href: '/workflows', key: 'workflows' },
   { label: 'Connectoren', icon: '⌘', href: '/connectors', key: 'connectors' },
