@@ -1,0 +1,17 @@
+{
+  "name": "@birdie/connectors",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Connector SDK + adapters for the .birdie platform (DACH solar & backoffice integrations)",
+  "scripts": {
+    "test:connector": "tsx src/runner.ts",
+    "manifests": "tsx src/manifests.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}
