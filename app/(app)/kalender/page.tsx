@@ -32,7 +32,7 @@ export default async function KalenderPage() {
       <Sidebar active="kalender" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar title="Kalender" subtitle={cal.configured && !cal.error ? `${cal.events.length} Termine aus ${cal.calendarCount} Kalendern · Google Workspace` : 'Google Workspace · Kalender'} />
-        <div className="flex-1 px-8 py-7 flex flex-col gap-6 max-w-[900px]">
+        <div className="flex-1 px-8 py-7 flex flex-col gap-4 max-w-[820px]">
           {!cal.configured && (
             <Card className="p-8 flex flex-col items-center text-center gap-4 max-w-[640px] mx-auto mt-8">
               <div className="w-12 h-12 rounded-xl bg-surface-2 flex items-center justify-center text-accent text-xl">◷</div>
@@ -54,7 +54,7 @@ export default async function KalenderPage() {
                 <Card key={day} className="overflow-hidden">
                   <CardHeader title={fmtDay(day)} right={<Pill label="LIVE" tone="success" />} />
                   {events.map((e, i) => (
-                    <div key={e.id} className={`flex items-center gap-4 px-5 py-3.5 hover:bg-surface-2/40 transition-colors ${i < events.length - 1 ? 'border-b border-line' : ''}`}>
+                    <div key={e.id} className={`flex items-center gap-4 px-5 py-2.5 hover:bg-surface-2/40 transition-colors ${i < events.length - 1 ? 'border-b border-line' : ''}`}>
                       <div className="w-[90px] shrink-0 text-xs font-medium text-fg2">{fmtTime(e)}</div>
                       <div className="min-w-0 flex-1 flex flex-col gap-0.5">
                         <span className="text-[13px] font-medium text-fg truncate">{e.title}</span>

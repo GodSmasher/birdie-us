@@ -11,11 +11,12 @@ const euro = (n: number) => (n === 0 ? '—' : '€ ' + n.toLocaleString('de-DE'
 const stateTone: Record<string, 'info' | 'success' | 'error' | 'neutral'> = { Open: 'info', Won: 'success', Lost: 'error' };
 const stateLabel: Record<string, string> = { Open: 'OFFEN', Won: 'GEWONNEN', Lost: 'VERLOREN' };
 
-function StatTable({ title, rows }: { title: string; rows: SellerStat[] }) {
+function StatTable({ title, rows, exportBase }: { title: string; rows: SellerStat[]; exportBase?: string }) {
   return (
     <Card className="flex-1 min-w-0 overflow-hidden">
       <div className="h-13 px-5 border-b border-line flex items-center" style={{ height: 52 }}>
         <h3 className="font-semibold text-sm text-fg">{title}</h3>
+        {exportBase && <span className="ml-auto text-[11px] text-fg3">Zeile klicken → CSV</span>}
       </div>
       <div className="grid grid-cols-[1fr_70px_110px_110px] bg-surface-2 h-9 items-center px-5 text-[10px] font-semibold text-fg3 tracking-[0.18em]">
         <span>NAME</span><span>GEW.</span><span>GEW. WERT</span><span>PIPELINE</span>
@@ -23,14 +24,26 @@ function StatTable({ title, rows }: { title: string; rows: SellerStat[] }) {
       {rows.length === 0 ? (
         <div className="px-5 py-8 text-center text-sm text-fg3">Keine Zuordnung</div>
       ) : (
-        rows.map((s, i) => (
-          <div key={s.name + i} className={`grid grid-cols-[1fr_70px_110px_110px] h-[44px] items-center px-5 hover:bg-surface-2/40 transition-colors ${i < rows.length - 1 ? 'border-b border-line' : ''}`}>
-            <span className="text-[13px] font-medium text-fg truncate pr-2">{s.name}</span>
-            <span className="text-xs text-fg2">{s.wonCount}</span>
-            <span className="text-[13px] font-semibold text-success">{euro(s.wonValue)}</span>
-            <span className="text-xs text-fg2">{euro(s.openValue)}</span>
-          </div>
-        ))
+        rows.map((s, i) => {
+          const cls = `grid grid-cols-[1fr_70px_110px_110px] h-[44px] items-center px-5 hover:bg-surface-2/40 transition-colors ${i < rows.length - 1 ? 'border-b border-line' : ''}`;
+          const cells = (
+            <>
+              <span className="text-[13px] font-medium text-fg truncate pr-2 flex items-center gap-1.5">
+                {s.name}{exportBase && <span className="text-fg4 text-[11px]">⤓</span>}
+              </span>
+              <span className="text-xs text-fg2">{s.wonCount}</span>
+              <span className="text-[13px] font-semibold text-success">{euro(s.wonValue)}</span>
+              <span className="text-xs text-fg2">{euro(s.openValue)}</span>
+            </>
+          );
+          return exportBase ? (
+            <a key={s.id} href={`${exportBase}?id=${encodeURIComponent(s.id)}`} className={cls} title={`CSV-Report für ${s.name}`}>
+              {cells}
+            </a>
+          ) : (
+            <div key={s.id} className={cls}>{cells}</div>
+          );
+        })
       )}
     </Card>
   );
@@ -85,7 +98,7 @@ export default async function VertriebPage() {
               {/* Team + Verkäufer Performance */}
               <div className="flex gap-4 items-start">
                 <StatTable title="Top Teams" rows={p.byTeam} />
-                <StatTable title="Top Verkäufer" rows={p.bySeller} />
+                <StatTable title="Top Verkäufer" rows={p.bySeller} exportBase="/api/export/seller" />
               </div>
 
               {/* Funnel + Lead sources */}

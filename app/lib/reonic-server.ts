@@ -93,7 +93,7 @@ export interface RawOffer {
   assignedTeamIds?: string[];
 }
 
-export interface SellerStat { name: string; wonCount: number; wonValue: number; openValue: number }
+export interface SellerStat { id: string; name: string; wonCount: number; wonValue: number; openValue: number }
 
 async function fetchNameMap(
   auth: NonNullable<ReturnType<typeof reonicAuth>>,
@@ -128,7 +128,7 @@ function topStats(
   for (const o of offers) {
     const id = keyOf(o);
     if (!id) continue;
-    const s = m.get(id) ?? { name: names.get(id) || '—', wonCount: 0, wonValue: 0, openValue: 0 };
+    const s = m.get(id) ?? { id, name: names.get(id) || '—', wonCount: 0, wonValue: 0, openValue: 0 };
     if (o.state === 'Won') {
       s.wonCount++;
       s.wonValue += num(o.totalPlannedPrice);
@@ -295,9 +295,16 @@ export async function getReonicDirectoryRaw(resource: 'users' | 'teams'): Promis
   });
   if (!res.ok) return [];
   const json = (await res.json()) as unknown;
-  const list = (Array.isArray(json) ? json : ((json as { results?: unknown[] })?.results ?? [])) as { id: string; fullName?: string; name?: string }[];
+  const list = (Array.isArray(json) ? json : ((json as { results?: unknown[] })?.results ?? [])) as {
+    id: string; fullName?: string; name?: string; email?: string; role?: string;
+  }[];
   const byId = new Map<string, { id: string; data: unknown }>();
-  for (const item of list) byId.set(item.id, { id: item.id, data: { id: item.id, name: item.fullName || item.name || '—' } });
+  for (const item of list) {
+    byId.set(item.id, {
+      id: item.id,
+      data: { id: item.id, name: item.fullName || item.name || '—', email: item.email, role: item.role },
+    });
+  }
   return [...byId.values()];
 }
 

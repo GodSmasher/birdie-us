@@ -132,7 +132,7 @@ export async function getGoogleCalendar(): Promise<CalendarView> {
     const batches = await Promise.all(
       calendars.slice(0, 25).map((c) => fetchEvents(token, c.id, timeMin, c.summary || c.id)),
     );
-    const events = batches.flat().sort((a, b) => Date.parse(a.start) - Date.parse(b.start)).slice(0, 60);
+    const events = batches.flat().sort((a, b) => Date.parse(a.start) - Date.parse(b.start)).slice(0, 24);
 
     return { configured: true, events, calendarCount: calendars.length };
   } catch (e) {

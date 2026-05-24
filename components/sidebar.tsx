@@ -3,7 +3,7 @@ import { Brand } from './ui';
 
 type NavKey =
   | 'dashboard' | 'anlagen' | 'vertrieb' | 'katalog' | 'postfach' | 'kalender'
-  | 'bots' | 'connectors' | 'finance' | 'workflows' | 'activity';
+  | 'bots' | 'workflows' | 'connectors' | 'finance' | 'team' | 'einstellungen' | 'support';
 
 const items: { label: string; icon: string; href: string; key: NavKey }[] = [
   { label: 'Dashboard', icon: '◇', href: '/dashboard', key: 'dashboard' },
@@ -13,15 +13,15 @@ const items: { label: string; icon: string; href: string; key: NavKey }[] = [
   { label: 'Postfach', icon: '✉', href: '/postfach', key: 'postfach' },
   { label: 'Kalender', icon: '◷', href: '/kalender', key: 'kalender' },
   { label: 'Bots', icon: '◈', href: '/bots', key: 'bots' },
+  { label: 'Workflows', icon: '→', href: '/workflows', key: 'workflows' },
   { label: 'Connectoren', icon: '⌘', href: '/connectors', key: 'connectors' },
   { label: 'Finanzen', icon: '₣', href: '/finance', key: 'finance' },
-  { label: 'Workflows', icon: '→', href: '/dashboard', key: 'workflows' },
 ];
 
-const accountItems = [
-  { label: 'Team', icon: '○' },
-  { label: 'Einstellungen', icon: '✱' },
-  { label: 'Support', icon: '?' },
+const accountItems: { label: string; icon: string; href: string; key: NavKey }[] = [
+  { label: 'Team', icon: '○', href: '/team', key: 'team' },
+  { label: 'Einstellungen', icon: '✱', href: '/einstellungen', key: 'einstellungen' },
+  { label: 'Support', icon: '?', href: '/support', key: 'support' },
 ];
 
 function NavItem({ label, icon, href, active }: { label: string; icon: string; href: string; active: boolean }) {
@@ -54,7 +54,7 @@ export function Sidebar({ active }: { active: NavKey }) {
       <p className="text-[10px] font-medium text-fg4 tracking-[0.16em] mb-2 mt-6">ACCOUNT</p>
       <nav className="flex flex-col gap-0.5">
         {accountItems.map((it) => (
-          <NavItem key={it.label} label={it.label} icon={it.icon} href="/dashboard" active={false} />
+          <NavItem key={it.label} label={it.label} icon={it.icon} href={it.href} active={it.key === active} />
         ))}
       </nav>
 
