@@ -27,7 +27,7 @@ async function accessToken(auth: GoogleAuth): Promise<string> {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
-    next: { revalidate: 1800 },
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Google OAuth ${res.status}`);
   const json = (await res.json()) as { access_token?: string };
@@ -229,6 +229,7 @@ export async function downloadDriveFile(fileId: string): Promise<Uint8Array | nu
     const token = await accessToken(auth);
     const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`, {
       headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
     });
     if (!res.ok) return null;
     return new Uint8Array(await res.arrayBuffer());
