@@ -13,8 +13,7 @@ export {
 } from './datanorm.js';
 export {
   reonicListComponents,
-  reonicCreateComponent,
-  reonicUpdateComponent,
-  reonicSyncDatanorm,
-  type ReonicComponent,
+  reonicExportDatanorm,
+  v2ToPayload,
+  type ReonicV2Component,
 } from './connectors/reonic.js';

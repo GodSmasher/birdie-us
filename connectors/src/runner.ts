@@ -28,6 +28,8 @@ function envConfig(id: string): Record<string, string> {
     tibber: { token: e.TIBBER_TOKEN },
     solcast: { apiKey: e.SOLCAST_API_KEY, resourceId: e.SOLCAST_RESOURCE_ID },
     openweathermap: { apiKey: e.OWM_API_KEY, lat: e.OWM_LAT, lon: e.OWM_LON },
+    reonic: { apiKey: e.REONIC_API_KEY, clientId: e.REONIC_CLIENT_ID, baseUrl: e.REONIC_BASE_URL },
+    ecoflow: { accessKey: e.ECOFLOW_ACCESS_KEY, secretKey: e.ECOFLOW_SECRET_KEY, host: e.ECOFLOW_HOST, sn: e.ECOFLOW_SN },
   };
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(map[id] ?? {})) if (v) out[k] = v;
