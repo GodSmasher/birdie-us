@@ -289,19 +289,16 @@ export async function getReonicContactsRaw(maxPages = 12): Promise<{ id: string;
 export async function getReonicDirectoryRaw(resource: 'users' | 'teams'): Promise<{ id: string; data: unknown }[]> {
   const auth = reonicAuth();
   if (!auth) return [];
-  const out: { id: string; data: unknown }[] = [];
-  for (let page = 1; page <= 3; page++) {
-    const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/${resource}?page=${page}`, {
-      headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
-    });
-    if (!res.ok) break;
-    const json = (await res.json()) as unknown;
-    const list = (Array.isArray(json) ? json : ((json as { results?: unknown[] })?.results ?? [])) as { id: string; fullName?: string; name?: string }[];
-    if (list.length === 0) break;
-    for (const item of list) out.push({ id: item.id, data: { id: item.id, name: item.fullName || item.name || '—' } });
-    if (list.length < 100) break;
-  }
-  return out;
+  // /users and /teams return the full list in one response (page is ignored).
+  const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/${resource}`, {
+    headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
+  });
+  if (!res.ok) return [];
+  const json = (await res.json()) as unknown;
+  const list = (Array.isArray(json) ? json : ((json as { results?: unknown[] })?.results ?? [])) as { id: string; fullName?: string; name?: string }[];
+  const byId = new Map<string, { id: string; data: unknown }>();
+  for (const item of list) byId.set(item.id, { id: item.id, data: { id: item.id, name: item.fullName || item.name || '—' } });
+  return [...byId.values()];
 }
 
 // ---------------- Leads (contacts) ----------------
