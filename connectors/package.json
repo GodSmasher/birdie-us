@@ -8,6 +8,7 @@
     "test:connector": "tsx src/runner.ts",
     "manifests": "tsx src/manifests.ts",
     "poll-demo": "tsx src/poll-demo.ts",
+    "datanorm-demo": "tsx src/datanorm-demo.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

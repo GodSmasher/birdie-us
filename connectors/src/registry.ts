@@ -4,9 +4,10 @@ import { tibber } from './connectors/tibber.js';
 import { solcast } from './connectors/solcast.js';
 import { openweathermap } from './connectors/openweathermap.js';
 import { ecoflow } from './connectors/ecoflow.js';
+import { reonic } from './connectors/reonic.js';
 
 // All implemented connectors. Add new adapters here.
-export const connectors: Connector[] = [awattar, tibber, solcast, openweathermap, ecoflow];
+export const connectors: Connector[] = [awattar, tibber, solcast, openweathermap, ecoflow, reonic];
 
 // Planned connectors — surfaced in manifests so the frontend can show a roadmap.
 export const plannedManifests: ConnectorManifest[] = [

@@ -22,6 +22,22 @@ The frontend renders the connector catalog from `allManifests()` — no hardcode
 | `tibber` | Tibber | Tarif | token | stable |
 | `solcast` | Solcast | Wetter/Prognose | apikey | stable |
 | `openweathermap` | OpenWeather | Wetter | apikey | stable |
+| `ecoflow` | EcoFlow | Speicher/WR | apikey (HMAC) | beta |
+| `reonic` | Reonic | CRM/ERP | token | beta |
+
+## DATANORM ⇄ Reonic bridge
+
+Reonic has no native DATANORM endpoint. `src/datanorm.ts` bridges the wholesale
+article standard (Krannich, BayWa r.e., Memodo …) to Reonic `components`:
+
+```bash
+npm run datanorm-demo   # parse → map to Reonic → export back (pure transform, no key)
+```
+
+- `parseDatanorm(text)` — DATANORM 4.0 Satzart "A" → article records
+- `articlesToComponents(...)` — map to Reonic component payloads
+- `componentsToDatanorm(...)` — export Reonic components back to DATANORM
+- `reonicSyncDatanorm(ctx, text, { dryRun })` — upsert into Reonic by articleNumber
 
 Planned (manifest only, see `registry.ts`): Fronius, SMA, Kostal, Sungrow, EcoFlow, Victron, Anker SOLIX, Bluetti, Bexio, sevDesk, DATEV, WhatsApp.
 
