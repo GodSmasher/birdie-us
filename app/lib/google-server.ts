@@ -194,3 +194,29 @@ export async function getDrive(folderId?: string): Promise<DriveView> {
     return { configured: true, error: (e as Error).message, folders: [], files: [] };
   }
 }
+
+/** Search Drive by filename (for the command palette). */
+export async function searchDrive(query: string): Promise<{ name: string; link?: string; type: string }[]> {
+  const auth = googleAuth();
+  if (!auth) return [];
+  const q = query.replace(/['"\\]/g, '').trim();
+  if (q.length < 2) return [];
+  try {
+    const token = await accessToken(auth);
+    const params = new URLSearchParams({
+      q: `name contains '${q}' and trashed=false`,
+      pageSize: '5',
+      fields: 'files(name,mimeType,webViewLink)',
+      orderBy: 'modifiedTime desc',
+    });
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const json = (await res.json()) as { files?: { name: string; mimeType: string; webViewLink?: string }[] };
+    return (json.files ?? []).map((f) => ({ name: f.name, link: f.webViewLink, type: driveType(f.mimeType) }));
+  } catch {
+    return [];
+  }
+}

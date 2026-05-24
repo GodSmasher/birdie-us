@@ -18,6 +18,7 @@ import {
   type CatalogComponent,
   type UpcomingEvent,
 } from './reonic-server';
+import { getGoogleCalendar } from './google-server';
 
 export type Source = 'DB-Cache' | 'live';
 
@@ -54,6 +55,22 @@ export interface DashboardData {
 }
 
 export async function loadDashboard(): Promise<DashboardData> {
-  const [pipe, leads, events] = await Promise.all([loadPipeline(), loadLeads(), getUpcomingEvents(8)]);
+  const [pipe, leads, gcal, reonicEvents] = await Promise.all([
+    loadPipeline(),
+    loadLeads(),
+    getGoogleCalendar(),
+    getUpcomingEvents(8),
+  ]);
+
+  // Prefer Google Calendar (all employee calendars); fall back to Reonic calendar.
+  const events: UpcomingEvent[] = gcal.events.length
+    ? gcal.events.slice(0, 8).map((e) => ({
+        id: e.id,
+        title: e.title,
+        start: e.start,
+        location: [e.location, e.owner?.split('@')[0]].filter(Boolean).join(' · ') || undefined,
+      }))
+    : reonicEvents;
+
   return { configured: pipe.data.configured, source: pipe.source, pipeline: pipe.data, leads: leads.data, events };
 }

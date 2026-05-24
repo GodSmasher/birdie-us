@@ -1,4 +1,5 @@
 import { getDb, tenantId } from '@/app/lib/db';
+import { searchDrive } from '@/app/lib/google-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,10 +20,11 @@ export async function GET(req: Request) {
 
   const base = () => db.from('entities').select('data').eq('tenant_id', tid);
 
-  const [offers, comps, contacts] = await Promise.all([
+  const [offers, comps, contacts, driveFiles] = await Promise.all([
     base().eq('kind', 'offer').ilike('data->>name', like).limit(5),
     base().eq('kind', 'component').ilike('data->>name', like).limit(5),
     base().eq('kind', 'contact').or(`data->>firstName.ilike.${star},data->>lastName.ilike.${star}`).limit(5),
+    searchDrive(q).catch(() => []),
   ]);
 
   for (const r of offers.data ?? []) {
@@ -37,6 +39,10 @@ export async function GET(req: Request) {
     const d = (r as { data: { firstName?: string; lastName?: string; city?: string } }).data;
     const name = [d.firstName, d.lastName].filter(Boolean).join(' ').trim() || 'Kontakt';
     results.push({ id: 'k' + results.length, label: d.city ? `${name} · ${d.city}` : name, category: 'Kontakt', icon: '◉', href: '/vertrieb' });
+  }
+
+  for (const f of driveFiles) {
+    results.push({ id: 'd' + results.length, label: f.name, category: `Datei · ${f.type}`, icon: '▤', href: f.link || '/dateien' });
   }
 
   return Response.json({ results });

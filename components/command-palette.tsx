@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { searchIndex, type SearchItem } from '@/lib/data';
 
-const groupOrder = ['Seite', 'Angebot', 'Kontakt', 'Artikel', 'Bot', 'Kunde', 'Rechnung', 'Aktion'];
+const groupOrder = ['Seite', 'Angebot', 'Kontakt', 'Artikel', 'Datei', 'Bot', 'Kunde', 'Rechnung', 'Aktion'];
 
 function groupOf(item: SearchItem) {
   return item.category.split(' ')[0];
@@ -17,6 +17,12 @@ export function CommandPalette() {
   const [dyn, setDyn] = useState<SearchItem[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  function go(href: string) {
+    setOpen(false);
+    if (/^https?:\/\//.test(href)) window.open(href, '_blank', 'noopener');
+    else router.push(href);
+  }
 
   // Live DB search (offers/contacts/components), debounced.
   useEffect(() => {
@@ -94,10 +100,7 @@ export function CommandPalette() {
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const item = flat[selected];
-      if (item) {
-        router.push(item.href);
-        setOpen(false);
-      }
+      if (item) go(item.href);
     }
   }
 
@@ -146,10 +149,7 @@ export function CommandPalette() {
                   <button
                     key={item.id}
                     onMouseEnter={() => setSelected(flat.indexOf(item))}
-                    onClick={() => {
-                      router.push(item.href);
-                      setOpen(false);
-                    }}
+                    onClick={() => go(item.href)}
                     className={`w-full flex items-center gap-3 px-4 h-10 text-left ${
                       active ? 'bg-surface-2' : 'hover:bg-surface-2/50'
                     }`}
