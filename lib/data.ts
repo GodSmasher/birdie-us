@@ -347,12 +347,362 @@ export type SearchItem = {
   href: string;
 };
 
+// ============ CONNECTORS (grouped, solar-vertical) ============
+export type ConnState = 'online' | 'warn' | 'paused';
+
+export type Connector = {
+  name: string;
+  letter: string;
+  protocol: string;
+  detail: string;
+  access: string;
+  sync: string;
+  state: ConnState;
+};
+
+export const connectorGroups: { group: string; desc: string; items: Connector[] }[] = [
+  {
+    group: 'Wechselrichter & Speicher',
+    desc: 'Live-Daten der verbauten Anlagen · Modbus TCP & Hersteller-Cloud',
+    items: [
+      { name: 'Fronius', letter: 'F', protocol: 'Modbus TCP', detail: 'Symo GEN24 · 3 Anlagen', access: 'lesen · steuern', sync: 'vor 30 Sek', state: 'online' },
+      { name: 'SMA', letter: 'SM', protocol: 'Modbus TCP', detail: 'Sunny Tripower · 5 Anlagen', access: 'lesen · steuern', sync: 'vor 45 Sek', state: 'online' },
+      { name: 'Kostal', letter: 'K', protocol: 'Modbus TCP', detail: 'Plenticore plus · 2 Anlagen', access: 'lesen · steuern', sync: 'vor 1 Min', state: 'online' },
+      { name: 'Sungrow', letter: 'SG', protocol: 'Modbus TCP', detail: 'SH10RT · 4 Anlagen', access: 'lesen · steuern', sync: 'vor 30 Sek', state: 'online' },
+      { name: 'EcoFlow', letter: 'E', protocol: 'Cloud API', detail: 'PowerOcean · 6 Anlagen', access: 'lesen · steuern', sync: 'vor 1 Min', state: 'online' },
+      { name: 'Anker SOLIX', letter: 'A', protocol: 'Cloud API', detail: 'X1 Hybrid · 2 Anlagen', access: 'lesen', sync: 'vor 8 Min', state: 'warn' },
+      { name: 'Victron Energy', letter: 'V', protocol: 'VRM API', detail: 'MultiPlus-II · 1 Anlage', access: 'lesen · steuern', sync: 'vor 2 Min', state: 'online' },
+      { name: 'Bluetti', letter: 'B', protocol: 'Cloud API', detail: 'EP900 · Setup läuft', access: '—', sync: '—', state: 'paused' },
+    ],
+  },
+  {
+    group: 'Dynamische Stromtarife',
+    desc: 'Stündliche Börsenpreise für Batterie- & Lastoptimierung',
+    items: [
+      { name: 'Tibber', letter: 'T', protocol: 'GraphQL API', detail: 'Echtzeitpreise · 12 Haushalte', access: 'lesen', sync: 'vor 5 Min', state: 'online' },
+      { name: 'aWATTar', letter: 'aW', protocol: 'REST API', detail: 'HOURLY-Tarif · 8 Haushalte', access: 'lesen', sync: 'vor 12 Min', state: 'online' },
+    ],
+  },
+  {
+    group: 'Wetter & Solarprognose',
+    desc: 'Ertragsprognose und Wetterdaten pro Standort',
+    items: [
+      { name: 'Solcast', letter: 'Sc', protocol: 'REST API', detail: 'PV-Ertragsprognose · stündlich', access: 'lesen', sync: 'vor 14 Min', state: 'online' },
+      { name: 'OpenWeatherMap', letter: 'O', protocol: 'REST API', detail: 'Wetterdaten · 15 verbaute Standorte', access: 'lesen', sync: 'vor 6 Min', state: 'online' },
+    ],
+  },
+  {
+    group: 'CRM, Buchhaltung & Kommunikation',
+    desc: 'Backoffice-Tools des Installateurs',
+    items: [
+      { name: 'Reonic CRM', letter: 'R', protocol: 'REST API', detail: 'Leads · Offerten · Projekte', access: 'lesen · schreiben', sync: 'vor 4 Min', state: 'online' },
+      { name: 'Bexio', letter: 'Bx', protocol: 'REST API', detail: 'Rechnungen · Buchhaltung', access: 'lesen · schreiben', sync: 'vor 12 Min', state: 'online' },
+      { name: 'Sevdesk', letter: 'Sv', protocol: 'REST API', detail: 'Buchhaltung', access: 'lesen · schreiben', sync: 'vor 18 Min', state: 'online' },
+      { name: 'Gmail (Sarah)', letter: 'G', protocol: 'OAuth', detail: 'Kommunikation', access: 'lesen · schreiben (Freigabe)', sync: 'vor 2 Min', state: 'online' },
+      { name: 'Google Calendar', letter: 'C', protocol: 'OAuth', detail: 'Termine & Beratungen', access: 'lesen · schreiben', sync: 'vor 8 Min', state: 'online' },
+      { name: 'WhatsApp Business', letter: 'W', protocol: 'Webhook', detail: 'Kundensupport', access: 'lesen · schreiben', sync: 'vor 1 Min', state: 'online' },
+      { name: 'DATEV', letter: 'D', protocol: 'DATEV Connect', detail: 'Lohnbüro · Export', access: 'lesen · schreiben', sync: '—', state: 'paused' },
+    ],
+  },
+];
+
+// ============ PV INSTALLATIONS (Anlagen) ============
+export type InstallState = 'online' | 'warn' | 'offline';
+
+export type Device = { name: string; brand: string; type: string; state: 'online' | 'warn' | 'offline'; detail: string };
+
+export type Installation = {
+  slug: string;
+  customer: string;
+  address: string;
+  type: 'Privat' | 'Gewerbe';
+  kwp: number;
+  inverterBrand: string;
+  inverter: string;
+  batteryBrand: string;
+  battery: string;
+  batteryKwh: number;
+  nowProduction: number; // kW
+  batterySoc: number; // %
+  selfConsumption: number; // %
+  state: InstallState;
+  flow: { solar: number; house: number; battery: number; grid: number }; // kW, battery + = laden, grid + = einspeisen
+  productionToday: number[]; // 24 hourly kW
+  yieldTodayKwh: number;
+  forecastTodayKwh: number;
+  forecastTomorrowKwh: number;
+  forecastConfidence: number; // %
+  tariff: { provider: string; nowPrice: number; trend: 'up' | 'down'; cheapWindow: string; recommendation: string };
+  devices: Device[];
+  events: { time: string; msg: string; kind: 'success' | 'info' | 'warning' | 'error' }[];
+};
+
+const curve = (peak: number): number[] => {
+  const shape = [0, 0, 0, 0, 0, 0.02, 0.08, 0.22, 0.42, 0.63, 0.81, 0.93, 1.0, 0.96, 0.87, 0.71, 0.52, 0.33, 0.16, 0.04, 0, 0, 0, 0];
+  return shape.map((s) => Math.round(s * peak * 10) / 10);
+};
+
+export const installations: Installation[] = [
+  {
+    slug: 'solar-berg',
+    customer: 'Solar Berg AG',
+    address: 'Industriestr. 12, Chur',
+    type: 'Gewerbe',
+    kwp: 99.6,
+    inverterBrand: 'SMA',
+    inverter: 'Sunny Tripower CORE2 ×3',
+    batteryBrand: 'EcoFlow',
+    battery: 'PowerOcean',
+    batteryKwh: 30,
+    nowProduction: 62.4,
+    batterySoc: 78,
+    selfConsumption: 84,
+    state: 'online',
+    flow: { solar: 62.4, house: 41.2, battery: 12.0, grid: 9.2 },
+    productionToday: curve(72),
+    yieldTodayKwh: 412,
+    forecastTodayKwh: 498,
+    forecastTomorrowKwh: 521,
+    forecastConfidence: 92,
+    tariff: { provider: 'Tibber', nowPrice: 18.4, trend: 'down', cheapWindow: '13:00–15:00', recommendation: 'Überschuss → Batterie laden, Einspeisung lohnt erst ab 16h' },
+    devices: [
+      { name: 'WR 1 — SMA STP CORE2', brand: 'SMA', type: 'Wechselrichter', state: 'online', detail: '21.4 kW · 712 V DC' },
+      { name: 'WR 2 — SMA STP CORE2', brand: 'SMA', type: 'Wechselrichter', state: 'online', detail: '20.8 kW · 698 V DC' },
+      { name: 'WR 3 — SMA STP CORE2', brand: 'SMA', type: 'Wechselrichter', state: 'online', detail: '20.2 kW · 705 V DC' },
+      { name: 'Speicher — EcoFlow PowerOcean', brand: 'EcoFlow', type: 'Batterie', state: 'online', detail: '30 kWh · 78% · lädt 12 kW' },
+      { name: 'Smart Meter — SMA Energy Meter', brand: 'SMA', type: 'Zähler', state: 'online', detail: 'Netzbezug 0 W' },
+    ],
+    events: [
+      { time: '12:14', msg: 'Batterie-Ladung gestartet (Überschuss + günstiger Tarif)', kind: 'success' },
+      { time: '09:02', msg: 'Tagesproduktion über Prognose (+4%)', kind: 'info' },
+      { time: '07:41', msg: 'WR 2 Reconnect nach Nacht-Standby', kind: 'info' },
+    ],
+  },
+  {
+    slug: 'huber',
+    customer: 'Familie Huber',
+    address: 'Bergweg 4, Davos',
+    type: 'Privat',
+    kwp: 12.4,
+    inverterBrand: 'Fronius',
+    inverter: 'Symo GEN24 10.0 Plus',
+    batteryBrand: 'BYD',
+    battery: 'HVS 10.2',
+    batteryKwh: 10.2,
+    nowProduction: 8.4,
+    batterySoc: 62,
+    selfConsumption: 71,
+    state: 'online',
+    flow: { solar: 8.4, house: 2.1, battery: 5.1, grid: 1.2 },
+    productionToday: curve(9.8),
+    yieldTodayKwh: 41,
+    forecastTodayKwh: 54,
+    forecastTomorrowKwh: 58,
+    forecastConfidence: 89,
+    tariff: { provider: 'Tibber', nowPrice: 18.4, trend: 'down', cheapWindow: '13:00–15:00', recommendation: 'Batterie fast voll — WP & Auto später laden wenn Preis < 15 ct' },
+    devices: [
+      { name: 'Wechselrichter — Fronius Symo GEN24', brand: 'Fronius', type: 'Wechselrichter', state: 'online', detail: '8.4 kW · 612 V DC' },
+      { name: 'Speicher — BYD HVS 10.2', brand: 'BYD', type: 'Batterie', state: 'online', detail: '10.2 kWh · 62% · lädt 5.1 kW' },
+      { name: 'Smart Meter — Fronius Smart Meter', brand: 'Fronius', type: 'Zähler', state: 'online', detail: 'Einspeisung 1.2 kW' },
+      { name: 'Wallbox — Fronius Wattpilot', brand: 'Fronius', type: 'Wallbox', state: 'online', detail: 'bereit · PV-Überschuss-Modus' },
+    ],
+    events: [
+      { time: '11:48', msg: 'PV-Überschuss → Wallbox in Bereitschaft', kind: 'info' },
+      { time: '08:12', msg: 'Batterie-Morgenladung abgeschlossen', kind: 'success' },
+    ],
+  },
+  {
+    slug: 'schmid',
+    customer: 'Schmid Energie',
+    address: 'Dorfstr. 88, Thusis',
+    type: 'Gewerbe',
+    kwp: 24.8,
+    inverterBrand: 'Sungrow',
+    inverter: 'SH10RT ×2',
+    batteryBrand: 'Anker SOLIX',
+    battery: 'X1 Hybrid',
+    batteryKwh: 16,
+    nowProduction: 18.1,
+    batterySoc: 91,
+    selfConsumption: 88,
+    state: 'online',
+    flow: { solar: 18.1, house: 6.4, battery: 3.2, grid: 8.5 },
+    productionToday: curve(20),
+    yieldTodayKwh: 118,
+    forecastTodayKwh: 142,
+    forecastTomorrowKwh: 138,
+    forecastConfidence: 90,
+    tariff: { provider: 'aWATTar', nowPrice: 16.9, trend: 'down', cheapWindow: '12:00–14:00', recommendation: 'Batterie fast voll → Einspeisung priorisieren' },
+    devices: [
+      { name: 'WR 1 — Sungrow SH10RT', brand: 'Sungrow', type: 'Wechselrichter', state: 'online', detail: '9.2 kW' },
+      { name: 'WR 2 — Sungrow SH10RT', brand: 'Sungrow', type: 'Wechselrichter', state: 'online', detail: '8.9 kW' },
+      { name: 'Speicher — Anker SOLIX X1', brand: 'Anker SOLIX', type: 'Batterie', state: 'warn', detail: '16 kWh · 91% · Firmware-Update verfügbar' },
+    ],
+    events: [
+      { time: '10:31', msg: 'Anker SOLIX: Firmware 2.4.1 verfügbar', kind: 'warning' },
+      { time: '06:58', msg: 'Anlage gestartet · Sonnenaufgang', kind: 'info' },
+    ],
+  },
+  {
+    slug: 'frey',
+    customer: 'Familie Frey',
+    address: 'Sonnenhalde 2, Klosters',
+    type: 'Privat',
+    kwp: 9.8,
+    inverterBrand: 'Kostal',
+    inverter: 'Plenticore plus 10',
+    batteryBrand: 'Victron',
+    battery: 'MultiPlus-II',
+    batteryKwh: 12,
+    nowProduction: 6.2,
+    batterySoc: 45,
+    selfConsumption: 64,
+    state: 'online',
+    flow: { solar: 6.2, house: 3.8, battery: 2.4, grid: 0 },
+    productionToday: curve(8),
+    yieldTodayKwh: 28,
+    forecastTodayKwh: 39,
+    forecastTomorrowKwh: 44,
+    forecastConfidence: 81,
+    tariff: { provider: 'Tibber', nowPrice: 18.4, trend: 'up', cheapWindow: '02:00–05:00', recommendation: 'Batterie nur 45% — heute Nacht günstig nachladen' },
+    devices: [
+      { name: 'Wechselrichter — Kostal Plenticore', brand: 'Kostal', type: 'Wechselrichter', state: 'online', detail: '6.2 kW' },
+      { name: 'Speicher — Victron MultiPlus-II', brand: 'Victron', type: 'Batterie', state: 'online', detail: '12 kWh · 45% · lädt 2.4 kW' },
+      { name: 'Cerbo GX', brand: 'Victron', type: 'Gateway', state: 'online', detail: 'VRM verbunden' },
+    ],
+    events: [
+      { time: '09:22', msg: 'Wolkendurchzug → Produktion -40% kurzzeitig', kind: 'info' },
+    ],
+  },
+  {
+    slug: 'egger',
+    customer: 'Egger Bauberatung',
+    address: 'Gewerbepark 5, Landquart',
+    type: 'Gewerbe',
+    kwp: 32,
+    inverterBrand: 'SMA',
+    inverter: 'Sunny Tripower ×2',
+    batteryBrand: 'EcoFlow',
+    battery: 'PowerOcean',
+    batteryKwh: 20,
+    nowProduction: 21.4,
+    batterySoc: 83,
+    selfConsumption: 79,
+    state: 'online',
+    flow: { solar: 21.4, house: 12.1, battery: 4.3, grid: 5.0 },
+    productionToday: curve(24),
+    yieldTodayKwh: 142,
+    forecastTodayKwh: 168,
+    forecastTomorrowKwh: 172,
+    forecastConfidence: 91,
+    tariff: { provider: 'Tibber', nowPrice: 18.4, trend: 'down', cheapWindow: '13:00–15:00', recommendation: 'Last-Verschiebung: Klimaanlage jetzt laufen lassen' },
+    devices: [
+      { name: 'WR 1 — SMA Sunny Tripower', brand: 'SMA', type: 'Wechselrichter', state: 'online', detail: '11.2 kW' },
+      { name: 'WR 2 — SMA Sunny Tripower', brand: 'SMA', type: 'Wechselrichter', state: 'online', detail: '10.2 kW' },
+      { name: 'Speicher — EcoFlow PowerOcean', brand: 'EcoFlow', type: 'Batterie', state: 'online', detail: '20 kWh · 83%' },
+    ],
+    events: [{ time: '08:45', msg: 'Eigenverbrauchsquote über Ziel (79% vs 75%)', kind: 'success' }],
+  },
+  {
+    slug: 'luethi',
+    customer: 'K. Lüthi',
+    address: 'Talstr. 19, Scuol',
+    type: 'Privat',
+    kwp: 8.2,
+    inverterBrand: 'Fronius',
+    inverter: 'Symo GEN24 8.0',
+    batteryBrand: 'BYD',
+    battery: 'HVS 7.7',
+    batteryKwh: 7.7,
+    nowProduction: 0,
+    batterySoc: 22,
+    selfConsumption: 0,
+    state: 'warn',
+    flow: { solar: 0, house: 1.8, battery: -1.8, grid: 0 },
+    productionToday: curve(0),
+    yieldTodayKwh: 0,
+    forecastTodayKwh: 34,
+    forecastTomorrowKwh: 41,
+    forecastConfidence: 76,
+    tariff: { provider: 'Tibber', nowPrice: 18.4, trend: 'up', cheapWindow: '02:00–05:00', recommendation: 'Anlage offline — Bezug aus Batterie, lädt sich nicht nach' },
+    devices: [
+      { name: 'Wechselrichter — Fronius Symo GEN24', brand: 'Fronius', type: 'Wechselrichter', state: 'offline', detail: 'keine Verbindung seit 11:02' },
+      { name: 'Speicher — BYD HVS 7.7', brand: 'BYD', type: 'Batterie', state: 'online', detail: '7.7 kWh · 22% · entlädt' },
+    ],
+    events: [
+      { time: '11:02', msg: 'Wechselrichter offline — Verbindung verloren', kind: 'error' },
+      { time: '11:03', msg: 'Service-Ticket automatisch erstellt · #SV-2291', kind: 'warning' },
+    ],
+  },
+  {
+    slug: 'locher',
+    customer: 'Bau Locher GmbH',
+    address: 'Werkhof 3, Igis',
+    type: 'Gewerbe',
+    kwp: 48,
+    inverterBrand: 'Sungrow',
+    inverter: 'SH10RT ×4',
+    batteryBrand: 'Anker SOLIX',
+    battery: 'X1 Hybrid ×2',
+    batteryKwh: 32,
+    nowProduction: 31.2,
+    batterySoc: 67,
+    selfConsumption: 81,
+    state: 'online',
+    flow: { solar: 31.2, house: 18.4, battery: 8.8, grid: 4.0 },
+    productionToday: curve(36),
+    yieldTodayKwh: 198,
+    forecastTodayKwh: 242,
+    forecastTomorrowKwh: 238,
+    forecastConfidence: 90,
+    tariff: { provider: 'aWATTar', nowPrice: 16.9, trend: 'down', cheapWindow: '12:00–14:00', recommendation: 'Maschinenpark jetzt auf PV-Strom fahren' },
+    devices: [
+      { name: 'WR-Cluster — Sungrow SH10RT ×4', brand: 'Sungrow', type: 'Wechselrichter', state: 'online', detail: '31.2 kW gesamt' },
+      { name: 'Speicher — Anker SOLIX X1 ×2', brand: 'Anker SOLIX', type: 'Batterie', state: 'online', detail: '32 kWh · 67%' },
+    ],
+    events: [{ time: '07:30', msg: 'Anlage gestartet · Produktion über Plan', kind: 'success' }],
+  },
+  {
+    slug: 'meier',
+    customer: 'Holzbau Meier',
+    address: 'Sägereistr. 7, Maienfeld',
+    type: 'Gewerbe',
+    kwp: 15.6,
+    inverterBrand: 'Kostal',
+    inverter: 'Plenticore plus 15',
+    batteryBrand: 'Bluetti',
+    battery: 'EP900',
+    batteryKwh: 19.8,
+    nowProduction: 11.8,
+    batterySoc: 55,
+    selfConsumption: 73,
+    state: 'online',
+    flow: { solar: 11.8, house: 7.2, battery: 3.1, grid: 1.5 },
+    productionToday: curve(13),
+    yieldTodayKwh: 72,
+    forecastTodayKwh: 88,
+    forecastTomorrowKwh: 84,
+    forecastConfidence: 87,
+    tariff: { provider: 'Tibber', nowPrice: 18.4, trend: 'down', cheapWindow: '13:00–15:00', recommendation: 'Absauganlage auf PV-Überschuss takten' },
+    devices: [
+      { name: 'Wechselrichter — Kostal Plenticore', brand: 'Kostal', type: 'Wechselrichter', state: 'online', detail: '11.8 kW' },
+      { name: 'Speicher — Bluetti EP900', brand: 'Bluetti', type: 'Batterie', state: 'online', detail: '19.8 kWh · 55%' },
+    ],
+    events: [{ time: '08:10', msg: 'Anlage gestartet', kind: 'info' }],
+  },
+];
+
+export function getInstallation(slug: string): Installation | undefined {
+  return installations.find((i) => i.slug === slug);
+}
+
 export const searchIndex: SearchItem[] = [
   { id: 'p-dash', label: 'Dashboard', category: 'Seite', icon: '◇', href: '/dashboard' },
   { id: 'p-bots', label: 'Bots', category: 'Seite', icon: '◈', href: '/bots' },
   { id: 'p-conn', label: 'Connectoren', category: 'Seite', icon: '⌘', href: '/connectors' },
   { id: 'p-fin', label: 'Finanzen', category: 'Seite', icon: '₣', href: '/finance' },
   ...bots.map((b) => ({ id: 'b-' + b.slug, label: b.name, category: 'Bot · ' + b.cat, icon: '◈', href: '/bots/' + b.slug })),
+  ...installations.map((i) => ({ id: 'a-' + i.slug, label: i.customer + ' · ' + i.kwp + ' kWp', category: 'Anlage · ' + i.inverterBrand, icon: '☀', href: '/anlagen/' + i.slug })),
   { id: 'k-huber', label: 'Familie Huber', category: 'Kunde', icon: '◉', href: '/finance' },
   { id: 'k-schmid', label: 'Schmid AG', category: 'Kunde', icon: '◉', href: '/finance' },
   { id: 'k-locher', label: 'Bau Locher GmbH', category: 'Kunde', icon: '◉', href: '/finance' },
