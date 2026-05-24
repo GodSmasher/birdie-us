@@ -4,6 +4,7 @@
 // Config also read from env: TIBBER_TOKEN, SOLCAST_API_KEY, SOLCAST_RESOURCE_ID, OWM_API_KEY, OWM_LAT, OWM_LON, AWATTAR_REGION
 
 import { getConnector, connectors } from './registry.js';
+import { createResilientFetch } from './http.js';
 import type { ConnectorContext } from './types.js';
 
 function parseArgs(argv: string[]): { id?: string; config: Record<string, string> } {
@@ -53,7 +54,7 @@ async function main() {
 
   const ctx: ConnectorContext = {
     config: { ...envConfig(id), ...config },
-    fetch: globalThis.fetch,
+    fetch: createResilientFetch({ retries: 3, timeoutMs: 10000 }),
     logger: (m) => console.log('  ' + m),
   };
 

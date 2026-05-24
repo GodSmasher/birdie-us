@@ -44,6 +44,33 @@ npm run test:connector -- openweathermap --apiKey=KEY --lat=46.85 --lon=9.53
 npm run manifests
 ```
 
+## Runtime — built for volume
+
+The SDK ships a polling runtime so the platform can fan out over many
+installations without overwhelming APIs or failing whole batches:
+
+- **`createResilientFetch(policy)`** — timeout (AbortController), retry with
+  exponential backoff + jitter, honors HTTP 429 / `Retry-After`. Injected as
+  `ctx.fetch`, so connectors stay dumb.
+- **`RateGate(minIntervalMs)`** — per-connector minimum-interval guard.
+- **`runBatch(jobs, opts)`** — concurrency-limited fan-out with per-job error
+  isolation (one failure never kills the batch).
+- **`toReadings(pull, meta)`** — flattens any pull into normalized `Reading`
+  rows (`metric`, `value`, `unit`, `ts`) ready for bulk-insert into a TSDB.
+
+```bash
+npm run poll-demo   # 21 live jobs → ~480 readings in ~1.5s, with one failure isolated
+```
+
+```ts
+import { runBatch, summarize } from '@birdie/connectors';
+const results = await runBatch(jobs, {
+  concurrency: 8,
+  retry: { retries: 3, timeoutMs: 10000 },
+  minIntervalMsPerConnector: 200,
+});
+```
+
 ## Adding a connector
 
 1. Create `src/connectors/<id>.ts` exporting a `Connector`.

@@ -7,6 +7,7 @@
   "scripts": {
     "test:connector": "tsx src/runner.ts",
     "manifests": "tsx src/manifests.ts",
+    "poll-demo": "tsx src/poll-demo.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
