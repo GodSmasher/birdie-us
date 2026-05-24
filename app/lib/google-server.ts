@@ -88,30 +88,54 @@ export async function getMailbox(): Promise<Mailbox> {
 
 // ---------------- Calendar ----------------
 
-export interface GCalEvent { id: string; title: string; start: string; end?: string; allDay: boolean; location?: string; attendees: number }
-export interface CalendarView { configured: boolean; error?: string; events: GCalEvent[] }
+export interface GCalEvent { id: string; title: string; start: string; end?: string; allDay: boolean; location?: string; attendees: number; owner?: string }
+export interface CalendarView { configured: boolean; error?: string; events: GCalEvent[]; calendarCount: number }
+
+interface RawCalEvent { id: string; summary?: string; location?: string; start?: { dateTime?: string; date?: string }; end?: { dateTime?: string; date?: string }; attendees?: unknown[] }
+
+async function fetchEvents(token: string, calId: string, timeMin: string, owner?: string): Promise<GCalEvent[]> {
+  const params = new URLSearchParams({ maxResults: '10', orderBy: 'startTime', singleEvents: 'true', timeMin });
+  const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    next: { revalidate: 120 },
+  });
+  if (!res.ok) return [];
+  const json = (await res.json()) as { items?: RawCalEvent[] };
+  return (json.items ?? []).map((e) => ({
+    id: e.id,
+    title: e.summary || 'Termin',
+    start: e.start?.dateTime || e.start?.date || '',
+    end: e.end?.dateTime || e.end?.date,
+    allDay: !e.start?.dateTime,
+    location: e.location,
+    attendees: Array.isArray(e.attendees) ? e.attendees.length : 0,
+    owner,
+  }));
+}
 
 export async function getGoogleCalendar(): Promise<CalendarView> {
   const auth = googleAuth();
-  if (!auth) return { configured: false, events: [] };
+  if (!auth) return { configured: false, events: [], calendarCount: 0 };
   try {
     const token = await accessToken(auth);
-    const cal = encodeURIComponent(auth.calendarId);
-    const params = new URLSearchParams({ maxResults: '25', orderBy: 'startTime', singleEvents: 'true', timeMin: new Date().toISOString() });
-    const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${cal}/events?${params}`, { headers: { Authorization: `Bearer ${token}` }, next: { revalidate: 120 } });
-    if (!res.ok) return { configured: true, error: `Calendar HTTP ${res.status}`, events: [] };
-    const json = (await res.json()) as { items?: { id: string; summary?: string; location?: string; start?: { dateTime?: string; date?: string }; end?: { dateTime?: string; date?: string }; attendees?: unknown[] }[] };
-    const events: GCalEvent[] = (json.items ?? []).map((e) => ({
-      id: e.id,
-      title: e.summary || 'Termin',
-      start: e.start?.dateTime || e.start?.date || '',
-      end: e.end?.dateTime || e.end?.date,
-      allDay: !e.start?.dateTime,
-      location: e.location,
-      attendees: Array.isArray(e.attendees) ? e.attendees.length : 0,
-    }));
-    return { configured: true, events };
+    const timeMin = new Date().toISOString();
+
+    // List all accessible calendars (employee calendars shared with this account).
+    const listRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=50', {
+      headers: { Authorization: `Bearer ${token}` },
+      next: { revalidate: 600 },
+    });
+    if (!listRes.ok) return { configured: true, error: `Calendar HTTP ${listRes.status}`, events: [], calendarCount: 0 };
+    const calendars = ((await listRes.json()) as { items?: { id: string; summary?: string }[] }).items ?? [];
+
+    // Aggregate upcoming events across up to 25 calendars.
+    const batches = await Promise.all(
+      calendars.slice(0, 25).map((c) => fetchEvents(token, c.id, timeMin, c.summary || c.id)),
+    );
+    const events = batches.flat().sort((a, b) => Date.parse(a.start) - Date.parse(b.start)).slice(0, 60);
+
+    return { configured: true, events, calendarCount: calendars.length };
   } catch (e) {
-    return { configured: true, error: (e as Error).message, events: [] };
+    return { configured: true, error: (e as Error).message, events: [], calendarCount: 0 };
   }
 }

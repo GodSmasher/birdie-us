@@ -31,7 +31,7 @@ export default async function KalenderPage() {
     <>
       <Sidebar active="kalender" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
-        <TopBar title="Kalender" subtitle={cal.configured && !cal.error ? `${cal.events.length} anstehende Termine · Google Workspace` : 'Google Workspace · Kalender'} />
+        <TopBar title="Kalender" subtitle={cal.configured && !cal.error ? `${cal.events.length} Termine aus ${cal.calendarCount} Kalendern · Google Workspace` : 'Google Workspace · Kalender'} />
         <div className="flex-1 px-8 py-7 flex flex-col gap-6 max-w-[900px]">
           {!cal.configured && (
             <Card className="p-8 flex flex-col items-center text-center gap-4 max-w-[640px] mx-auto mt-8">
@@ -64,6 +64,7 @@ export default async function KalenderPage() {
                           </span>
                         )}
                       </div>
+                      {e.owner && <span className="text-[11px] text-fg2 shrink-0 max-w-[180px] truncate">{e.owner.split('@')[0]}</span>}
                     </div>
                   ))}
                 </Card>
