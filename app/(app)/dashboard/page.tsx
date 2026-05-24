@@ -1,7 +1,105 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
+import { getReonicDashboard, type ReonicDashboard } from '@/app/lib/reonic-server';
 
+export const dynamic = 'force-dynamic';
+
+const euro = (n: number) => (n === 0 ? '—' : '€ ' + n.toLocaleString('de-DE', { maximumFractionDigits: 0 }));
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleString('de-DE', {
+    weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+  });
+}
+
+export default async function DashboardPage() {
+  const data = await getReonicDashboard();
+  return (
+    <>
+      <Sidebar active="dashboard" />
+      <main className="flex-1 min-w-0 flex flex-col bg-bg">
+        <TopBar
+          title="Guten Morgen, Sarah"
+          subtitle={data.configured ? 'Live aus Reonic · Volta' : 'Mittwoch · 20. Mai 2026'}
+        />
+        {data.configured ? <RealDashboard data={data} /> : <MockDashboard />}
+      </main>
+    </>
+  );
+}
+
+// ============ REAL — Reonic live ============
+function RealDashboard({ data }: { data: ReonicDashboard }) {
+  const { pipeline: p, leads, events } = data;
+  const closeRate = p.won + p.lost > 0 ? Math.round((p.won / (p.won + p.lost)) * 100) : 0;
+  const maxStatus = Math.max(1, ...p.byStatus.map((s) => s.count));
+  const maxSource = Math.max(1, ...leads.bySource.map((s) => s.count));
+
+  return (
+    <div className="flex-1 px-8 py-7 flex flex-col gap-6">
+      <div className="flex gap-4">
+        <KpiCard label="PIPELINE OFFEN" value={euro(p.pipelineValueOpen)} sub={`${p.open} offene Angebote`} />
+        <KpiCard label="GEWONNEN" value={euro(p.wonValue)} sub={`${p.won} Abschlüsse`} valueColor="text-success" />
+        <KpiCard label="ABSCHLUSSQUOTE" value={`${closeRate}%`} sub={`${p.won} gewonnen · ${p.lost} verloren`} valueColor={closeRate >= 30 ? 'text-success' : 'text-fg'} />
+        <KpiCard label="KONTAKTE" value={`${leads.total.toLocaleString('de-DE')}${leads.capped ? '+' : ''}`} sub="Leads & Kunden" />
+      </div>
+
+      <div className="flex gap-4 items-start">
+        {/* Upcoming appointments */}
+        <Card className="flex-1 min-w-0 overflow-hidden">
+          <CardHeader title="Anstehende Termine" right={<Pill label="LIVE" tone="success" />} />
+          {events.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-fg3">Keine anstehenden Termine</div>
+          ) : (
+            events.map((e, i) => (
+              <div key={e.id} className={`flex gap-3.5 px-5 py-3.5 ${i < events.length - 1 ? 'border-b border-line' : ''}`}>
+                <div className="shrink-0 w-9 h-9 rounded-lg bg-info-bg flex items-center justify-center text-info">◷</div>
+                <div className="min-w-0 flex flex-col gap-0.5">
+                  <span className="text-[13px] font-medium text-fg truncate">{e.title}</span>
+                  <span className="text-[11px] text-fg3">
+                    {fmtDate(e.start)}{e.location ? ` · ${e.location}` : ''}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </Card>
+
+        {/* Right column */}
+        <div className="w-[412px] shrink-0 flex flex-col gap-4">
+          <Card className="p-5 flex flex-col gap-3">
+            <h3 className="font-semibold text-[13px] text-fg">Pipeline nach Status</h3>
+            {p.byStatus.slice(0, 6).map((s) => (
+              <div key={s.status} className="flex items-center gap-3">
+                <span className="text-xs text-fg2 w-[150px] truncate" title={s.status}>{s.status}</span>
+                <div className="flex-1 h-2 rounded-full bg-surface-3 overflow-hidden">
+                  <div className="h-full rounded-full bg-accent" style={{ width: `${(s.count / maxStatus) * 100}%` }} />
+                </div>
+                <span className="text-xs font-medium text-fg w-8 text-right">{s.count}</span>
+              </div>
+            ))}
+          </Card>
+
+          <Card className="p-5 flex flex-col gap-3">
+            <h3 className="font-semibold text-[13px] text-fg">Lead-Quellen</h3>
+            {leads.bySource.slice(0, 6).map((s) => (
+              <div key={s.source} className="flex items-center gap-3">
+                <span className="text-xs text-fg2 w-[150px] truncate" title={s.source}>{s.source}</span>
+                <div className="flex-1 h-2 rounded-full bg-surface-3 overflow-hidden">
+                  <div className="h-full rounded-full bg-success" style={{ width: `${(s.count / maxSource) * 100}%` }} />
+                </div>
+                <span className="text-xs font-medium text-fg w-8 text-right">{s.count}</span>
+              </div>
+            ))}
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ MOCK — public demo fallback ============
 const activities = [
   ['10:42', 'Mahnbot', "3 Rechnungen mit Status 'überfällig' erkannt — Erinnerungsmails versendet", 'success'],
   ['10:38', 'Lead-Sync (Reonic)', '12 neue Leads importiert, 2 mit fehlender Telefonnummer markiert', 'info'],
@@ -9,85 +107,7 @@ const activities = [
   ['10:24', 'Bexio-Sync', "Rechnung #2026-0341 erstellt für 'Familie Huber' (€ 24.500)", 'info'],
   ['10:12', 'WhatsApp-Bot', '5 Kundenanfragen automatisch beantwortet · 1 an Sarah eskaliert', 'warning'],
   ['09:58', 'Call-Bot', '8 verpasste Anrufe erkannt — Rückruftermine vorgeschlagen', 'info'],
-  ['09:45', 'Mahnbot', 'Auto-Mahnstufe 2 für Rechnung #2026-0298 ausgelöst', 'warning'],
 ] as const;
-
-type DataTone = 'fg' | 'success' | 'warning' | 'error' | 'accent' | 'info';
-
-const connectorData: {
-  letter: string;
-  name: string;
-  category: string;
-  sync: string;
-  rows: { label: string; value: string; tone?: DataTone }[];
-}[] = [
-  {
-    letter: 'R',
-    name: 'Reonic CRM',
-    category: 'Vertrieb · Leads',
-    sync: 'vor 4 Min',
-    rows: [
-      { label: 'Neue Leads heute', value: '47', tone: 'success' },
-      { label: 'Offerten offen', value: '23' },
-      { label: 'Projekte aktiv', value: '8' },
-    ],
-  },
-  {
-    letter: 'B',
-    name: 'Bexio',
-    category: 'Buchhaltung',
-    sync: 'vor 12 Min',
-    rows: [
-      { label: 'Offene Rechnungen', value: '€ 142.380', tone: 'fg' },
-      { label: 'Davon überfällig', value: '4 · € 18.920', tone: 'warning' },
-      { label: 'Eingang diese Woche', value: '€ 87.440', tone: 'success' },
-    ],
-  },
-  {
-    letter: 'G',
-    name: 'Gmail',
-    category: 'Kommunikation',
-    sync: 'vor 2 Min',
-    rows: [
-      { label: 'Ungelesen', value: '87' },
-      { label: 'Wichtig · markiert', value: '23', tone: 'warning' },
-      { label: 'Ø Antwortzeit', value: '12 Min' },
-    ],
-  },
-  {
-    letter: 'C',
-    name: 'Google Calendar',
-    category: 'Termine',
-    sync: 'vor 8 Min',
-    rows: [
-      { label: 'Termine heute', value: '14' },
-      { label: 'Konflikte', value: '3', tone: 'error' },
-      { label: 'Nächster Termin', value: '14:30' },
-    ],
-  },
-  {
-    letter: 'W',
-    name: 'WhatsApp Business',
-    category: 'Messaging',
-    sync: 'vor 1 Min',
-    rows: [
-      { label: 'Ungelesen', value: '28' },
-      { label: 'Wartet auf Antwort', value: '5', tone: 'warning' },
-      { label: 'Ø Antwortzeit Bot', value: '4 Min', tone: 'success' },
-    ],
-  },
-  {
-    letter: 'S',
-    name: 'Sevdesk',
-    category: 'Buchhaltung',
-    sync: 'vor 15 Min',
-    rows: [
-      { label: 'Buchungen Mai', value: '156' },
-      { label: 'Noch ungebucht', value: '12', tone: 'warning' },
-      { label: 'DATEV-Export bereit', value: 'Ja', tone: 'success' },
-    ],
-  },
-];
 
 const toneBg: Record<string, string> = {
   success: 'bg-success-bg text-success',
@@ -96,137 +116,43 @@ const toneBg: Record<string, string> = {
   error: 'bg-error-bg text-error',
 };
 
-const toneText: Record<DataTone, string> = {
-  fg: 'text-fg',
-  success: 'text-success',
-  warning: 'text-warning',
-  error: 'text-error',
-  accent: 'text-accent',
-  info: 'text-info',
-};
-
-export default function DashboardPage() {
+function MockDashboard() {
   return (
-    <>
-      <Sidebar active="dashboard" />
-      <main className="flex-1 min-w-0 flex flex-col bg-bg">
-        <TopBar title="Guten Morgen, Sarah" subtitle="Mittwoch · 20. Mai 2026" />
-
-        <div className="flex-1 px-8 py-7 flex flex-col gap-6">
-          {/* Top KPIs */}
-          <div className="flex gap-4">
-            <KpiCard label="AKTIVE BOTS" value="12" sub="von 14 konfiguriert" delta="+2" spark={[10, 10, 11, 11, 12, 11, 12]} sparkColor="#4ADE80" />
-            <KpiCard label="HEUTE AUSGEFÜHRT" value="347" sub="ggü. gestern" delta="+18%" spark={[212, 238, 254, 271, 289, 294, 347]} sparkColor="#4ADE80" />
-            <KpiCard label="FEHLERQUOTE" value="0.4%" sub="letzte 24h" delta="−0.2%" spark={[1.1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]} sparkColor="#4ADE80" />
-            <KpiCard label="CONNECTOREN" value="8/8" sub="alle synchron" spark={[8, 8, 7, 8, 8, 8, 8]} sparkColor="#FACC15" />
-          </div>
-
-          {/* Datenübersicht — connector data snapshots */}
-          <section className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <h2 className="font-semibold text-sm text-fg tracking-tightest">Datenübersicht</h2>
-              <span className="text-[11px] text-fg3">aggregierte Kennzahlen aus allen verbundenen Tools</span>
-              <Pill label="LIVE" tone="success" />
-              <span className="ml-auto text-[11px] text-fg3">Auto-Refresh alle 60 Sek</span>
+    <div className="flex-1 px-8 py-7 flex flex-col gap-6">
+      <div className="flex gap-4">
+        <KpiCard label="AKTIVE BOTS" value="12" sub="von 14 konfiguriert" delta="+2" spark={[10, 10, 11, 11, 12, 11, 12]} sparkColor="#4ADE80" />
+        <KpiCard label="HEUTE AUSGEFÜHRT" value="347" sub="ggü. gestern" delta="+18%" spark={[212, 238, 254, 271, 289, 294, 347]} sparkColor="#4ADE80" />
+        <KpiCard label="FEHLERQUOTE" value="0.4%" sub="letzte 24h" delta="−0.2%" spark={[1.1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]} sparkColor="#4ADE80" />
+        <KpiCard label="CONNECTOREN" value="8/8" sub="alle synchron" spark={[8, 8, 7, 8, 8, 8, 8]} sparkColor="#FACC15" />
+      </div>
+      <div className="flex gap-4">
+        <Card className="flex-1 min-w-0 overflow-hidden">
+          <CardHeader title="Live-Aktivität" right={<Pill label="DEMO" tone="neutral" />} />
+          {activities.map(([time, bot, msg, kind], i) => (
+            <div key={i} className={`flex gap-3.5 px-5 py-3.5 ${i < activities.length - 1 ? 'border-b border-line' : ''}`}>
+              <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${toneBg[kind]}`}>✓</div>
+              <div className="min-w-0 flex flex-col gap-0.5">
+                <div className="flex items-center gap-2 text-[13px]">
+                  <span className="font-medium text-fg">{bot}</span>
+                  <span className="text-fg3">·</span>
+                  <span className="text-fg3">{time}</span>
+                </div>
+                <p className="text-xs text-fg2 leading-[18px]">{msg}</p>
+              </div>
             </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              {connectorData.map((c) => (
-                <div
-                  key={c.name}
-                  className="bg-surface border border-line rounded-xl p-5 flex flex-col gap-3.5"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-surface-3 flex items-center justify-center font-semibold text-[13px] text-fg">
-                      {c.letter}
-                    </div>
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="font-semibold text-[13px] text-fg leading-tight">{c.name}</span>
-                      <span className="text-[11px] text-fg3 leading-tight">{c.category}</span>
-                    </div>
-                    <div className="ml-auto flex items-center gap-1.5 shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                      <span className="text-[10px] text-fg3">{c.sync}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 border-t border-line pt-3">
-                    {c.rows.map((r) => (
-                      <div key={r.label} className="flex items-center">
-                        <span className="text-xs text-fg2">{r.label}</span>
-                        <span
-                          className={`ml-auto text-[13px] font-semibold ${toneText[r.tone ?? 'fg']}`}
-                        >
-                          {r.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Bottom row: Activity + Briefing */}
-          <div className="flex gap-4">
-            <Card className="flex-1 min-w-0 overflow-hidden">
-              <CardHeader title="Live-Aktivität" right={<Pill label="LIVE" tone="success" />} />
-              <div>
-                {activities.map(([time, bot, msg, kind], i) => (
-                  <div
-                    key={i}
-                    className={`flex gap-3.5 px-5 py-3.5 ${i < activities.length - 1 ? 'border-b border-line' : ''}`}
-                  >
-                    <div
-                      className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${toneBg[kind]}`}
-                    >
-                      ✓
-                    </div>
-                    <div className="min-w-0 flex flex-col gap-0.5">
-                      <div className="flex items-center gap-2 text-[13px]">
-                        <span className="font-medium text-fg">{bot}</span>
-                        <span className="text-fg3">·</span>
-                        <span className="text-fg3">{time}</span>
-                      </div>
-                      <p className="text-xs text-fg2 leading-[18px]">{msg}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="w-[412px] shrink-0 p-5 flex flex-col gap-3.5 self-start">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-accent-bg flex items-center justify-center text-accent font-bold text-sm">
-                  ✦
-                </div>
-                <h3 className="font-semibold text-[13px] text-fg">Tagesbriefing</h3>
-              </div>
-              <p className="text-xs text-fg2 leading-[18px]">
-                12 Aufgaben erledigt seit gestern. 3 Rechnungen brauchen deine Freigabe. Mahnstufe 2 wurde für Familie
-                Schmid ausgelöst — willst du persönlich nachfassen?
-              </p>
-              <div className="flex flex-col gap-2 mt-1 border-t border-line pt-3">
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="w-1 h-1 rounded-full bg-accent" />
-                  <span className="text-fg2">Reonic: 47 neue Leads heute (+12 vs. gestern)</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="w-1 h-1 rounded-full bg-accent" />
-                  <span className="text-fg2">Bexio: 4 überfällige Rechnungen, € 18.920</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="w-1 h-1 rounded-full bg-accent" />
-                  <span className="text-fg2">Calendar: 3 Terminkonflikte heute Nachmittag</span>
-                </div>
-              </div>
-              <button className="self-start inline-flex items-center gap-1.5 px-3.5 py-2 bg-accent text-bg rounded-lg font-medium text-xs mt-1">
-                Briefing öffnen <span className="font-bold">→</span>
-              </button>
-            </Card>
+          ))}
+        </Card>
+        <Card className="w-[412px] shrink-0 p-5 flex flex-col gap-3.5 self-start">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-accent-bg flex items-center justify-center text-accent font-bold text-sm">✦</div>
+            <h3 className="font-semibold text-[13px] text-fg">Demo-Modus</h3>
           </div>
-        </div>
-      </main>
-    </>
+          <p className="text-xs text-fg2 leading-[18px]">
+            Diese Ansicht zeigt Beispieldaten. Mit verbundenem Reonic-Connector erscheinen hier die echte Pipeline,
+            Lead-Quellen und anstehende Termine.
+          </p>
+        </Card>
+      </div>
+    </div>
   );
 }

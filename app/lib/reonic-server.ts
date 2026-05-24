@@ -187,6 +187,116 @@ export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
   }
 }
 
+// ---------------- Leads (contacts) ----------------
+
+interface RawContact {
+  id: string; firstName?: string; lastName?: string; city?: string;
+  utmSource?: string; createdAt?: string;
+}
+
+export interface Leads {
+  configured: boolean;
+  total: number;
+  capped: boolean;
+  bySource: { source: string; count: number }[];
+  recent: { name: string; source: string; city?: string; createdAt?: string }[];
+}
+
+export async function getReonicLeads(maxPages = 8): Promise<Leads> {
+  const auth = reonicAuth();
+  const base: Leads = { configured: false, total: 0, capped: false, bySource: [], recent: [] };
+  if (!auth) return base;
+
+  try {
+    const all: RawContact[] = [];
+    let capped = false;
+    for (let page = 1; page <= maxPages; page++) {
+      const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/contacts?page=${page}`, {
+        headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' },
+        next: { revalidate: 300 },
+      });
+      if (!res.ok) return { ...base, configured: true };
+      const data = (await res.json()) as RawContact[];
+      const list = Array.isArray(data) ? data : [];
+      all.push(...list);
+      if (list.length < 100) break;
+      if (page === maxPages) capped = true;
+    }
+
+    const m = new Map<string, number>();
+    for (const c of all) {
+      const s = c.utmSource?.trim() || 'Direkt';
+      m.set(s, (m.get(s) ?? 0) + 1);
+    }
+    const bySource = [...m.entries()].map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count);
+
+    const recent = [...all]
+      .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+      .slice(0, 6)
+      .map((c) => ({
+        name: [c.firstName, c.lastName].filter(Boolean).join(' ').trim() || '—',
+        source: c.utmSource?.trim() || 'Direkt',
+        city: c.city,
+        createdAt: c.createdAt,
+      }));
+
+    return { configured: true, total: all.length, capped, bySource, recent };
+  } catch {
+    return { ...base, configured: true };
+  }
+}
+
+// ---------------- Upcoming appointments ----------------
+
+interface RawEvent {
+  id: string; title?: string; titleForCustomer?: string; start?: string; end?: string; location?: string;
+}
+
+export interface UpcomingEvent { id: string; title: string; start: string; location?: string }
+
+export async function getUpcomingEvents(limit = 8): Promise<UpcomingEvent[]> {
+  const auth = reonicAuth();
+  if (!auth) return [];
+  try {
+    const nowIso = new Date().toISOString();
+    const url = `${auth.baseUrl}/clients/${auth.clientId}/calendar-events?sort=start&start.gt=${encodeURIComponent(nowIso)}&page=1`;
+    const res = await fetch(url, { headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = (await res.json()) as RawEvent[] | { results?: RawEvent[] };
+    const list = Array.isArray(data) ? data : (data.results ?? []);
+    const now = Date.now();
+    return list
+      .filter((e) => e.start && Date.parse(e.start) >= now)
+      .sort((a, b) => Date.parse(a.start!) - Date.parse(b.start!))
+      .slice(0, limit)
+      .map((e) => ({ id: e.id, title: e.titleForCustomer || e.title || 'Termin', start: e.start!, location: e.location }));
+  } catch {
+    return [];
+  }
+}
+
+// ---------------- Combined dashboard fetch ----------------
+
+export interface ReonicDashboard {
+  configured: boolean;
+  pipeline: Pipeline;
+  leads: Leads;
+  events: UpcomingEvent[];
+}
+
+export async function getReonicDashboard(): Promise<ReonicDashboard> {
+  if (!reonicAuth()) {
+    return {
+      configured: false,
+      pipeline: await getReonicPipeline(0),
+      leads: { configured: false, total: 0, capped: false, bySource: [], recent: [] },
+      events: [],
+    };
+  }
+  const [pipeline, leads, events] = await Promise.all([getReonicPipeline(10), getReonicLeads(8), getUpcomingEvents(8)]);
+  return { configured: true, pipeline, leads, events };
+}
+
 export async function getReonicCatalog(): Promise<Catalog> {
   const apiKey = process.env.REONIC_API_KEY;
   const clientId = process.env.REONIC_CLIENT_ID;
