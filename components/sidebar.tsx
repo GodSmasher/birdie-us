@@ -1,18 +1,21 @@
 import Link from 'next/link';
 import { Brand } from './ui';
 
-type NavKey = 'dashboard' | 'anlagen' | 'vertrieb' | 'katalog' | 'bots' | 'connectors' | 'finance' | 'workflows' | 'activity';
+type NavKey =
+  | 'dashboard' | 'anlagen' | 'vertrieb' | 'katalog' | 'postfach' | 'kalender'
+  | 'bots' | 'connectors' | 'finance' | 'workflows' | 'activity';
 
 const items: { label: string; icon: string; href: string; key: NavKey }[] = [
   { label: 'Dashboard', icon: '◇', href: '/dashboard', key: 'dashboard' },
   { label: 'Anlagen', icon: '☀', href: '/anlagen', key: 'anlagen' },
   { label: 'Vertrieb', icon: '↗', href: '/vertrieb', key: 'vertrieb' },
   { label: 'Katalog', icon: '▦', href: '/katalog', key: 'katalog' },
+  { label: 'Postfach', icon: '✉', href: '/postfach', key: 'postfach' },
+  { label: 'Kalender', icon: '◷', href: '/kalender', key: 'kalender' },
   { label: 'Bots', icon: '◈', href: '/bots', key: 'bots' },
   { label: 'Connectoren', icon: '⌘', href: '/connectors', key: 'connectors' },
   { label: 'Finanzen', icon: '₣', href: '/finance', key: 'finance' },
   { label: 'Workflows', icon: '→', href: '/dashboard', key: 'workflows' },
-  { label: 'Aktivität', icon: '≡', href: '/dashboard', key: 'activity' },
 ];
 
 const accountItems = [
