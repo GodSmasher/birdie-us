@@ -269,7 +269,7 @@ export async function getReonicOffersRaw(maxPages = 15): Promise<{ id: string; d
   return all;
 }
 
-export async function getReonicContactsRaw(maxPages = 12): Promise<{ id: string; data: unknown }[]> {
+export async function getReonicContactsRaw(maxPages = 60): Promise<{ id: string; data: unknown }[]> {
   const auth = reonicAuth();
   if (!auth) return [];
   const all: { id: string; data: unknown }[] = [];
