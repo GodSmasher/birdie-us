@@ -2,6 +2,7 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
 import { bots } from '@/lib/data';
+import { getConnectorStatuses } from '@/app/lib/connector-status';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,18 @@ const catLabel: Record<string, string> = {
   FIN: 'Finanzen', VTR: 'Vertrieb', KOM: 'Kommunikation', ALL: 'Allgemein', PRJ: 'Projekte',
 };
 
-export default function WorkflowsPage() {
+function syncAgo(iso?: string): string {
+  if (!iso) return '—';
+  const min = Math.round((Date.now() - Date.parse(iso)) / 60000);
+  if (Number.isNaN(min)) return '—';
+  if (min < 60) return `vor ${Math.max(1, min)} Min`;
+  const h = Math.round(min / 60);
+  return h < 24 ? `vor ${h} Std` : `vor ${Math.round(h / 24)} Tagen`;
+}
+
+export default async function WorkflowsPage() {
+  const { connected } = await getConnectorStatuses();
+  const reonic = connected.find((c) => c.id === 'reonic');
   // Group automations by category
   const groups = new Map<string, typeof bots>();
   for (const b of bots) {
@@ -30,6 +42,39 @@ export default function WorkflowsPage() {
               Workflows laufen isoliert pro Kunde (n8n). Sie verbinden deine Connectoren zu Automationen — Einrichtung &
               Änderung über .birdie.
             </span>
+          </div>
+
+          {reonic && (
+            <section className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <h2 className="font-semibold text-sm text-fg tracking-tightest">Aktiv (live)</h2>
+                <Pill label="LÄUFT" tone="success" />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-surface border border-line rounded-xl p-5 flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-success-bg flex items-center justify-center text-success">↻</div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-[13px] text-fg">Reonic-Sync</span>
+                      <span className="text-[11px] text-fg3">Cron · täglich 03:00</span>
+                    </div>
+                    <div className="ml-auto"><Pill label="LIVE" tone="success" /></div>
+                  </div>
+                  <p className="text-xs text-fg2 leading-[18px]">
+                    Zieht Angebote, Kontakte, Komponenten, Teams & Nutzer aus Reonic in die .birdie-Datenbank.
+                  </p>
+                  <div className="border-t border-line pt-2.5 flex items-center justify-between text-[11px] text-fg3">
+                    <span>{reonic.detail}</span>
+                    <span>Sync {syncAgo(reonic.lastSync)}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          <div className="flex items-center gap-3 pt-1">
+            <h2 className="font-semibold text-sm text-fg tracking-tightest">Verfügbare Automatisierungen</h2>
+            <Pill label="DEMO" tone="neutral" />
           </div>
 
           {[...groups.entries()].map(([cat, items]) => (

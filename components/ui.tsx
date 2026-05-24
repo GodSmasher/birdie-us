@@ -88,7 +88,7 @@ export function KpiCard({
   sparkColor?: string;
 }) {
   return (
-    <div className="flex-1 min-w-0 bg-surface border border-line rounded-xl p-5 flex flex-col gap-2">
+    <div className="flex-1 min-w-[180px] bg-surface border border-line rounded-xl p-5 flex flex-col gap-2">
       <div className="flex items-center">
         <span className="font-medium text-[10px] text-fg2 tracking-[0.16em]">{label}</span>
         {delta && (

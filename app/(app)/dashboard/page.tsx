@@ -13,15 +13,29 @@ function fmtDate(iso: string): string {
   });
 }
 
+function berlinHour(): number {
+  return Number(new Date().toLocaleString('en-US', { timeZone: 'Europe/Berlin', hour: '2-digit', hour12: false }));
+}
+function greeting(): string {
+  const h = berlinHour();
+  if (h < 5) return 'Gute Nacht';
+  if (h < 11) return 'Guten Morgen';
+  if (h < 18) return 'Guten Tag';
+  return 'Guten Abend';
+}
+
 export default async function DashboardPage() {
   const data = await loadDashboard();
+  const today = new Date().toLocaleDateString('de-DE', {
+    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Europe/Berlin',
+  });
   return (
     <>
       <Sidebar active="dashboard" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar
-          title="Guten Morgen, Sarah"
-          subtitle={data.configured ? `Volta · ${data.source === 'DB-Cache' ? 'aus DB-Cache' : 'live aus Reonic'}` : 'Mittwoch · 20. Mai 2026'}
+          title={`${greeting()}, Sarah`}
+          subtitle={data.configured ? `${today} · Volta · ${data.source === 'DB-Cache' ? 'aus DB-Cache' : 'live aus Reonic'}` : today}
         />
         {data.configured ? <RealDashboard data={data} /> : <MockDashboard />}
       </main>
@@ -38,7 +52,7 @@ function RealDashboard({ data }: { data: DashboardData }) {
 
   return (
     <div className="flex-1 px-8 py-7 flex flex-col gap-6">
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <KpiCard label="PIPELINE OFFEN" value={euro(p.pipelineValueOpen)} sub={`${p.open} offene Angebote`} />
         <KpiCard label="GEWONNEN" value={euro(p.wonValue)} sub={`${p.won} Abschlüsse`} valueColor="text-success" />
         <KpiCard label="ABSCHLUSSQUOTE" value={`${closeRate}%`} sub={`${p.won} gewonnen · ${p.lost} verloren`} valueColor={closeRate >= 30 ? 'text-success' : 'text-fg'} />
@@ -119,13 +133,13 @@ const toneBg: Record<string, string> = {
 function MockDashboard() {
   return (
     <div className="flex-1 px-8 py-7 flex flex-col gap-6">
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <KpiCard label="AKTIVE BOTS" value="12" sub="von 14 konfiguriert" delta="+2" spark={[10, 10, 11, 11, 12, 11, 12]} sparkColor="#4ADE80" />
         <KpiCard label="HEUTE AUSGEFÜHRT" value="347" sub="ggü. gestern" delta="+18%" spark={[212, 238, 254, 271, 289, 294, 347]} sparkColor="#4ADE80" />
         <KpiCard label="FEHLERQUOTE" value="0.4%" sub="letzte 24h" delta="−0.2%" spark={[1.1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]} sparkColor="#4ADE80" />
         <KpiCard label="CONNECTOREN" value="8/8" sub="alle synchron" spark={[8, 8, 7, 8, 8, 8, 8]} sparkColor="#FACC15" />
       </div>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <Card className="flex-1 min-w-0 overflow-hidden">
           <CardHeader title="Live-Aktivität" right={<Pill label="DEMO" tone="neutral" />} />
           {activities.map(([time, bot, msg, kind], i) => (

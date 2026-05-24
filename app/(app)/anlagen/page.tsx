@@ -29,7 +29,13 @@ export default function AnlagenPage() {
         />
 
         <div className="flex-1 px-8 py-7 flex flex-col gap-6">
-          <div className="flex gap-4">
+          <div className="bg-warning-bg/40 border border-warning/30 rounded-[10px] px-4 py-3 flex items-center gap-3">
+            <span className="w-6 h-6 rounded-md bg-warning-bg flex items-center justify-center text-warning text-xs font-bold shrink-0">!</span>
+            <span className="text-xs text-fg2">
+              <span className="font-medium text-fg">Demo-Daten.</span> Echte Anlagen-Telemetrie (Produktion, Batterie, Energiefluss) erscheint hier, sobald der EcoFlow-Connector verbunden ist.
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-4">
             <KpiCard label="LEISTUNG JETZT" value={`${totalNow.toFixed(1)} kW`} sub={`über ${installations.length} Anlagen`} spark={[88, 102, 124, 138, 149, 156, 159]} sparkColor="#FACC15" />
             <KpiCard label="ERTRAG HEUTE" value={`${(yieldToday / 1000).toFixed(2)} MWh`} sub="kumuliert" delta="+6%" spark={[0.4, 0.9, 1.4, 1.8, 2.2, 2.6, 3.0]} sparkColor="#4ADE80" />
             <KpiCard label="Ø EIGENVERBRAUCH" value={`${avgSelf}%`} sub="online-Anlagen" delta="+3%" spark={[71, 73, 74, 76, 77, 78, avgSelf]} sparkColor="#4ADE80" />

@@ -88,7 +88,7 @@ export default async function VertriebPage() {
 
           {configured && !p.error && (
             <>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 <KpiCard label="PIPELINE OFFEN" value={euro(p.pipelineValueOpen)} sub={`${p.open} offene Angebote`} />
                 <KpiCard label="GEWONNEN (WERT)" value={euro(p.wonValue)} sub={`${p.won} Abschlüsse`} valueColor="text-success" />
                 <KpiCard label="ABSCHLUSSQUOTE" value={`${closeRate}%`} sub={`${p.won} gewonnen · ${p.lost} verloren`} valueColor={closeRate >= 30 ? 'text-success' : 'text-fg'} />
@@ -96,8 +96,14 @@ export default async function VertriebPage() {
               </div>
 
               {/* Team + Verkäufer Performance */}
+              <div className="flex items-center">
+                <h2 className="font-semibold text-sm text-fg tracking-tightest">Team &amp; Verkäufer</h2>
+                <a href="/api/export/sellers" className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-2 border border-line rounded-lg text-xs font-medium text-fg hover:border-line-2">
+                  <span className="text-fg3">⤓</span> Gesamt-Report CSV
+                </a>
+              </div>
               <div className="flex gap-4 items-start">
-                <StatTable title="Top Teams" rows={p.byTeam} />
+                <StatTable title="Top Teams" rows={p.byTeam} exportBase="/api/export/team" />
                 <StatTable title="Top Verkäufer" rows={p.bySeller} exportBase="/api/export/seller" />
               </div>
 

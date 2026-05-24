@@ -77,7 +77,7 @@ export default async function KatalogPage() {
                   <span className="text-[11px] text-fg3">automatisch aus Artikeltext klassifiziert</span>
                   <Pill label="LIVE" tone="success" />
                 </div>
-                <div className="grid grid-cols-6 gap-3">
+                <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
                   {catalog.byType.slice(0, 12).map((t) => (
                     <div key={t.type} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-1">
                       <span className="text-[22px] font-semibold text-fg leading-none tracking-tightest">{t.count}</span>

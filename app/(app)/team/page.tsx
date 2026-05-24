@@ -29,7 +29,7 @@ export default async function TeamPage() {
             </Card>
           ) : (
             <>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 <KpiCard label="MITARBEITER" value={users.length.toLocaleString('de-DE')} sub="im CRM" />
                 <KpiCard label="TEAMS" value={teams.length.toLocaleString('de-DE')} sub="Vertrieb & Backoffice" />
                 <KpiCard label="QUELLE" value="Reonic" sub="live synchronisiert" />

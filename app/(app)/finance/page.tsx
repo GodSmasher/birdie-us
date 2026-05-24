@@ -35,7 +35,7 @@ function statusPill(i: { status: string; overdue: boolean }) {
 function RealFinance({ inv }: { inv: Invoices }) {
   return (
     <div className="flex-1 px-8 py-7 flex flex-col gap-6">
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <KpiCard label="OFFENE RECHNUNGEN" value={euro(inv.openSum)} sub={`${inv.openCount} Rechnungen`} />
         <KpiCard label="ÜBERFÄLLIG" value={euro(inv.overdueSum)} sub={`${inv.overdueCount} überfällig`} valueColor="text-warning" />
         <KpiCard label="BEZAHLT" value={euro(inv.paidSum)} sub={`${inv.paidCount} Rechnungen`} valueColor="text-success" />
@@ -86,13 +86,13 @@ const steps = [
 function MockFinance() {
   return (
     <div className="flex-1 px-8 py-7 flex flex-col gap-5">
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <KpiCard label="OFFENE RECHNUNGEN" value="€ 142.380" sub="23 Rechnungen" spark={[118, 124, 132, 128, 136, 140, 142]} sparkColor="#FACC15" />
         <KpiCard label="ÜBERFÄLLIG" value="€ 18.920" sub="4 · Mahnstufe 1-2" valueColor="text-warning" spark={[24, 22, 21, 19, 20, 19, 18]} sparkColor="#FBBF24" />
         <KpiCard label="EINGANG / WOCHE" value="€ 87.440" sub="12 Zahlungen erhalten" valueColor="text-success" spark={[42, 51, 58, 64, 72, 81, 87]} sparkColor="#4ADE80" />
         <KpiCard label="LIQUIDITÄT 30T" value="+€ 240k" sub="Prognose · Demo" spark={[180, 195, 210, 218, 225, 232, 240]} sparkColor="#4ADE80" />
       </div>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <Card className="flex-1 min-w-0 overflow-hidden">
           <CardHeader title="Offene Rechnungen" right={<Pill label="DEMO" tone="neutral" />} />
           <div className="grid grid-cols-[70px_1fr_120px_130px_140px] bg-surface-2 h-9 items-center px-5 text-[10px] font-semibold text-fg3 tracking-[0.18em]">

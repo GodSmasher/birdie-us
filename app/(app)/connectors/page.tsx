@@ -65,7 +65,7 @@ export default async function ConnectorsPage() {
               <Pill label="LIVE" tone="success" />
               <span className="text-[11px] text-fg3">{connected.length} aktive Verbindungen</span>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {connected.map((c) => <ConnectorCard key={c.id} c={c} />)}
             </div>
           </section>
@@ -75,7 +75,7 @@ export default async function ConnectorsPage() {
               <h2 className="font-semibold text-sm text-fg tracking-tightest">Verfügbar</h2>
               <span className="text-[11px] text-fg3">in Vorbereitung / auf Anfrage aktivierbar</span>
             </div>
-            <div className="grid grid-cols-4 gap-4 opacity-70">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 opacity-70">
               {available.map((c) => <ConnectorCard key={c.id} c={c} />)}
             </div>
           </section>

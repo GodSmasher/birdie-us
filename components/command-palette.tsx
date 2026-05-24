@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { searchIndex, type SearchItem } from '@/lib/data';
 
-const groupOrder = ['Seite', 'Bot', 'Kunde', 'Rechnung', 'Aktion'];
+const groupOrder = ['Seite', 'Angebot', 'Kontakt', 'Artikel', 'Bot', 'Kunde', 'Rechnung', 'Aktion'];
 
 function groupOf(item: SearchItem) {
   return item.category.split(' ')[0];
@@ -14,8 +14,29 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
+  const [dyn, setDyn] = useState<SearchItem[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Live DB search (offers/contacts/components), debounced.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setDyn([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        if (!res.ok) return;
+        const json = (await res.json()) as { results: SearchItem[] };
+        setDyn(json.results ?? []);
+      } catch {
+        setDyn([]);
+      }
+    }, 200);
+    return () => clearTimeout(t);
+  }, [query]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -50,9 +71,10 @@ export function CommandPalette() {
   }, []);
 
   const q = query.trim().toLowerCase();
-  const filtered = q
+  const staticMatches = q
     ? searchIndex.filter((i) => i.label.toLowerCase().includes(q) || i.category.toLowerCase().includes(q))
     : searchIndex;
+  const filtered = q ? [...staticMatches, ...dyn] : searchIndex;
 
   // Group ordering
   const grouped: { group: string; items: SearchItem[] }[] = [];
