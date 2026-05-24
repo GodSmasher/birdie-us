@@ -13,7 +13,8 @@ async function run(req: Request) {
   const url = new URL(req.url);
   const key = req.headers.get('x-sync-key') || url.searchParams.get('key');
   const secret = process.env.SYNC_SECRET || process.env.BIRDIE_ACCESS_PASSWORD;
-  if (!secret || key !== secret) return NextResponse.json({ ok: false, message: 'unauthorized' }, { status: 401 });
+  const cronOk = !!process.env.CRON_SECRET && req.headers.get('authorization') === `Bearer ${process.env.CRON_SECRET}`;
+  if (!cronOk && (!secret || key !== secret)) return NextResponse.json({ ok: false, message: 'unauthorized' }, { status: 401 });
 
   const tenant = await tenantId('volta');
   if (!tenant) return NextResponse.json({ ok: false, message: 'DB nicht erreichbar oder Migration fehlt' }, { status: 503 });

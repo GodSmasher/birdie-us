@@ -59,6 +59,17 @@ export async function upsertEntities(
   return error ? 0 : payload.length;
 }
 
+/** Read synced entities of a kind from the DB. Returns the stored `data` objects. */
+export async function getEntities<T = unknown>(kind: string, slug = VOLTA_SLUG): Promise<T[]> {
+  const db = getDb();
+  if (!db) return [];
+  const tid = await tenantId(slug);
+  if (!tid) return [];
+  const { data, error } = await db.from('entities').select('data').eq('tenant_id', tid).eq('kind', kind).limit(5000);
+  if (error || !data) return [];
+  return data.map((r) => (r as { data: T }).data);
+}
+
 /** Append time-series readings. */
 export async function insertReadings(tenant: string, readings: Reading[]): Promise<number> {
   const db = getDb();

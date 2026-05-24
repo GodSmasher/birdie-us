@@ -423,14 +423,18 @@ export async function getReonicCatalog(): Promise<Catalog> {
       };
     });
 
-    const counts = new Map<ComponentType, number>();
-    for (const c of components) counts.set(c.type, (counts.get(c.type) ?? 0) + 1);
-    const byType = [...counts.entries()]
-      .map(([type, count]) => ({ type, label: typeLabels[type], count }))
-      .sort((a, b) => b.count - a.count);
-
-    return { configured: true, total: components.length, byType, components };
+    return buildCatalog(components);
   } catch (e) {
     return { configured: true, total: 0, byType: [], components: [], error: (e as Error).message };
   }
+}
+
+/** Aggregate a component list into the Catalog view (reused for DB-backed reads). */
+export function buildCatalog(components: CatalogComponent[]): Catalog {
+  const counts = new Map<ComponentType, number>();
+  for (const c of components) counts.set(c.type, (counts.get(c.type) ?? 0) + 1);
+  const byType = [...counts.entries()]
+    .map(([type, count]) => ({ type, label: typeLabels[type], count }))
+    .sort((a, b) => b.count - a.count);
+  return { configured: true, total: components.length, byType, components };
 }
