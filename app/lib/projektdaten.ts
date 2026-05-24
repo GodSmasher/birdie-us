@@ -11,6 +11,7 @@ const MOD = /(\d{3,4})\s*[Ww](?:p|att)?\b/;
 export interface ProjectData {
   offerId: string;
   name: string;
+  customerName: string;
   type?: string;
   address?: { line: string; zip?: string; city?: string };
   kwp: number;
@@ -68,8 +69,9 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   }
   kwp = Math.round(kwp * 100) / 100;
 
-  // Address from the linked contact
+  // Address + name from the linked contact
   let address: ProjectData['address'];
+  let contactName = '';
   const customerId = (o.customer as { id?: string })?.id;
   if (customerId) {
     const { data: cRow } = await db
@@ -78,8 +80,12 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
       const c = (cRow as { data: Record<string, unknown> }).data;
       const line = [c.street, c.number].filter(Boolean).join(' ').trim();
       address = { line, zip: c.postcode as string, city: c.city as string };
+      contactName = [c.firstName, c.lastName].filter(Boolean).join(' ').trim();
     }
   }
+  // Fallback: derive a clean name from the offer title ("Max Müller 2 - PV" → "Max Müller")
+  const offerName = (o.name as string) || '';
+  const customerName = contactName || offerName.split(' - ')[0].replace(/\s+\d+\s*$/, '').trim() || offerName;
 
   const demand = o.demand as { annualEnergyDemandWh?: number } | undefined;
   const annualKwh = demand?.annualEnergyDemandWh ? Math.round(demand.annualEnergyDemandWh / 1000) : undefined;
@@ -93,6 +99,7 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   return {
     offerId,
     name: (o.name as string) || offerId,
+    customerName,
     type: o.type as string,
     address,
     kwp,

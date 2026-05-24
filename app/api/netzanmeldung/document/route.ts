@@ -13,7 +13,8 @@ export async function GET(req: Request) {
   const [project, regs] = await Promise.all([getProjectData(id), getRegistrations()]);
   if (!project) return new Response('Projekt nicht gefunden', { status: 404 });
 
-  const customer = regs.find((r) => r.offerId === id)?.customer || project.name;
+  const regCustomer = regs.find((r) => r.offerId === id)?.customer;
+  const customer = project.customerName || (regCustomer && regCustomer !== '—' ? regCustomer : '') || project.name;
   const pdf = await fillE2(project, customer);
   if (!pdf) return new Response('Formularvorlage nicht erreichbar (Drive)', { status: 502 });
 
