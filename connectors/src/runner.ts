@@ -31,6 +31,8 @@ function envConfig(id: string): Record<string, string> {
     reonic: { apiKey: e.REONIC_API_KEY, clientId: e.REONIC_CLIENT_ID, baseUrl: e.REONIC_BASE_URL },
     ecoflow: { accessKey: e.ECOFLOW_ACCESS_KEY, secretKey: e.ECOFLOW_SECRET_KEY, host: e.ECOFLOW_HOST, sn: e.ECOFLOW_SN },
     sevdesk: { apiKey: e.SEVDESK_API_KEY },
+    'google-calendar': { accessToken: e.GOOGLE_ACCESS_TOKEN, refreshToken: e.GOOGLE_REFRESH_TOKEN, clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET, calendarId: e.GOOGLE_CALENDAR_ID },
+    gmail: { accessToken: e.GOOGLE_ACCESS_TOKEN, refreshToken: e.GOOGLE_REFRESH_TOKEN, clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET },
   };
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(map[id] ?? {})) if (v) out[k] = v;
