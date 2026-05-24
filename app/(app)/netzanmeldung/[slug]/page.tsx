@@ -85,15 +85,20 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
               <div className="border-t border-line pt-4 flex flex-col gap-2">
                 <h3 className="font-semibold text-[13px] text-fg">Dokumente</h3>
                 <p className="text-[11px] text-fg3 leading-[16px]">
-                  Auto-Fill der VDE-AR-N 4105 Formulare (E.2 Anmeldung, E.1 Datenblatt) aus diesen Daten — der nächste Schritt.
+                  VDE-AR-N 4105 E.2 vorausgefüllt aus den Projektdaten. Vor dem Einreichen bitte prüfen — Felder bleiben editierbar.
                 </p>
-                <button
-                  disabled={!project?.ready}
-                  className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                  title={project?.ready ? 'E.2 erzeugen' : 'Erst Daten vervollständigen'}
-                >
-                  E.2 erzeugen {project?.ready ? '' : '(Daten fehlen)'}
-                </button>
+                {project?.ready ? (
+                  <a
+                    href={`/api/netzanmeldung/document?offerId=${project.offerId}`}
+                    className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs text-center"
+                  >
+                    E.2 erzeugen ⤓
+                  </a>
+                ) : (
+                  <button disabled className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs opacity-40 cursor-not-allowed">
+                    E.2 erzeugen (Daten fehlen)
+                  </button>
+                )}
               </div>
             </Card>
           </div>

@@ -220,3 +220,19 @@ export async function searchDrive(query: string): Promise<{ name: string; link?:
     return [];
   }
 }
+
+/** Download a Drive file's raw bytes (server-only). */
+export async function downloadDriveFile(fileId: string): Promise<Uint8Array | null> {
+  const auth = googleAuth();
+  if (!auth) return null;
+  try {
+    const token = await accessToken(auth);
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    return new Uint8Array(await res.arrayBuffer());
+  } catch {
+    return null;
+  }
+}
