@@ -2,7 +2,7 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, KpiCard, Pill } from '@/components/ui';
 import { StageSelect } from '@/components/stage-select';
-import { getRegistrations, STAGES, type StageId } from '@/app/lib/netzanmeldung';
+import { getRegistrations, getPortals, STAGES, type StageId } from '@/app/lib/netzanmeldung';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +11,8 @@ const overdue = (r: { status: StageId; dueDate?: string }) =>
   r.status === 'mastr' && !!r.dueDate && Date.parse(r.dueDate) < Date.now();
 
 export default async function NetzanmeldungPage() {
-  const regs = await getRegistrations();
+  const [regs, portals] = await Promise.all([getRegistrations(), getPortals()]);
+  const withAccess = portals.filter((p) => p.hasPassword).length;
   const byStage = (id: StageId) => regs.filter((r) => r.status === id);
   const open = regs.filter((r) => r.status !== 'abschluss').length;
   const done = regs.filter((r) => r.status === 'abschluss').length;
@@ -70,6 +71,30 @@ export default async function NetzanmeldungPage() {
                 })}
               </div>
             </>
+          )}
+
+          {portals.length > 0 && (
+            <section className="flex flex-col gap-3 pt-2">
+              <div className="flex items-center gap-3">
+                <h2 className="font-semibold text-sm text-fg tracking-tightest">Netzbetreiber-Portale</h2>
+                <Pill label={`${withAccess} ZUGÄNGE`} tone="success" />
+                <span className="text-[11px] text-fg3">{portals.length} Betreiber · Logins sicher hinterlegt</span>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {portals.map((p) => (
+                  <div key={p.name} className="bg-surface border border-line rounded-xl p-4 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-surface-3 flex items-center justify-center text-accent text-sm shrink-0">⚡</div>
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="text-[13px] font-medium text-fg truncate">{p.name}</span>
+                      <span className="text-[10px] text-fg3">{p.hasPassword ? 'Zugang hinterlegt' : 'kein Login'}</span>
+                    </div>
+                    {p.portalUrl && (
+                      <a href={p.portalUrl} target="_blank" rel="noopener noreferrer" className="text-fg3 hover:text-accent text-sm shrink-0" title="Portal öffnen">↗</a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
           )}
         </div>
       </main>

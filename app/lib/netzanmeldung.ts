@@ -38,6 +38,13 @@ function customerName(c: unknown, fb?: string): string {
   return fb ?? '—';
 }
 
+export interface Portal { name: string; username?: string; portalUrl?: string; hasPassword: boolean }
+
+export async function getPortals(): Promise<Portal[]> {
+  const rows = await getEntities<Portal>('portal');
+  return rows.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export async function getRegistrations(): Promise<Registration[]> {
   const rows = await getEntities<Registration>('registration');
   return rows.sort((a, b) => STAGE_IDS.indexOf(a.status) - STAGE_IDS.indexOf(b.status));
