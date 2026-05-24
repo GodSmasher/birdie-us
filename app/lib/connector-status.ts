@@ -46,6 +46,7 @@ export async function getConnectorStatuses(): Promise<{ connected: ConnStatus[];
     { id: 'reonic', name: 'Reonic CRM', category: 'CRM / ERP', protocol: 'REST v2', connected: reonic, detail: reonicDetail, lastSync: reonicLastSync },
     { id: 'gmail', name: 'Gmail', category: 'Kommunikation', protocol: 'Gmail API', connected: google, detail: 'Posteingang · Versand' },
     { id: 'google-calendar', name: 'Google Calendar', category: 'Termine', protocol: 'Calendar API', connected: google, detail: 'Alle Workspace-Kalender' },
+    { id: 'google-drive', name: 'Google Drive', category: 'Dateien / Wissen', protocol: 'Drive API', connected: google, detail: 'Ordner & Dokumente pro Bereich' },
     { id: 'supabase', name: 'Supabase', category: 'Datenbank', protocol: 'Postgres', connected: db, detail: 'Persistenz · Time-Series' },
     { id: 'sevdesk', name: 'sevDesk', category: 'Buchhaltung', protocol: 'REST v1', connected: sevdesk, detail: 'Rechnungen · Mahnwesen' },
     { id: 'ecoflow', name: 'EcoFlow', category: 'Speicher / WR', protocol: 'IoT API', connected: ecoflow, detail: 'PV · Batterie live' },

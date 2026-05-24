@@ -139,3 +139,58 @@ export async function getGoogleCalendar(): Promise<CalendarView> {
     return { configured: true, error: (e as Error).message, events: [], calendarCount: 0 };
   }
 }
+
+// ---------------- Drive (Wissensablage / Dateien) ----------------
+
+export interface DriveItem { id: string; name: string; type: string; modified?: string; link?: string; isFolder: boolean }
+export interface DriveView {
+  configured: boolean;
+  scopeMissing?: boolean;
+  error?: string;
+  folders: DriveItem[];
+  files: DriveItem[];
+}
+
+function driveType(mime: string): string {
+  if (mime.includes('folder')) return 'Ordner';
+  if (mime.includes('pdf')) return 'PDF';
+  if (mime.includes('spreadsheet')) return 'Tabelle';
+  if (mime.includes('document')) return 'Dokument';
+  if (mime.includes('presentation')) return 'Präsentation';
+  if (mime.includes('image')) return 'Bild';
+  return mime.split('/').pop() ?? 'Datei';
+}
+
+export async function getDrive(folderId?: string): Promise<DriveView> {
+  const auth = googleAuth();
+  if (!auth) return { configured: false, folders: [], files: [] };
+  try {
+    const token = await accessToken(auth);
+    const parent = folderId || 'root';
+    const params = new URLSearchParams({
+      q: `'${parent}' in parents and trashed=false`,
+      orderBy: 'folder,name',
+      pageSize: '100',
+      fields: 'files(id,name,mimeType,modifiedTime,webViewLink)',
+    });
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      next: { revalidate: 120 },
+    });
+    if (res.status === 403) return { configured: true, scopeMissing: true, folders: [], files: [] };
+    if (!res.ok) return { configured: true, error: `Drive HTTP ${res.status}`, folders: [], files: [] };
+
+    const json = (await res.json()) as { files?: { id: string; name: string; mimeType: string; modifiedTime?: string; webViewLink?: string }[] };
+    const items: DriveItem[] = (json.files ?? []).map((f) => ({
+      id: f.id,
+      name: f.name,
+      type: driveType(f.mimeType),
+      modified: f.modifiedTime,
+      link: f.webViewLink,
+      isFolder: f.mimeType.includes('folder'),
+    }));
+    return { configured: true, folders: items.filter((i) => i.isFolder), files: items.filter((i) => !i.isFolder) };
+  } catch (e) {
+    return { configured: true, error: (e as Error).message, folders: [], files: [] };
+  }
+}
