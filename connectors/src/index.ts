@@ -18,3 +18,4 @@ export {
   type ReonicV2Component,
 } from './connectors/reonic.js';
 export { inferComponentType, componentTypeLabels, type ComponentType } from './categorize.js';
+export { sevdeskListInvoices, type InvoiceRow, type SevdeskInvoices } from './connectors/sevdesk.js';
