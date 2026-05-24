@@ -245,6 +245,42 @@ export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
   }
 }
 
+// ---------------- Raw fetchers (for DB sync) ----------------
+
+export async function getReonicOffersRaw(maxPages = 15): Promise<{ id: string; data: unknown }[]> {
+  const auth = reonicAuth();
+  if (!auth) return [];
+  const all: { id: string; data: unknown }[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/h360/offers?page=${page}`, {
+      headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
+    });
+    if (!res.ok) break;
+    const data = (await res.json()) as { results?: { id: string }[]; hasNextPage?: boolean };
+    const r = data.results ?? [];
+    for (const o of r) all.push({ id: o.id, data: o });
+    if (!data.hasNextPage || r.length === 0) break;
+  }
+  return all;
+}
+
+export async function getReonicContactsRaw(maxPages = 12): Promise<{ id: string; data: unknown }[]> {
+  const auth = reonicAuth();
+  if (!auth) return [];
+  const all: { id: string; data: unknown }[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/contacts?page=${page}`, {
+      headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
+    });
+    if (!res.ok) break;
+    const list = (await res.json()) as { id: string }[];
+    if (!Array.isArray(list)) break;
+    for (const c of list) all.push({ id: c.id, data: c });
+    if (list.length < 100) break;
+  }
+  return all;
+}
+
 // ---------------- Leads (contacts) ----------------
 
 interface RawContact {
