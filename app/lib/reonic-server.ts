@@ -66,6 +66,127 @@ const num = (v: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
+// ---------------- Sales pipeline (h360 offers) ----------------
+
+function reonicAuth(): { apiKey: string; clientId: string; baseUrl: string } | null {
+  const apiKey = process.env.REONIC_API_KEY;
+  const clientId = process.env.REONIC_CLIENT_ID;
+  if (!apiKey || !clientId) return null;
+  return {
+    apiKey: apiKey.startsWith('Basic ') ? apiKey : `Basic ${apiKey}`,
+    clientId,
+    baseUrl: (process.env.REONIC_BASE_URL || 'https://api.reonic.de/rest/v2').replace(/\/$/, ''),
+  };
+}
+
+interface RawOffer {
+  id: string;
+  name?: string;
+  type?: string;
+  status?: string;
+  state?: string;
+  customer?: unknown;
+  customerNumber?: string;
+  totalPlannedPrice?: number;
+  lostReason?: string;
+}
+
+function customerName(c: unknown, fallback?: string): string {
+  if (typeof c === 'string' && c.trim()) return c;
+  if (c && typeof c === 'object') {
+    const o = c as Record<string, unknown>;
+    const name = [o.firstName, o.lastName].filter(Boolean).join(' ').trim();
+    if (name) return name;
+    if (typeof o.name === 'string') return o.name;
+  }
+  return fallback || '—';
+}
+
+export interface OfferRow {
+  id: string;
+  name: string;
+  customer: string;
+  status: string;
+  state: string;
+  type: string;
+  value: number;
+}
+
+export interface Pipeline {
+  configured: boolean;
+  error?: string;
+  total: number;
+  open: number;
+  won: number;
+  lost: number;
+  pipelineValueOpen: number;
+  wonValue: number;
+  byStatus: { status: string; count: number }[];
+  byType: { type: string; count: number }[];
+  recent: OfferRow[];
+}
+
+export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
+  const auth = reonicAuth();
+  if (!auth) return empty();
+
+  try {
+    const all: RawOffer[] = [];
+    for (let page = 1; page <= maxPages; page++) {
+      const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/h360/offers?page=${page}`, {
+        headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' },
+        next: { revalidate: 300 },
+      });
+      if (!res.ok) return { ...empty(), configured: true, error: `Reonic HTTP ${res.status}` };
+      const data = (await res.json()) as { results?: RawOffer[]; hasNextPage?: boolean };
+      const results = data.results ?? [];
+      all.push(...results);
+      if (!data.hasNextPage || results.length === 0) break;
+    }
+
+    const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+    const open = all.filter((o) => o.state === 'Open');
+    const won = all.filter((o) => o.state === 'Won');
+    const lost = all.filter((o) => o.state === 'Lost');
+
+    const countBy = (key: keyof RawOffer) => {
+      const m = new Map<string, number>();
+      for (const o of all) {
+        const k = (o[key] as string) || '—';
+        m.set(k, (m.get(k) ?? 0) + 1);
+      }
+      return [...m.entries()].map(([k, count]) => ({ k, count })).sort((a, b) => b.count - a.count);
+    };
+
+    return {
+      configured: true,
+      total: all.length,
+      open: open.length,
+      won: won.length,
+      lost: lost.length,
+      pipelineValueOpen: Math.round(open.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
+      wonValue: Math.round(won.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
+      byStatus: countBy('status').slice(0, 10).map(({ k, count }) => ({ status: k, count })),
+      byType: countBy('type').map(({ k, count }) => ({ type: k, count })),
+      recent: all.slice(0, 40).map((o) => ({
+        id: o.id,
+        name: o.name || '—',
+        customer: customerName(o.customer, o.customerNumber),
+        status: o.status || '—',
+        state: o.state || '—',
+        type: o.type || '—',
+        value: num(o.totalPlannedPrice),
+      })),
+    };
+  } catch (e) {
+    return { ...empty(), configured: true, error: (e as Error).message };
+  }
+
+  function empty(): Pipeline {
+    return { configured: false, total: 0, open: 0, won: 0, lost: 0, pipelineValueOpen: 0, wonValue: 0, byStatus: [], byType: [], recent: [] };
+  }
+}
+
 export async function getReonicCatalog(): Promise<Catalog> {
   const apiKey = process.env.REONIC_API_KEY;
   const clientId = process.env.REONIC_CLIENT_ID;

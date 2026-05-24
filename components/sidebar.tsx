@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { Brand } from './ui';
 
-type NavKey = 'dashboard' | 'anlagen' | 'katalog' | 'bots' | 'connectors' | 'finance' | 'workflows' | 'activity';
+type NavKey = 'dashboard' | 'anlagen' | 'vertrieb' | 'katalog' | 'bots' | 'connectors' | 'finance' | 'workflows' | 'activity';
 
 const items: { label: string; icon: string; href: string; key: NavKey }[] = [
   { label: 'Dashboard', icon: '◇', href: '/dashboard', key: 'dashboard' },
   { label: 'Anlagen', icon: '☀', href: '/anlagen', key: 'anlagen' },
+  { label: 'Vertrieb', icon: '↗', href: '/vertrieb', key: 'vertrieb' },
   { label: 'Katalog', icon: '▦', href: '/katalog', key: 'katalog' },
   { label: 'Bots', icon: '◈', href: '/bots', key: 'bots' },
   { label: 'Connectoren', icon: '⌘', href: '/connectors', key: 'connectors' },
