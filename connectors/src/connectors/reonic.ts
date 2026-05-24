@@ -5,6 +5,7 @@ import {
   requireConfig,
 } from '../types.js';
 import { componentsToDatanorm, type ReonicComponentPayload } from '../datanorm.js';
+import { inferComponentType } from '../categorize.js';
 
 // Reonic REST API v2 — CRM/ERP for PV installers (the version Volta uses).
 // Auth: header `x-authorization: Basic <base64(clientId:secret)>`
@@ -58,7 +59,7 @@ export async function reonicListComponents(ctx: ConnectorContext): Promise<Reoni
 /** Map a v2 component to the shared DATANORM-export payload. */
 export function v2ToPayload(c: ReonicV2Component): ReonicComponentPayload {
   return {
-    componentType: 'other',
+    componentType: inferComponentType(c.name, c.description, c.brand),
     name: c.name ?? c.articleNr ?? c.id,
     description: c.description,
     articleNumber: c.articleNr ?? c.id,

@@ -17,3 +17,4 @@ export {
   v2ToPayload,
   type ReonicV2Component,
 } from './connectors/reonic.js';
+export { inferComponentType, componentTypeLabels, type ComponentType } from './categorize.js';
