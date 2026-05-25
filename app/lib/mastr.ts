@@ -7,6 +7,7 @@
 import type { ProjectData } from './projektdaten';
 import type { Registration } from './netzanmeldung';
 import { netzbetreiberForPlz } from './netzbetreiber';
+import { einspeiseart, EINSPEISEART_LABEL, phasenLabel, ruleHint } from './geschaeftsregeln';
 
 export type FieldSource = 'reonic' | 'auto' | 'manuell';
 
@@ -50,8 +51,9 @@ export function buildMastrSheet(project: ProjectData, reg?: Registration): Mastr
         { label: 'Modultyp', value: project.moduleType || '', source: 'reonic' },
         { label: 'Wechselrichter', value: project.inverter || '', source: 'reonic' },
         { label: 'Lage', value: 'Bauliche Anlage (Gebäude)', source: 'auto', hint: 'Standard PV-Aufdach — bei Freifläche ändern' },
+        { label: 'Phasenanschluss', value: phasenLabel(project), source: 'auto', hint: ruleHint('> 4,6 kVA → 3-phasig') },
         { label: 'Inbetriebnahmedatum', value: ibn, source: ibn ? 'auto' : 'manuell', hint: ibn ? 'aus Status abgeleitet — bitte prüfen' : 'erst nach Inbetriebnahme' },
-        { label: 'Einspeiseart', value: '', source: 'manuell', hint: 'Voll-/Überschusseinspeisung — Geschäftsregel offen' },
+        { label: 'Einspeiseart', value: EINSPEISEART_LABEL[einspeiseart(project)], source: 'auto', hint: ruleHint('Eigenverbrauch → Überschuss') },
       ],
     },
     ...(project.battery
