@@ -5,6 +5,8 @@ import { Card, CardHeader, Pill } from '@/components/ui';
 import { StageSelect } from '@/components/stage-select';
 import { getRegistrations, STAGES, type StageId } from '@/app/lib/netzanmeldung';
 import { getProjectData } from '@/app/lib/projektdaten';
+import { netzbetreiberForPlz, CONFIDENCE_LABEL } from '@/app/lib/netzbetreiber';
+import { buildMastrSheet, mastrOpenCount, type FieldSource } from '@/app/lib/mastr';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +17,10 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
   const reg = regs.find((r) => r.offerId === params.slug);
   if (!reg && !project) notFound();
   const stageLabel = STAGES.find((s) => s.id === reg?.status)?.label ?? '—';
+  const nb = netzbetreiberForPlz(project?.address?.zip);
+  const nbTone = nb?.confidence === 'sicher' ? 'success' : nb?.confidence === 'wahrscheinlich' ? 'info' : 'warning';
+  const mastr = project ? buildMastrSheet(project, reg) : [];
+  const mastrOpen = mastrOpenCount(mastr);
 
   return (
     <>
@@ -83,6 +89,29 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                 {reg && <StageSelect offerId={reg.offerId} status={reg.status as StageId} />}
               </div>
               <div className="border-t border-line pt-4 flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-semibold text-[13px] text-fg">Netzbetreiber</h3>
+                  {nb && <Pill label={CONFIDENCE_LABEL[nb.confidence].toUpperCase()} tone={nbTone} dot={false} />}
+                </div>
+                {nb ? (
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs text-fg font-medium">{nb.name}</span>
+                    <span className="text-[11px] text-fg3 leading-[15px]">
+                      Automatisch aus PLZ {project?.address?.zip} ermittelt. Bei „bitte prüfen" vor dem Einreichen verifizieren.
+                    </span>
+                    {nb.portalUrl && (
+                      <a href={nb.portalUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-accent self-start">
+                        Einspeise-Portal öffnen ↗
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-fg3 leading-[15px]">
+                    {project?.address?.zip ? 'Kein Betreiber zur PLZ hinterlegt — manuell prüfen.' : 'Keine PLZ im Projekt — Adresse in Reonic nachtragen.'}
+                  </p>
+                )}
+              </div>
+              <div className="border-t border-line pt-4 flex flex-col gap-2">
                 <h3 className="font-semibold text-[13px] text-fg">Dokumente</h3>
                 <p className="text-[11px] text-fg3 leading-[16px]">
                   VDE-AR-N 4105 E.2 vorausgefüllt aus den Projektdaten. Vor dem Einreichen bitte prüfen — Felder bleiben editierbar.
@@ -110,10 +139,56 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
               </div>
             </Card>
           </div>
+
+          {/* MaStR data sheet */}
+          {project && (
+            <Card className="p-5 flex flex-col gap-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-[13px] text-fg">MaStR-Datenblatt</h3>
+                <Pill label={mastrOpen === 0 ? 'KOMPLETT' : `${mastrOpen} MANUELL`} tone={mastrOpen === 0 ? 'success' : 'warning'} dot={false} />
+                <span className="text-[11px] text-fg3">Vorbereitung fürs Marktstammdatenregister — Frist 1 Monat nach Inbetriebnahme</span>
+              </div>
+              <p className="text-[11px] text-fg3 -mt-2 leading-[15px]">
+                Es gibt keine MaStR-Schnittstelle — die Eintragung bleibt ein Portal-Schritt. Diese Felder sind aus Reonic
+                vorbereitet, damit das Büro nur noch abtippt. <span className="text-warning">Gelb</span> = manuell ergänzen.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                {mastr.map((section) => (
+                  <div key={section.title} className="flex flex-col gap-2">
+                    <h4 className="text-[11px] font-semibold text-fg2 tracking-[0.12em] uppercase">{section.title}</h4>
+                    <div className="flex flex-col gap-2 text-xs">
+                      {section.fields.map((f) => (
+                        <div key={f.label} className="flex flex-col gap-0.5 border-b border-line pb-2 last:border-0">
+                          <div className="flex items-start justify-between gap-3">
+                            <span className="text-fg3 shrink-0">{f.label}</span>
+                            <span className={`text-right font-medium ${f.value ? 'text-fg' : 'text-fg4'}`}>{f.value || '—'}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-3">
+                            <SourceBadge source={f.source} />
+                            {f.hint && <span className="text-[10px] text-fg4 text-right leading-tight">{f.hint}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       </main>
     </>
   );
+}
+
+function SourceBadge({ source }: { source: FieldSource }) {
+  const map: Record<FieldSource, { label: string; cls: string }> = {
+    reonic: { label: 'aus Reonic', cls: 'bg-success-bg text-success' },
+    auto: { label: 'automatisch', cls: 'bg-info-bg text-info' },
+    manuell: { label: 'manuell', cls: 'bg-warning-bg text-warning' },
+  };
+  const m = map[source];
+  return <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${m.cls}`}>{m.label}</span>;
 }
 
 function Row({ k, v }: { k: string; v: string }) {

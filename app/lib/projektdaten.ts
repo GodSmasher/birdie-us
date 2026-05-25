@@ -27,6 +27,12 @@ export interface ProjectData {
 
 interface Comp { name?: string; quantity?: string | number }
 
+/** Resolve project data for many offers at once (best-effort, skips failures). */
+export async function getProjectDataBatch(offerIds: string[]): Promise<ProjectData[]> {
+  const results = await Promise.all(offerIds.map((id) => getProjectData(id).catch(() => null)));
+  return results.filter((p): p is ProjectData => p !== null);
+}
+
 export async function getProjectData(offerId: string): Promise<ProjectData | null> {
   const db = getDb();
   const tid = await tenantId('volta');

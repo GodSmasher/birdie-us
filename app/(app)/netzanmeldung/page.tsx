@@ -31,6 +31,12 @@ export default async function NetzanmeldungPage() {
             </Card>
           ) : (
             <>
+              <div className="flex items-center justify-between gap-3 -mb-2">
+                <h2 className="font-semibold text-sm text-fg tracking-tightest">Pipeline</h2>
+                <a href="/netzanmeldung/check" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium text-fg2 hover:text-fg hover:border-line-2 transition-colors">
+                  ✓ Datencheck
+                </a>
+              </div>
               <div className="flex flex-wrap gap-4">
                 <KpiCard label="IN BEARBEITUNG" value={String(open)} sub="laufende Anmeldungen" />
                 <KpiCard label="MaStR ÜBERFÄLLIG" value={String(overdueCount)} sub="Frist 1 Monat überschritten" valueColor={overdueCount > 0 ? 'text-error' : 'text-fg'} />
