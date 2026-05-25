@@ -118,7 +118,7 @@ const activities = [
   ['10:42', 'Mahnbot', "3 Rechnungen mit Status 'überfällig' erkannt — Erinnerungsmails versendet", 'success'],
   ['10:38', 'Lead-Sync (Reonic)', '12 neue Leads importiert, 2 mit fehlender Telefonnummer markiert', 'info'],
   ['10:31', 'Termin-Bot', 'Beratungstermin von Michael K. bestätigt + Google Meet erstellt', 'success'],
-  ['10:24', 'Bexio-Sync', "Rechnung #2026-0341 erstellt für 'Familie Huber' (€ 24.500)", 'info'],
+  ['10:24', 'sevDesk-Sync', "Rechnung #2026-0341 erstellt für 'Familie Huber' (€ 24.500)", 'info'],
   ['10:12', 'WhatsApp-Bot', '5 Kundenanfragen automatisch beantwortet · 1 an Sarah eskaliert', 'warning'],
   ['09:58', 'Call-Bot', '8 verpasste Anrufe erkannt — Rückruftermine vorgeschlagen', 'info'],
 ] as const;
