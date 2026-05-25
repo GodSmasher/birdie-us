@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { StageSelect } from '@/components/stage-select';
+import { DocActions } from '@/components/doc-actions';
 import { getRegistrations, STAGES, type StageId } from '@/app/lib/netzanmeldung';
 import { getProjectData } from '@/app/lib/projektdaten';
 import { netzbetreiberForPlz, CONFIDENCE_LABEL } from '@/app/lib/netzbetreiber';
@@ -111,31 +112,14 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                   </p>
                 )}
               </div>
-              <div className="border-t border-line pt-4 flex flex-col gap-2">
-                <h3 className="font-semibold text-[13px] text-fg">Dokumente</h3>
-                <p className="text-[11px] text-fg3 leading-[16px]">
-                  VDE-AR-N 4105 E.2 vorausgefüllt aus den Projektdaten. Vor dem Einreichen bitte prüfen — Felder bleiben editierbar.
-                </p>
-                {project?.ready ? (
-                  <a
-                    href={`/api/netzanmeldung/document?offerId=${project.offerId}&form=e2`}
-                    className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs text-center"
-                  >
-                    E.2 Anmeldung erzeugen ⤓
-                  </a>
-                ) : (
-                  <button disabled className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs opacity-40 cursor-not-allowed">
-                    E.2 erzeugen (Daten fehlen)
-                  </button>
-                )}
-                {project?.battery && (
-                  <a
-                    href={`/api/netzanmeldung/document?offerId=${project.offerId}&form=e3`}
-                    className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-center"
-                  >
-                    E.3 Speicher erzeugen ⤓
-                  </a>
-                )}
+              <div className="border-t border-line pt-4">
+                <DocActions
+                  offerId={reg?.offerId ?? project?.offerId ?? params.slug}
+                  ready={!!project?.ready}
+                  hasBattery={!!project?.battery}
+                  docStatus={reg?.docStatus}
+                  documents={reg?.documents}
+                />
               </div>
             </Card>
           </div>

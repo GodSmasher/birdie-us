@@ -17,6 +17,24 @@ export const STAGES = [
 export type StageId = (typeof STAGES)[number]['id'];
 export const STAGE_IDS = STAGES.map((s) => s.id) as StageId[];
 
+// Document/review lifecycle — the office's actual to-do flow. Separate from the
+// grid-process STAGES above. A (later) portal bot would create drafts → 'pruefen';
+// a human reviews + frees them → 'freigegeben'; after portal submission → 'eingereicht'.
+export const DOC_STAGES = [
+  { id: 'offen', label: 'Offen', desc: 'noch kein Entwurf erzeugt' },
+  { id: 'pruefen', label: 'Bitte prüfen', desc: 'Entwurf erzeugt — auf Freigabe wartend' },
+  { id: 'freigegeben', label: 'Freigegeben', desc: 'geprüft, bereit zum Einreichen' },
+  { id: 'eingereicht', label: 'Eingereicht', desc: 'beim Netzbetreiber eingereicht' },
+] as const;
+
+export type DocStatus = (typeof DOC_STAGES)[number]['id'];
+export const DOC_STATUS_IDS = DOC_STAGES.map((s) => s.id) as DocStatus[];
+
+export interface GeneratedDoc {
+  form: 'e2' | 'e3';
+  at: string;
+}
+
 export interface Registration {
   offerId: string;
   customer: string;
@@ -25,6 +43,8 @@ export interface Registration {
   status: StageId;
   startedAt: string;
   dueDate?: string;
+  docStatus?: DocStatus;
+  documents?: GeneratedDoc[];
 }
 
 function customerName(c: unknown, fb?: string): string {
@@ -72,6 +92,8 @@ export async function seedRegistrations(): Promise<number> {
       netzbetreiber: '—',
       status: 'anfrage' as StageId,
       startedAt: now.toISOString(),
+      docStatus: 'offen' as DocStatus,
+      documents: [],
     } satisfies Registration,
   }));
 
@@ -102,6 +124,41 @@ export async function setRegistrationStatus(offerId: string, status: StageId): P
   }
   if (status === 'abschluss') reg.dueDate = undefined;
 
+  const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
+  return n > 0;
+}
+
+async function loadReg(offerId: string): Promise<{ tid: string; reg: Registration } | null> {
+  const db = getDb();
+  const tid = await tenantId('volta');
+  if (!db || !tid) return null;
+  const { data } = await db
+    .from('entities').select('data').eq('tenant_id', tid).eq('kind', 'registration').eq('external_id', offerId).single();
+  if (!data) return null;
+  return { tid, reg: (data as { data: Registration }).data };
+}
+
+/** Record that a draft document was generated → moves the registration to 'pruefen'. */
+export async function recordDraft(offerId: string, form: 'e2' | 'e3'): Promise<boolean> {
+  const loaded = await loadReg(offerId);
+  if (!loaded) return false;
+  const { tid, reg } = loaded;
+  const docs = (reg.documents ?? []).filter((d) => d.form !== form);
+  docs.push({ form, at: new Date().toISOString() });
+  reg.documents = docs;
+  // Only advance forward — don't pull a freigegeben/eingereicht item back.
+  if (!reg.docStatus || reg.docStatus === 'offen') reg.docStatus = 'pruefen';
+  const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
+  return n > 0;
+}
+
+/** Set the document/review status (Freigabe, Eingereicht …). */
+export async function setDocStatus(offerId: string, docStatus: DocStatus): Promise<boolean> {
+  if (!DOC_STATUS_IDS.includes(docStatus)) return false;
+  const loaded = await loadReg(offerId);
+  if (!loaded) return false;
+  const { tid, reg } = loaded;
+  reg.docStatus = docStatus;
   const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
   return n > 0;
 }
