@@ -1,5 +1,7 @@
 // Server-only sevDesk v1 client. Reads SEVDESK_API_KEY from env — never shipped
 // to the browser. Mirrors the @birdie/connectors sevdesk adapter.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse');
 
 const BASE = 'https://my.sevdesk.de/api/v1';
 
@@ -312,4 +314,232 @@ export async function getSevdeskInvoices(): Promise<Invoices> {
   } catch (e) {
     return emptyInvoices(true, (e as Error).message);
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PDF DOWNLOAD + ZAHLUNGSZIELE EXTRACTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface PaymentTerm {
+  label: string;
+  percent?: number;
+  amount?: number;
+  condition?: string;
+}
+
+export interface PaymentTermsResult {
+  found: boolean;
+  terms: PaymentTerm[];
+  rawText: string;
+  source: 'invoice' | 'order';
+  sourceId: string;
+  sourceNumber: string;
+}
+
+async function fetchSevdeskPdf(type: 'Invoice' | 'Order', id: string, token: string): Promise<Buffer | null> {
+  const res = await fetch(`${BASE}/${type}/${id}/getPdf`, {
+    headers: { Authorization: token, Accept: 'application/json' },
+  });
+  if (!res.ok) return null;
+  const json = await res.json() as { objects?: { content?: string; filename?: string } };
+  const b64 = json.objects?.content;
+  if (!b64) return null;
+  return Buffer.from(b64, 'base64');
+}
+
+function extractPaymentTerms(text: string): PaymentTerm[] {
+  const terms: PaymentTerm[] = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // Find the payment-related section
+  const paymentKeywords = [
+    'zahlungsbed', 'zahlungsplan', 'zahlungsziel', 'teilzahlung',
+    'anzahlung', 'abschlag', 'schlussrechnung', 'ratenzahlung',
+    'zahlungsmodalit', 'zahlungsvereinbar', 'fällig',
+  ];
+
+  let inPaymentSection = false;
+  const paymentLines: string[] = [];
+
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+    if (paymentKeywords.some(k => lower.includes(k))) {
+      inPaymentSection = true;
+    }
+    if (inPaymentSection) {
+      paymentLines.push(line);
+      if (paymentLines.length > 20) break;
+    }
+  }
+
+  if (paymentLines.length === 0) {
+    // Fallback: scan ALL lines for percentage patterns
+    for (const line of lines) {
+      if (/\d+\s*%/.test(line) && /anzahl|abschlag|schluss|rate|montage|auftrag|abnahme|fertig/i.test(line)) {
+        paymentLines.push(line);
+      }
+    }
+  }
+
+  const fullPayBlock = paymentLines.join(' ');
+
+  // Pattern 1: "X% Anzahlung bei Auftragserteilung"
+  const percentPatterns = [
+    { re: /(\d+)\s*%\s*(anzahlung|an\s*zahlung)/i, label: 'Anzahlung' },
+    { re: /(\d+)\s*%\s*(abschlag|abschlags)/i, label: 'Abschlag' },
+    { re: /(\d+)\s*%\s*(schluss|schlußrechnung|schlussrechnung|restbetrag|rest)/i, label: 'Schlussrechnung' },
+    { re: /(anzahlung|an\s*zahlung)\s*[:.]?\s*(\d+)\s*%/i, label: 'Anzahlung', swap: true },
+    { re: /(abschlag|abschlags)\s*[:.]?\s*(\d+)\s*%/i, label: 'Abschlag', swap: true },
+    { re: /(schluss|schlußrechnung|schlussrechnung|rest)\s*[:.]?\s*(\d+)\s*%/i, label: 'Schlussrechnung', swap: true },
+  ];
+
+  const foundLabels = new Set<string>();
+  for (const p of percentPatterns) {
+    const m = fullPayBlock.match(p.re);
+    if (m && !foundLabels.has(p.label)) {
+      const pct = parseInt('swap' in p ? m[2] : m[1], 10);
+      // Extract condition text (after the percentage/label match)
+      const afterMatch = fullPayBlock.slice((m.index ?? 0) + m[0].length);
+      const condMatch = afterMatch.match(/^\s*(?:bei|nach|vor|zur|innerhalb|binnen|mit|ab)\s+([^,.;]{3,50})/i);
+      terms.push({
+        label: p.label,
+        percent: pct,
+        condition: condMatch ? condMatch[0].trim() : undefined,
+      });
+      foundLabels.add(p.label);
+    }
+  }
+
+  // Pattern 2: Fixed amounts "€ X.XXX,XX Anzahlung"
+  if (terms.length === 0) {
+    const amountPatterns = [
+      { re: /(?:€|EUR)\s*([\d.,]+)\s*(?:anzahlung|an\s*zahlung)/i, label: 'Anzahlung' },
+      { re: /(?:€|EUR)\s*([\d.,]+)\s*(?:abschlag)/i, label: 'Abschlag' },
+      { re: /(?:€|EUR)\s*([\d.,]+)\s*(?:schluss|rest)/i, label: 'Schlussrechnung' },
+      { re: /(?:anzahlung|an\s*zahlung)\s*[:.]?\s*(?:€|EUR)?\s*([\d.,]+)/i, label: 'Anzahlung' },
+      { re: /(?:abschlag)\s*[:.]?\s*(?:€|EUR)?\s*([\d.,]+)/i, label: 'Abschlag' },
+      { re: /(?:schluss|rest)\s*[:.]?\s*(?:€|EUR)?\s*([\d.,]+)/i, label: 'Schlussrechnung' },
+    ];
+    for (const p of amountPatterns) {
+      const m = fullPayBlock.match(p.re);
+      if (m && !foundLabels.has(p.label)) {
+        const raw = m[1].replace(/\./g, '').replace(',', '.');
+        const amt = parseFloat(raw);
+        if (amt > 0) {
+          terms.push({ label: p.label, amount: amt });
+          foundLabels.add(p.label);
+        }
+      }
+    }
+  }
+
+  // Pattern 3: "Zahlungsziel X Tage" (single payment deadline)
+  if (terms.length === 0) {
+    const zzMatch = fullPayBlock.match(/zahlungsziel\s*[:.]?\s*(\d+)\s*tage/i);
+    if (zzMatch) {
+      terms.push({ label: 'Zahlungsziel', condition: `${zzMatch[1]} Tage` });
+    }
+    const netMatch = fullPayBlock.match(/(?:netto|zahlbar)\s*(?:innerhalb\s*(?:von\s*)?)?\s*(\d+)\s*tage/i);
+    if (netMatch && terms.length === 0) {
+      terms.push({ label: 'Zahlungsziel', condition: `${netMatch[1]} Tage netto` });
+    }
+  }
+
+  return terms;
+}
+
+export async function getPaymentTermsForInvoice(invoiceId: string): Promise<PaymentTermsResult | null> {
+  const token = process.env.SEVDESK_API_KEY;
+  if (!token) return null;
+
+  const pdf = await fetchSevdeskPdf('Invoice', invoiceId, token);
+  if (!pdf) return null;
+
+  const parsed = await pdfParse(pdf);
+  const text: string = parsed.text ?? '';
+  const terms = extractPaymentTerms(text);
+
+  // Get invoice number for reference
+  const invRes = await fetch(`${BASE}/Invoice/${invoiceId}`, {
+    headers: { Authorization: token, Accept: 'application/json' },
+  });
+  const invJson = await invRes.json() as { objects?: SevInvoice };
+  const inv = invJson.objects;
+
+  return {
+    found: terms.length > 0,
+    terms,
+    rawText: text.slice(-2000), // Last 2000 chars (payment terms usually at end)
+    source: 'invoice',
+    sourceId: invoiceId,
+    sourceNumber: inv?.invoiceNumber || inv?.header || invoiceId,
+  };
+}
+
+export async function getPaymentTermsForOrder(orderId: string): Promise<PaymentTermsResult | null> {
+  const token = process.env.SEVDESK_API_KEY;
+  if (!token) return null;
+
+  const pdf = await fetchSevdeskPdf('Order', orderId, token);
+  if (!pdf) return null;
+
+  const parsed = await pdfParse(pdf);
+  const text: string = parsed.text ?? '';
+  const terms = extractPaymentTerms(text);
+
+  return {
+    found: terms.length > 0,
+    terms,
+    rawText: text.slice(-2000),
+    source: 'order',
+    sourceId: orderId,
+    sourceNumber: orderId,
+  };
+}
+
+export async function getPaymentTermsForCustomer(customerName: string): Promise<PaymentTermsResult | null> {
+  const token = process.env.SEVDESK_API_KEY;
+  if (!token) return null;
+
+  // First try: find matching invoices for this customer
+  const invRes = await fetch(
+    `${BASE}/Invoice?limit=10&embed=contact&orderBy[0][field]=invoiceDate&orderBy[0][arrangement]=desc`,
+    { headers: { Authorization: token, Accept: 'application/json' } },
+  );
+  if (!invRes.ok) return null;
+  const invJson = await invRes.json() as { objects?: SevInvoice[] };
+  const invoices = invJson.objects ?? [];
+
+  const normName = customerName.toLowerCase().replace(/[^a-zäöüß0-9]/g, ' ').trim();
+  const matching = invoices.filter(iv => {
+    const cn = contactName(iv.contact).toLowerCase().replace(/[^a-zäöüß0-9]/g, ' ').trim();
+    return cn.includes(normName) || normName.includes(cn);
+  });
+
+  // Try each matching invoice's PDF until we find payment terms
+  for (const inv of matching.slice(0, 3)) {
+    const result = await getPaymentTermsForInvoice(inv.id);
+    if (result && result.found) return result;
+  }
+
+  // Second try: fetch Orders (ABs)
+  const ordRes = await fetch(
+    `${BASE}/Order?limit=10&embed=contact&orderBy[0][field]=orderDate&orderBy[0][arrangement]=desc`,
+    { headers: { Authorization: token, Accept: 'application/json' } },
+  );
+  if (!ordRes.ok) return null;
+  const ordJson = await ordRes.json() as { objects?: Array<{ id: string; orderNumber?: string; header?: string; contact?: SevContact }> };
+  const orders = ordJson.objects ?? [];
+
+  const matchingOrders = orders.filter(o => {
+    const cn = contactName(o.contact).toLowerCase().replace(/[^a-zäöüß0-9]/g, ' ').trim();
+    return cn.includes(normName) || normName.includes(cn);
+  });
+
+  for (const ord of matchingOrders.slice(0, 3)) {
+    const result = await getPaymentTermsForOrder(ord.id);
+    if (result && result.found) return result;
+  }
+
+  return null;
 }
