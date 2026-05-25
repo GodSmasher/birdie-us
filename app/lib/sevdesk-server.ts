@@ -1,7 +1,6 @@
 // Server-only sevDesk v1 client. Reads SEVDESK_API_KEY from env — never shipped
 // to the browser. Mirrors the @birdie/connectors sevdesk adapter.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require('pdf-parse');
+import { extractText } from 'unpdf';
 
 const BASE = 'https://my.sevdesk.de/api/v1';
 
@@ -347,7 +346,7 @@ async function fetchSevdeskPdf(type: 'Invoice' | 'Order', id: string, token: str
   return Buffer.from(b64, 'base64');
 }
 
-function extractPaymentTerms(text: string): PaymentTerm[] {
+function extractPaymentTermsFromText(text: string): PaymentTerm[] {
   const terms: PaymentTerm[] = [];
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
@@ -455,11 +454,10 @@ export async function getPaymentTermsForInvoice(invoiceId: string): Promise<Paym
   const pdf = await fetchSevdeskPdf('Invoice', invoiceId, token);
   if (!pdf) return null;
 
-  const parsed = await pdfParse(pdf);
-  const text: string = parsed.text ?? '';
-  const terms = extractPaymentTerms(text);
+  const { text } = await extractText(new Uint8Array(pdf));
+  const fullText = text ?? '';
+  const terms = extractPaymentTermsFromText(fullText);
 
-  // Get invoice number for reference
   const invRes = await fetch(`${BASE}/Invoice/${invoiceId}`, {
     headers: { Authorization: token, Accept: 'application/json' },
   });
@@ -469,7 +467,7 @@ export async function getPaymentTermsForInvoice(invoiceId: string): Promise<Paym
   return {
     found: terms.length > 0,
     terms,
-    rawText: text.slice(-2000), // Last 2000 chars (payment terms usually at end)
+    rawText: fullText.slice(-2000),
     source: 'invoice',
     sourceId: invoiceId,
     sourceNumber: inv?.invoiceNumber || inv?.header || invoiceId,
@@ -483,14 +481,14 @@ export async function getPaymentTermsForOrder(orderId: string): Promise<PaymentT
   const pdf = await fetchSevdeskPdf('Order', orderId, token);
   if (!pdf) return null;
 
-  const parsed = await pdfParse(pdf);
-  const text: string = parsed.text ?? '';
-  const terms = extractPaymentTerms(text);
+  const { text } = await extractText(new Uint8Array(pdf));
+  const fullText = text ?? '';
+  const terms = extractPaymentTermsFromText(fullText);
 
   return {
     found: terms.length > 0,
     terms,
-    rawText: text.slice(-2000),
+    rawText: fullText.slice(-2000),
     source: 'order',
     sourceId: orderId,
     sourceNumber: orderId,
