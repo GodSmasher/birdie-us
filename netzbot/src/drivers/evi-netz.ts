@@ -4,6 +4,6 @@ export const eviNetzDriver: PortalDriver = {
   netzbetreiber: 'EVI-Netz',
   fillDraft: async () => ({
     ok: false,
-    error: 'EVI-Netz: Driver noch nicht implementiert.',
+    error: 'EVI-Netz: Driver noch nicht implementiert (evi-netz.de/installateurportal).',
   }),
 };

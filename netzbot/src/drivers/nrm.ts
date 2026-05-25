@@ -4,6 +4,6 @@ export const nrmDriver: PortalDriver = {
   netzbetreiber: 'NRM',
   fillDraft: async () => ({
     ok: false,
-    error: 'NRM: Driver noch nicht implementiert — Portal-URL unbekannt.',
+    error: 'NRM: Driver noch nicht implementiert (nrm-netzdienste.de/de/netzanschluss/netzportal).',
   }),
 };

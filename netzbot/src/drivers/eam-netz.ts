@@ -4,6 +4,6 @@ export const eamNetzDriver: PortalDriver = {
   netzbetreiber: 'EAM Netz',
   fillDraft: async () => ({
     ok: false,
-    error: 'EAM Netz: Driver noch nicht implementiert — Portal-URL unbekannt.',
+    error: 'EAM Netz: Driver noch nicht implementiert (netzbauportal.eam.de, Domino-Portal).',
   }),
 };

@@ -4,6 +4,6 @@ export const uezMainfrankenDriver: PortalDriver = {
   netzbetreiber: 'ÜZ Mainfranken',
   fillDraft: async () => ({
     ok: false,
-    error: 'ÜZ Mainfranken: Driver noch nicht implementiert (AM Servicecenter).',
+    error: 'ÜZ Mainfranken: Driver noch nicht implementiert (am-suite.de Registrierungsportal).',
   }),
 };

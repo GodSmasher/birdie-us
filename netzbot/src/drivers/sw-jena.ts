@@ -4,6 +4,6 @@ export const swJenaDriver: PortalDriver = {
   netzbetreiber: 'SW Jena',
   fillDraft: async () => ({
     ok: false,
-    error: 'SW Jena: Driver noch nicht implementiert.',
+    error: 'SW Jena: Driver noch nicht implementiert (stadtwerke-jena-netze.de/installateure/kundenportal).',
   }),
 };

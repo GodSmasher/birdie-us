@@ -4,6 +4,6 @@ export const swLudwigsfeldeDriver: PortalDriver = {
   netzbetreiber: 'SW Ludwigsfelde',
   fillDraft: async () => ({
     ok: false,
-    error: 'SW Ludwigsfelde: Driver noch nicht implementiert.',
+    error: 'SW Ludwigsfelde: Driver noch nicht implementiert (tools.gipsprojekt.de/ludwigsfelde).',
   }),
 };

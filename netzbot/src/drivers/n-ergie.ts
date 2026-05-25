@@ -4,6 +4,6 @@ export const nErgieDriver: PortalDriver = {
   netzbetreiber: 'N-Ergie',
   fillDraft: async () => ({
     ok: false,
-    error: 'N-Ergie: Driver noch nicht implementiert — Portal-URL unbekannt.',
+    error: 'N-Ergie: Driver noch nicht implementiert (n-ergie-netz.de/system/login).',
   }),
 };
