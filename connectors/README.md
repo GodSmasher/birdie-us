@@ -99,3 +99,22 @@ const results = await runBatch(jobs, {
 - **Local Modbus TCP** (Kostal; local path of Fronius/SMA/Sungrow): the inverter is only reachable inside the customer LAN → needs an on-site **edge agent** that polls Modbus and pushes upstream. Cloud cannot reach it directly.
 - **Manufacturer cloud portals** (Fronius Solar.web, SMA ennexOS): official APIs, require registration/approval.
 - **No official API** (Anker SOLIX, Bluetti): community/reverse-engineered — use with care.
+
+## Eigenständigkeit / Auslagern in ein eigenes Repo
+
+Dieses Paket ist bewusst **entkoppelt**: es importiert nichts aus der `.birdie`-App,
+und die App importiert nichts von hier (sie nutzt eigene gespiegelte Server-Libs).
+`connectors/` lässt sich daher 1:1 in ein eigenes GitHub-Repo überführen.
+
+Auslagern **mit erhaltener Git-Historie** (nur den connectors-Ordner):
+
+```bash
+# im birdie-Repo, Historie des Unterordners als eigenen Branch herauslösen
+git subtree split --prefix=connectors -b connectors-export
+
+# neues, leeres Repo auf GitHub anlegen (z.B. godsmasher/birdie-connectors), dann:
+git push git@github.com:godsmasher/birdie-connectors.git connectors-export:main
+```
+
+Danach kann der `connectors/`-Ordner aus dem App-Repo entfernt werden; die App bleibt
+unberührt, weil sie keine Build-Abhängigkeit auf dieses Paket hat.
