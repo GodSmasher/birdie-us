@@ -454,8 +454,8 @@ export async function getPaymentTermsForInvoice(invoiceId: string): Promise<Paym
   const pdf = await fetchSevdeskPdf('Invoice', invoiceId, token);
   if (!pdf) return null;
 
-  const { text } = await extractText(new Uint8Array(pdf));
-  const fullText = text ?? '';
+  const { text: pages } = await extractText(new Uint8Array(pdf));
+  const fullText = (pages ?? []).join('\n');
   const terms = extractPaymentTermsFromText(fullText);
 
   const invRes = await fetch(`${BASE}/Invoice/${invoiceId}`, {
@@ -481,8 +481,8 @@ export async function getPaymentTermsForOrder(orderId: string): Promise<PaymentT
   const pdf = await fetchSevdeskPdf('Order', orderId, token);
   if (!pdf) return null;
 
-  const { text } = await extractText(new Uint8Array(pdf));
-  const fullText = text ?? '';
+  const { text: pages } = await extractText(new Uint8Array(pdf));
+  const fullText = (pages ?? []).join('\n');
   const terms = extractPaymentTermsFromText(fullText);
 
   return {
