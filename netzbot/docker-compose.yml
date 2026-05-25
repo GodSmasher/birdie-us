@@ -1,0 +1,9 @@
+services:
+  netzbot:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - NETZBOT_HEADLESS=true
+    volumes:
+      - ./artifacts:/app/artifacts
