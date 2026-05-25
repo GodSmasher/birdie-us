@@ -1,0 +1,159 @@
+{
+  "Bayernwerk": {
+    "name": "Bayernwerk Netz GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://www.bayernwerk-netz.de/de/meinauftragsportal.html",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_BAYERNWERK",
+    "plz_prefix": ["80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97"]
+  },
+  "MitNetz": {
+    "name": "MitNetz Strom GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://portal.mitnetz-strom.de/de/meinauftragsportal.html",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_MITNETZ",
+    "plz_prefix": ["01", "02", "03", "04", "06", "07", "08", "09"]
+  },
+  "E.Dis": {
+    "name": "E.Dis Netz GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://www.e-dis-netz.de/de/meinauftragsportal.html",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_EDIS",
+    "plz_prefix": ["14", "15", "16", "17", "19"]
+  },
+  "Avacon": {
+    "name": "Avacon Netz GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://www.avacon-netz.de/de/meinauftragsportal.html",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_AVACON",
+    "plz_prefix": ["29", "38", "39"]
+  },
+  "TEN": {
+    "name": "Thüringer Energienetze GmbH (TEN)",
+    "einreichung": "portal",
+    "portal_url": "https://www.ten-netzkundenportal.de/uebersicht",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_TEN",
+    "plz_prefix": ["98", "99"],
+    "note": "Azure B2C — MFA möglich. extra.mfa_code mitgeben oder MFA deaktivieren."
+  },
+  "SachsenEnergie": {
+    "name": "SachsenEnergie AG (SachsenNetze NAP)",
+    "einreichung": "portal",
+    "portal_url": "https://netzanschlussportal.sachsen-netze.de",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_SACHSENNETZE",
+    "plz_prefix": ["01", "02"],
+    "note": "TODO: cidaas 2FA Login + Formular noch nicht vollständig implementiert."
+  },
+  "Sachsen Netze": {
+    "name": "Sachsen Netze GmbH (NAP)",
+    "einreichung": "portal",
+    "portal_url": "https://netzanschlussportal.sachsen-netze.de",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_SACHSENNETZE",
+    "note": "TODO: cidaas 2FA Login noch nicht implementiert."
+  },
+  "Stromnetz Berlin": {
+    "name": "Stromnetz Berlin GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://services.stromnetz.berlin/anlagen",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_STROMNETZ_BERLIN",
+    "plz_ranges": ["10115", "10117", "10119", "10178", "10179", "10243", "10245", "10247", "10249"],
+    "note": "Azure B2C (kundenportal.stromnetz.berlin). Stabile Login-IDs: #signInName, #password, #next"
+  },
+  "Netze Magdeburg": {
+    "name": "Städtische Werke Magdeburg (Netze Magdeburg)",
+    "einreichung": "portal",
+    "portal_url": "https://onlinecenter.sw-magdeburg.de/sap/bc/ui5_ui5/sap/zui5umc/index.html",
+    "portal_user": "BITTE_EINTRAGEN",
+    "portal_pass_env": "PORTAL_PASS_NETZE_MAGDEBURG",
+    "plz_ranges": ["39104", "39106", "39108", "39110", "39112", "39114", "39116", "39118", "39120", "39122", "39124", "39126", "39128", "39130"],
+    "note": "SAP UI5. User = numerische SAP-ID (z.B. 233834), kein E-Mail-Format. Erstlogin: Passwort-Änderung nötig → PORTAL_NEW_PASS_MAGDEBURG setzen."
+  },
+  "ZEV Zwickau": {
+    "name": "ZEV Energie GmbH Zwickau",
+    "einreichung": "portal",
+    "portal_url": "https://netzportal.zev-energie.de",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_ZEV_ZWICKAU",
+    "plz_ranges": ["08056", "08058", "08060", "08062", "08064", "08066"],
+    "note": "util.portal (MudBlazor/Blazor Server). Geburtsdatum Pflichtfeld → extra.geburtsdatum"
+  },
+  "SW Meerane": {
+    "name": "Stadtwerke Meerane GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://netzanschlussportal.sw-meerane.de",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_SW_MEERANE",
+    "plz_ranges": ["08393"],
+    "note": "util.portal (MudBlazor). Geburtsdatum Pflichtfeld."
+  },
+  "SW Suhl": {
+    "name": "Stadtwerke Suhl/Zella-Mehlis Netz GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://netzportal.swsz-netz.de/public/login.html",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_SW_SUHL",
+    "plz_ranges": ["98527", "98528", "98529", "98530", "98544"],
+    "note": "Lovion. Login-IDs: #username, #password, #login_button."
+  },
+  "SW Bayreuth": {
+    "name": "Stadtwerke Bayreuth Energie und Wasser GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://www.stadtwerke-bayreuth.de/installateurportal/public/login.html",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_SW_BAYREUTH",
+    "plz_ranges": ["95444", "95445", "95447", "95448"],
+    "note": "Lovion (identisch mit SW Suhl)."
+  },
+  "SW Lutherstadt": {
+    "name": "Stadtwerke Lutherstadt Wittenberg",
+    "einreichung": "portal",
+    "portal_url": "https://netzportal.stadtwerke-wittenberg.de/kundenportal",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_SW_LUTHERSTADT",
+    "plz_ranges": ["06886", "06888", "06889"],
+    "note": "React SPA AJAX-Login. KEIN waitForNavigation nach Login-Click!"
+  },
+  "Werra Energie": {
+    "name": "Werra Energie GmbH / EVB Netze",
+    "einreichung": "portal",
+    "portal_url": "https://portal.evb-netze.de/",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_WERRA_ENERGIE",
+    "plz_ranges": ["99819", "99820", "99826", "99831", "99834", "99837", "99838"],
+    "note": "EVB Netze CMS. Stabile Formular_*-IDs."
+  },
+  "EMS": {
+    "name": "EMS Energieversorgung Selb (ESM Selb)",
+    "einreichung": "portal",
+    "portal_url": "https://netz-portal.esm-selb.de/hap-fe/bo/#/home",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_EMS",
+    "plz_ranges": ["95100"],
+    "note": "Hausanschluss Portal (ivurz.de). Angular Material Dialog-Login: button.login-button → #login."
+  },
+  "SW Delitzsch": {
+    "name": "Stadtwerke Delitzsch GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://hap.dlz.ivurz.de/X4/webapp/Installateurportal/Module/Dashboard",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_SW_DELITZSCH",
+    "plz_ranges": ["04509"],
+    "note": "X4 + Keycloak X4Realm. Login-IDs: #username, #password, #kc-login."
+  },
+  "SW Eschwege": {
+    "name": "Stadtwerke Eschwege GmbH",
+    "einreichung": "portal",
+    "portal_url": "https://www.stadtwerke-eschwege.de/swe/strom/netzanschluesse/installateurportal/index.php",
+    "portal_user": "na@volta-energietechnik.de",
+    "portal_pass_env": "PORTAL_PASS_SW_ESCHWEGE",
+    "plz_ranges": ["37269"],
+    "note": "Weblication PHP. Cookie-Banner (#cookieNoticeDeclineCloser) MUSS zuerst weggeklickt werden."
+  }
+}

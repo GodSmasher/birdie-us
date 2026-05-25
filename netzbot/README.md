@@ -4,26 +4,33 @@ Portal-Bot für die Netzanmeldung. Loggt sich beim Netzbetreiber-Portal ein, fü
 das Online-Formular aus den .birdie-Projektdaten **vor** und speichert es als
 **Entwurf** — danach prüft ein Mensch und gibt frei. **Der Bot reicht nichts ein.**
 
-> Prototyp-Stand: ein Driver (MITNETZ STROM, Voltas Region) als Gerüst. Die
-> Portal-Selektoren sind Platzhalter und müssen einmal real aufgenommen werden.
+## Unterstützte Portale
+
+| Netzbetreiber | Plattform | Driver | Status |
+|---------------|-----------|--------|--------|
+| MITNETZ STROM | EON-Gruppe (SFDC) | `mitnetz.ts` | ✅ Selektoren verifiziert |
+
+Weitere Portale (Bayernwerk, E.Dis, Avacon, SachsenEnergie, …) liegen als
+JS-Referenz in `reference/` und können als neue TypeScript-Driver portiert werden.
 
 ## Warum ein eigener Worker (nicht Vercel)
 
 Playwright braucht einen echten Browser und lange Laufzeiten — beides geht auf
-Vercel (Serverless, max. 30 s) nicht. Der Bot läuft als dauerhafter Worker auf
+Vercel (Serverless, max. 300 s) nicht. Der Bot läuft als dauerhafter Worker auf
 Railway / Fly.io / einem kleinen VPS. Dieses Paket ist eigenständig (eigenes
-`package.json`/`tsconfig`) und kann wie `@birdie/connectors` in ein eigenes Repo.
+`package.json`/`tsconfig`).
 
 ## Ablauf (Human-in-the-loop)
 
 ```
 .birdie (freigegebene Daten)
-        │  GET /api/netzanmeldung/jobs
+        │  GET /api/netzanmeldung/bot
         ▼
    netzbot  ──Login──▶ Netzbetreiber-Portal
-        │   ──Formular vorausfüllen──▶
-        │   ──Entwurf speichern + Screenshot──▶
-        │  POST /api/netzanmeldung { recordDraft }
+        │   ──Neuen Auftrag (Energie einspeisen)──▶
+        │   ──Adresse + Messkonzept (WR/PV) vorausfüllen──▶
+        │   ──Screenshot──▶
+        │  POST /api/netzanmeldung/bot { offerId, recordDraft, draftRef }
         ▼
 .birdie: Status „bitte prüfen"  ──▶  Mensch prüft & gibt frei  ──▶  (manuell) einreichen
 ```
@@ -36,18 +43,22 @@ Railway / Fly.io / einem kleinen VPS. Dieses Paket ist eigenständig (eigenes
 | `BIRDIE_BOT_TOKEN` | Service-Token für Bot↔App (Bearer) |
 | `NETZBOT_CREDS_<SLUG>` | Portal-Login `user\|pass\|portalUrl` pro Netzbetreiber |
 | `NETZBOT_HEADLESS` | `false` zum Entwickeln (Browser sichtbar) |
+| `NETZBOT_POLL_MS` | Poll-Intervall in ms (Default 60000) |
 
 ## Neuen Portal-Driver bauen
 
-1. DOM aufnehmen: `npx playwright codegen <portalUrl>` → Selektoren ablesen.
-2. `src/drivers/<id>.ts` nach Vorbild `mitnetz.ts` füllen (Login, Felder, „Zwischenspeichern").
+1. Referenz-Filler in `reference/` prüfen (z.B. `_eon-group.js` für EON-Portale).
+2. `src/drivers/<id>.ts` nach Vorbild `mitnetz.ts` erstellen.
 3. In `src/drivers/index.ts` registrieren. `netzbetreiber` muss exakt dem Namen aus
    `.birdie` (`netzbetreiberForPlz`) entsprechen.
+4. Testen: `NETZBOT_HEADLESS=false npm run once`
 
-## Noch in der .birdie-App umzusetzen (Integrations-Vertrag)
+## Konsolidierung
 
-- `GET /api/netzanmeldung/jobs` (Bearer-Token) → liefert vorausgefüllte `Job[]`.
-- `POST /api/netzanmeldung` muss das Bot-Bearer-Token zusätzlich zum Cookie akzeptieren.
+Die Portal-Filler wurden aus `birdie-connectoren/portal-bot/` hierher konsolidiert.
+`birdie-connectoren` enthält nur noch das Connector-SDK (Reonic, EcoFlow, Gmail, …).
+Die JS-Referenzdateien in `reference/` sind nicht Teil des Builds — sie dienen als
+Vorlage zum Portieren weiterer TypeScript-Driver.
 
 ## Lokal
 
