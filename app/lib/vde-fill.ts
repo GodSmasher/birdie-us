@@ -5,6 +5,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { downloadDriveFile } from './google-server';
 import type { ProjectData } from './projektdaten';
+import { phasen } from './geschaeftsregeln';
 
 const E2_TEMPLATE_ID = process.env.VDE_E2_TEMPLATE_ID || '1chcs6b0Zp6PYXJxGviY4au2zCDqegxYE';
 const E3_TEMPLATE_ID = process.env.VDE_E3_TEMPLATE_ID || '1t_ErQV7Xj7NWmKvr2H_XTXE5gTEn4PpZ';
@@ -54,6 +55,10 @@ export async function fillE2(project: ProjectData, customerName: string): Promis
   // Anzahl baugleicher Einheiten + max. Wirkleistung (kW)
   if (project.moduleCount) text('E2_Text8', String(project.moduleCount));
   if (project.kwp > 0) text('E2_Text9', String(project.kwp).replace('.', ','));
+  // Netzanschluss-Phasen (Geschäftsregel: > 4,6 kVA → 3-phasig). Eindeutige
+  // Checkbox-Felder im Formular. Einspeiseart bleibt vorerst manuell (doppelte
+  // Feldnamen in der Vorlage — erst nach Live-Feldabgleich sicher setzbar).
+  check(phasen(project) === 3 ? '3-phasig' : '1-phasig');
 
   try {
     form.updateFieldAppearances();
