@@ -4,14 +4,59 @@ Portal-Bot für die Netzanmeldung. Loggt sich beim Netzbetreiber-Portal ein, fü
 das Online-Formular aus den .birdie-Projektdaten **vor** und speichert es als
 **Entwurf** — danach prüft ein Mensch und gibt frei. **Der Bot reicht nichts ein.**
 
-## Unterstützte Portale
+## Unterstützte Portale (42)
+
+### Implementiert (18)
 
 | Netzbetreiber | Plattform | Driver | Status |
 |---------------|-----------|--------|--------|
-| MITNETZ STROM | EON-Gruppe (SFDC) | `mitnetz.ts` | ✅ Selektoren verifiziert |
+| MITNETZ STROM | EON-Gruppe (SFDC) | `mitnetz.ts` | ✅ verifiziert |
+| Bayernwerk | EON-Gruppe (SFDC) | `bayernwerk.ts` | ✅ portiert |
+| E.Dis | EON-Gruppe (SFDC) | `edis.ts` | ✅ portiert |
+| Avacon | EON-Gruppe (SFDC) | `avacon.ts` | ✅ portiert |
+| SW Suhl/Zella-Mehlis | Lovion | `sw-suhl.ts` | ✅ portiert |
+| SW Bayreuth | Lovion | `sw-bayreuth.ts` | ✅ portiert |
+| ZEV Zwickau | util.portal (MudBlazor) | `zev-zwickau.ts` | ✅ portiert |
+| SW Meerane | util.portal (MudBlazor) | `sw-meerane.ts` | ✅ portiert |
+| TEN | Standalone | `ten.ts` | ✅ portiert |
+| Stromnetz Berlin | Standalone | `stromnetz-berlin.ts` | ✅ portiert |
+| Netze Magdeburg | SAP UI5 | `netze-magdeburg.ts` | ✅ portiert |
+| SW Lutherstadt | util.portal | `sw-lutherstadt.ts` | ✅ portiert |
+| Werra Energie / EVB | ASP.NET WebForms | `werra-energie.ts` | ✅ portiert |
+| EMS | Standalone | `ems.ts` | ✅ portiert |
+| SW Delitzsch | HAP | `sw-delitzsch.ts` | ✅ portiert |
+| SW Eschwege | Standalone | `sw-eschwege.ts` | ✅ portiert |
+| SachsenEnergie | cidaas 2FA | `sachsenenergie.ts` | ⚠️ 2FA-Stub |
+| Sachsen Netze | cidaas 2FA | `sachsen-netze.ts` | ⚠️ 2FA-Stub |
 
-Weitere Portale (Bayernwerk, E.Dis, Avacon, SachsenEnergie, …) liegen als
-JS-Referenz in `reference/` und können als neue TypeScript-Driver portiert werden.
+### Stubs (24 — Portal erkannt, Driver ausstehend)
+
+| Netzbetreiber | Plattform/Hinweis | Driver |
+|---------------|-------------------|--------|
+| EVI-Netz | ? | `evi-netz.ts` |
+| Netze BW | ? | `netze-bw.ts` |
+| NRM | URL unbekannt | `nrm.ts` |
+| N-Ergie | URL unbekannt | `n-ergie.ts` |
+| SW Halle | IWS | `sw-halle.ts` |
+| badenovaNETZE | Kundenmarktplatz | `badenova-netze.ts` |
+| Celle-Uelzen Netz | VPN? | `celle-uelzen-netz.ts` |
+| EAM Netz | URL unbekannt | `eam-netz.ts` |
+| iNetz | Kundenmarktplatz | `inetz.ts` |
+| Netz Leipzig | URL unbekannt | `netz-leipzig.ts` |
+| SW Kulmbach | ? | `sw-kulmbach.ts` |
+| ÜZ Mainfranken | AM Servicecenter | `uez-mainfranken.ts` |
+| SW Ludwigsfelde | ? | `sw-ludwigsfelde.ts` |
+| SW Jena | ? | `sw-jena.ts` |
+| Enervie Vernetzt | HAV-Portal | `enervie-vernetzt.ts` |
+| Netz Düsseldorf | Lovion? | `netz-duesseldorf.ts` |
+| ESM Selb | HAP-Portal | `esm-selb.ts` |
+| enercity Netz | Standalone | `enercity-netz.ts` |
+| GGEW | Kundenmarktplatz | `ggew.ts` |
+| Netze Duisburg | SAP UI5 | `netze-duisburg.ts` |
+| Syna | URL unbekannt | `syna.ts` |
+| EnR Rudolstadt | URL unbekannt | `enr-rudolstadt.ts` |
+| SW Weißwasser | URL unbekannt | `sw-weisswasser.ts` |
+| SW Oelsnitz/V. | URL unbekannt | `sw-oelsnitz.ts` |
 
 ## Warum ein eigener Worker (nicht Vercel)
 
