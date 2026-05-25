@@ -33,6 +33,8 @@ export const DOC_STATUS_IDS = DOC_STAGES.map((s) => s.id) as DocStatus[];
 export interface GeneratedDoc {
   form: 'e2' | 'e3';
   at: string;
+  source?: 'manuell' | 'bot';
+  draftRef?: string;
 }
 
 export interface Registration {
@@ -139,12 +141,16 @@ async function loadReg(offerId: string): Promise<{ tid: string; reg: Registratio
 }
 
 /** Record that a draft document was generated → moves the registration to 'pruefen'. */
-export async function recordDraft(offerId: string, form: 'e2' | 'e3'): Promise<boolean> {
+export async function recordDraft(
+  offerId: string,
+  form: 'e2' | 'e3',
+  opts: { source?: 'manuell' | 'bot'; draftRef?: string } = {},
+): Promise<boolean> {
   const loaded = await loadReg(offerId);
   if (!loaded) return false;
   const { tid, reg } = loaded;
   const docs = (reg.documents ?? []).filter((d) => d.form !== form);
-  docs.push({ form, at: new Date().toISOString() });
+  docs.push({ form, at: new Date().toISOString(), source: opts.source ?? 'manuell', draftRef: opts.draftRef });
   reg.documents = docs;
   // Only advance forward — don't pull a freigegeben/eingereicht item back.
   if (!reg.docStatus || reg.docStatus === 'offen') reg.docStatus = 'pruefen';

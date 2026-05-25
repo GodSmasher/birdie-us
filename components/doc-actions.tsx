@@ -88,7 +88,11 @@ export function DocActions({
               rel="noopener noreferrer"
               className="flex items-center justify-between gap-2 text-[11px] text-fg3 hover:text-fg"
             >
-              <span>{d.form.toUpperCase()} · {new Date(d.at).toLocaleDateString('de-DE')}</span>
+              <span>
+                {d.form.toUpperCase()} · {new Date(d.at).toLocaleDateString('de-DE')}
+                {d.source === 'bot' && <span className="ml-1 text-purple">· Bot</span>}
+                {d.draftRef && <span className="ml-1 text-fg4">#{d.draftRef}</span>}
+              </span>
               <span className="text-accent">ansehen ↗</span>
             </a>
           ))}
