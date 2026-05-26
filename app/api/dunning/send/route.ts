@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
     // ── Send via Brevo SMTP API ──────────────────────────────────────
     const brevoBody: Record<string, unknown> = {
       sender: { name: 'Volta Solaranlagen', email: 'noreply@volta-solaranlagen.de' },
+      replyTo: { name: 'Volta Solaranlagen', email: 'info@volta-solaranlagen.de' },
       to: [{ email: to.email, name: to.name || to.email }],
       subject: rendered.subject,
       htmlContent: rendered.html,
