@@ -1,5 +1,6 @@
 // Email sync + matching engine.
-// Fetches emails from Gmail API, stores in Supabase, auto-matches to invoices.
+// Fetches emails from Gmail API, stores in Supabase.
+// Uses Claude Haiku for intelligent categorization and invoice matching.
 
 import { getDb, tenantId } from './db';
 
@@ -20,53 +21,99 @@ export interface StoredEmail {
   matched_invoice?: string;
   matched_project_id?: string;
   category: string;
+  summary?: string;
+  intent?: string;
   labels: string[];
   created_at: string;
 }
 
-// ── Invoice matching ───────────────────────────────────────────────────
+// ── Haiku Email Analysis ──────────────────────────────────────────────
 
-// Patterns to extract Rechnungsnummer from subject or body
-const INVOICE_PATTERNS = [
-  /(?:RE|RG|INV|Rechnung)[- _]?\d{4}[- _]\d{2,6}/gi,  // RE-2026-0042, RG2026-123
-  /(?:Rechnungsnummer|Rechnung\s*(?:Nr\.?|Nummer))\s*[:\s]*([A-Z0-9\-]+)/gi,
-  /(?:Invoice|Rechnung)\s*#?\s*([A-Z0-9\-]+)/gi,
-];
-
-export function extractInvoiceNumber(text: string): string | null {
-  for (const pattern of INVOICE_PATTERNS) {
-    pattern.lastIndex = 0;
-    const match = pattern.exec(text);
-    if (match) return (match[1] || match[0]).trim();
-  }
-  return null;
+interface HaikuAnalysis {
+  category: 'dunning_reply' | 'payment_info' | 'bounce' | 'invoice' | 'inquiry' | 'general';
+  invoice_number: string | null;
+  summary: string;
+  intent: string;
+  customer_name: string | null;
 }
 
-// Classify email based on content
-export function classifyEmail(subject: string, body: string, fromEmail: string): string {
+const HAIKU_SYSTEM = `Du bist ein Email-Analyse-Bot für ein Solarunternehmen (Volta Energietechnik GmbH).
+Analysiere eingehende Emails und extrahiere strukturierte Informationen.
+
+Antworte NUR mit validem JSON (kein Markdown, kein Text drumherum):
+{
+  "category": "dunning_reply|payment_info|bounce|invoice|inquiry|general",
+  "invoice_number": "RE-xxxx oder null",
+  "summary": "1 Satz Zusammenfassung auf Deutsch",
+  "intent": "Was will der Absender? (z.B. 'Zahlung angekündigt', 'Rechnung angefragt', 'Reklamation')",
+  "customer_name": "Name der Firma/Person oder null"
+}
+
+Kategorien:
+- dunning_reply: Antwort auf Mahnung/Zahlungserinnerung
+- payment_info: Zahlungsbestätigung oder Zahlungsankündigung
+- bounce: Unzustellbar, Delivery Failure
+- invoice: Rechnung (eingehend von Lieferant)
+- inquiry: Kundenanfrage, Angebot, Termin
+- general: Alles andere (Newsletter, Notifications, etc.)`;
+
+async function analyzeWithHaiku(
+  from: string,
+  subject: string,
+  body: string,
+): Promise<HaikuAnalysis | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+
+  const emailText = `Von: ${from}\nBetreff: ${subject}\n\n${body.slice(0, 2000)}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-20250414',
+        max_tokens: 300,
+        system: HAIKU_SYSTEM,
+        messages: [{ role: 'user', content: emailText }],
+      }),
+    });
+
+    if (!res.ok) {
+      console.error('[email-haiku] API error:', res.status);
+      return null;
+    }
+
+    const data = (await res.json()) as {
+      content?: { type: string; text: string }[];
+    };
+    const text = data.content?.[0]?.text ?? '';
+    const parsed = JSON.parse(text) as HaikuAnalysis;
+    return parsed;
+  } catch (e) {
+    console.error('[email-haiku] Parse error:', e);
+    return null;
+  }
+}
+
+// Fallback: simple keyword-based classification (when Haiku unavailable)
+function classifyFallback(subject: string, body: string, fromEmail: string): string {
   const text = `${subject} ${body}`.toLowerCase();
-
-  // Bounce / delivery failure
   if (fromEmail.includes('mailer-daemon') || fromEmail.includes('postmaster') ||
-      text.includes('delivery failed') || text.includes('undeliverable') ||
-      text.includes('nicht zustellbar')) {
-    return 'bounce';
-  }
-
-  // Payment confirmation
-  if (text.includes('zahlung') || text.includes('überwiesen') || text.includes('bezahlt') ||
-      text.includes('überweisung') || text.includes('payment') || text.includes('beglichen')) {
-    return 'payment_info';
-  }
-
-  // Dunning reply (references Mahnung, Zahlungserinnerung, Fälligkeit)
-  if (text.includes('mahnung') || text.includes('zahlungserinnerung') ||
-      text.includes('fällig') || text.includes('erinnerung') ||
-      text.includes('rechnung') || text.includes('forderung')) {
-    return 'dunning_reply';
-  }
-
+      text.includes('delivery failed') || text.includes('nicht zustellbar')) return 'bounce';
+  if (text.includes('zahlung') || text.includes('überwiesen') || text.includes('bezahlt')) return 'payment_info';
+  if (text.includes('mahnung') || text.includes('zahlungserinnerung') || text.includes('fällig')) return 'dunning_reply';
   return 'general';
+}
+
+function extractInvoiceFallback(text: string): string | null {
+  const patterns = [/(?:RE|RG|INV)[- _]?\d{4}[- _]\d{2,6}/gi];
+  for (const p of patterns) { p.lastIndex = 0; const m = p.exec(text); if (m) return m[0].trim(); }
+  return null;
 }
 
 // ── Gmail API helpers ──────────────────────────────────────────────────
@@ -219,15 +266,25 @@ export async function syncEmails(maxResults = 25): Promise<SyncResult> {
           ? new Date(parseInt(msg.internalDate)).toISOString()
           : new Date().toISOString();
 
-        const invoiceNr = extractInvoiceNumber(`${subject} ${body}`);
-        const category = classifyEmail(subject, body, from.email);
+        // ── Haiku analysis (with fallback) ──────────────────────
+        const haiku = await analyzeWithHaiku(
+          `${from.name} <${from.email}>`,
+          subject,
+          body,
+        );
 
-        // Try to match project by customer name in from_name or email
+        const category = haiku?.category ?? classifyFallback(subject, body, from.email);
+        const invoiceNr = haiku?.invoice_number ?? extractInvoiceFallback(`${subject} ${body}`);
+        const summary = haiku?.summary ?? '';
+        const intent = haiku?.intent ?? '';
+
+        // Try to match project by customer name
         let matchedProjectId: string | null = null;
-        if (projects && from.name) {
-          const fromLower = `${from.name} ${from.email}`.toLowerCase();
+        const customerName = haiku?.customer_name || from.name;
+        if (projects && customerName) {
+          const searchStr = `${customerName} ${from.email}`.toLowerCase();
           const match = projects.find((p: { customer_name?: string }) =>
-            p.customer_name && fromLower.includes(p.customer_name.toLowerCase()),
+            p.customer_name && searchStr.includes(p.customer_name.toLowerCase()),
           );
           if (match) matchedProjectId = (match as { id: string }).id;
         }
@@ -241,12 +298,14 @@ export async function syncEmails(maxResults = 25): Promise<SyncResult> {
           to_email: header(msg, 'to'),
           subject,
           snippet: msg.snippet ?? '',
-          body_plain: body.slice(0, 10000),  // cap at 10k chars
+          body_plain: body.slice(0, 10000),
           received_at: received,
           is_read: !(msg.labelIds ?? []).includes('UNREAD'),
           matched_invoice: invoiceNr,
           matched_project_id: matchedProjectId,
           category,
+          summary,
+          intent,
           labels: msg.labelIds ?? [],
         }, { onConflict: 'tenant_id,gmail_id' });
 

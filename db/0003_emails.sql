@@ -17,7 +17,9 @@ create table if not exists emails (
   -- Auto-matching
   matched_invoice text,          -- extracted Rechnungsnummer (e.g. "RE-2026-0042")
   matched_project_id uuid references cashflow_projects(id),
-  category      text not null default 'general',  -- dunning_reply, payment_info, general, bounce
+  category      text not null default 'general',  -- dunning_reply, payment_info, invoice, inquiry, bounce, general
+  summary       text,            -- Haiku-generated 1-line summary
+  intent        text,            -- Haiku-detected intent (e.g. "Zahlung angekündigt")
   -- Metadata
   labels        text[] default '{}',
   created_at    timestamptz not null default now(),

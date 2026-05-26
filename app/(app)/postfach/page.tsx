@@ -71,7 +71,14 @@ function EmailRow({ email, isLast }: { email: StoredEmail; isLast: boolean }) {
         <span className={`text-[13px] truncate ${!email.is_read ? 'text-fg font-medium' : 'text-fg'}`}>
           {email.subject}
         </span>
-        <span className="text-[11px] text-fg3 truncate">{email.snippet}</span>
+        {email.summary ? (
+          <span className="text-[11px] text-fg2 truncate">{email.summary}</span>
+        ) : (
+          <span className="text-[11px] text-fg3 truncate">{email.snippet}</span>
+        )}
+        {email.intent && (
+          <span className="text-[10px] text-info bg-info-bg px-1.5 py-0.5 rounded w-fit">{email.intent}</span>
+        )}
       </div>
     </div>
   );
