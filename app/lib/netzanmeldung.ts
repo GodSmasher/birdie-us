@@ -3,7 +3,7 @@
 // Registrations are stored in the DB (entities kind='registration'), seeded from
 // won Reonic offers and advanced manually (one place instead of portal-shuffling).
 
-import { getDb, tenantId, getEntities, upsertEntities } from './db';
+import { getDb, tenantId, getEntities, upsertEntities, deleteEntities } from './db';
 import type { RawOffer } from './reonic-server';
 
 export const STAGES = [
@@ -37,6 +37,14 @@ export interface GeneratedDoc {
   draftRef?: string;
 }
 
+export interface BotError {
+  at: string;
+  step: string;         // welcher Schritt fehlgeschlagen ist (z.B. "login", "step2_adresse")
+  error: string;        // Fehlerbeschreibung
+  screenshot?: string;  // Pfad/URL zum Screenshot
+  retries: number;      // wie oft schon versucht
+}
+
 export interface Registration {
   offerId: string;
   customer: string;
@@ -47,24 +55,76 @@ export interface Registration {
   dueDate?: string;
   docStatus?: DocStatus;
   documents?: GeneratedDoc[];
+  botErrors?: BotError[];
+  botRetries?: number;   // Gesamtzahl Versuche
+  botSkipUntil?: string; // exponentielles Backoff — vor diesem Zeitpunkt nicht erneut versuchen
 }
 
-function customerName(c: unknown, fb?: string): string {
-  if (typeof c === 'string' && c.trim()) return c;
+function customerName(c: unknown, ...fallbacks: (string | undefined | null)[]): string {
+  if (typeof c === 'string' && c.trim()) return c.trim();
   if (c && typeof c === 'object') {
     const o = c as Record<string, unknown>;
     const n = [o.firstName, o.lastName].filter(Boolean).join(' ').trim();
     if (n) return n;
-    if (typeof o.name === 'string') return o.name;
+    if (typeof o.name === 'string' && o.name.trim()) return o.name.trim();
+    if (typeof o.company === 'string' && o.company.trim()) return o.company.trim();
   }
-  return fb ?? '—';
+  for (const fb of fallbacks) {
+    if (typeof fb === 'string' && fb.trim()) return fb.trim();
+  }
+  return '—';
 }
 
-export interface Portal { name: string; username?: string; portalUrl?: string; hasPassword: boolean }
+export interface Portal { name: string; username?: string; password?: string; portalUrl?: string; hasPassword: boolean }
 
 export async function getPortals(): Promise<Portal[]> {
   const rows = await getEntities<Portal>('portal');
-  return rows.sort((a, b) => a.name.localeCompare(b.name));
+  // Deduplicate by name — last entry wins (preserves corrected driver names)
+  const byName = new Map<string, Portal>();
+  for (const p of rows) byName.set(p.name, p);
+  return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Get portal credentials for the bot — only returns portals with complete login data. */
+export async function getPortalCredentials(): Promise<Map<string, { username: string; password: string; portalUrl: string }>> {
+  const portals = await getPortals();
+  const map = new Map<string, { username: string; password: string; portalUrl: string }>();
+  for (const p of portals) {
+    if (p.username && p.password && p.portalUrl) {
+      map.set(p.name, { username: p.username, password: p.password, portalUrl: p.portalUrl });
+    }
+  }
+  return map;
+}
+
+/** Upsert a portal's login credentials. */
+export async function savePortalCredentials(
+  name: string,
+  creds: { username: string; password: string; portalUrl: string },
+): Promise<boolean> {
+  const db = getDb();
+  const tid = await tenantId('volta');
+  if (!db || !tid) return false;
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const data: Portal = {
+    name,
+    username: creds.username,
+    password: creds.password,
+    portalUrl: creds.portalUrl,
+    hasPassword: true,
+  };
+  const n = await upsertEntities(tid, 'manual', 'portal', [{ externalId: slug, data }]);
+  return n > 0;
+}
+
+/** Delete a portal by name (removes all slugs matching this name). */
+export async function deletePortal(name: string): Promise<boolean> {
+  const db = getDb();
+  const tid = await tenantId('volta');
+  if (!db || !tid) return false;
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const n = await deleteEntities(tid, 'portal', [slug]);
+  return n > 0;
 }
 
 export async function getRegistrations(): Promise<Registration[]> {
@@ -72,32 +132,49 @@ export async function getRegistrations(): Promise<Registration[]> {
   return rows.sort((a, b) => STAGE_IDS.indexOf(a.status) - STAGE_IDS.indexOf(b.status));
 }
 
-/** Create registrations for won offers that don't have one yet (keeps existing status). */
+/** Create registrations for won offers that don't have one yet AND refresh
+ *  customer name / value on existing ones (status, docStatus, documents stay). */
 export async function seedRegistrations(): Promise<number> {
   const db = getDb();
   const tid = await tenantId('volta');
   if (!db || !tid) return 0;
 
-  const { data: existing } = await db.from('entities').select('external_id').eq('tenant_id', tid).eq('kind', 'registration');
-  const have = new Set((existing ?? []).map((r) => (r as { external_id: string }).external_id));
+  const existingRegs = await getEntities<Registration>('registration');
+  const regMap = new Map(existingRegs.map((r) => [r.offerId, r]));
 
   const offers = await getEntities<RawOffer>('offer');
-  const won = offers.filter((o) => o.state === 'Won' && !have.has(o.id));
+  const won = offers.filter((o) => o.state === 'Won');
 
   const now = new Date();
-  const rows = won.map((o) => ({
-    externalId: o.id,
-    data: {
-      offerId: o.id,
-      customer: customerName(o.customer, o.customerNumber),
-      value: typeof o.totalPlannedPrice === 'number' ? o.totalPlannedPrice : 0,
-      netzbetreiber: '—',
-      status: 'anfrage' as StageId,
-      startedAt: now.toISOString(),
-      docStatus: 'offen' as DocStatus,
-      documents: [],
-    } satisfies Registration,
-  }));
+  const rows = won.map((o) => {
+    const existing = regMap.get(o.id);
+    const name = customerName(o.customer, o.name ?? o.customerNumber);
+    const value = typeof o.totalPlannedPrice === 'number' ? o.totalPlannedPrice : 0;
+    if (existing) {
+      // Refresh name + value but keep user-set status / documents
+      return {
+        externalId: o.id,
+        data: {
+          ...existing,
+          customer: name !== '—' ? name : existing.customer,
+          value: value > 0 ? value : existing.value,
+        } satisfies Registration,
+      };
+    }
+    return {
+      externalId: o.id,
+      data: {
+        offerId: o.id,
+        customer: name,
+        value,
+        netzbetreiber: '—',
+        status: 'anfrage' as StageId,
+        startedAt: now.toISOString(),
+        docStatus: 'offen' as DocStatus,
+        documents: [],
+      } satisfies Registration,
+    };
+  });
 
   return upsertEntities(tid, 'reonic', 'registration', rows);
 }
@@ -154,6 +231,26 @@ export async function recordDraft(
   reg.documents = docs;
   // Only advance forward — don't pull a freigegeben/eingereicht item back.
   if (!reg.docStatus || reg.docStatus === 'offen') reg.docStatus = 'pruefen';
+  const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
+  return n > 0;
+}
+
+/** Record a bot error — stores the error on the registration and calculates backoff. */
+export async function reportBotError(
+  offerId: string,
+  err: { step: string; error: string; screenshot?: string },
+): Promise<boolean> {
+  const loaded = await loadReg(offerId);
+  if (!loaded) return false;
+  const { tid, reg } = loaded;
+  const retries = (reg.botRetries ?? 0) + 1;
+  const botErr: BotError = { at: new Date().toISOString(), step: err.step, error: err.error, screenshot: err.screenshot, retries };
+  // Keep last 5 errors per registration
+  reg.botErrors = [...(reg.botErrors ?? []).slice(-4), botErr];
+  reg.botRetries = retries;
+  // Exponential backoff: 5min, 15min, 45min, 2h, 6h, max 24h
+  const backoffMs = Math.min(5 * 60_000 * Math.pow(3, retries - 1), 24 * 60 * 60_000);
+  reg.botSkipUntil = new Date(Date.now() + backoffMs).toISOString();
   const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
   return n > 0;
 }

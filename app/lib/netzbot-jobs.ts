@@ -5,10 +5,10 @@
 // tatsächlich bedienen kann, entscheidet der Bot selbst (Driver-Registry) — die
 // App liefert alle plausiblen Jobs und bleibt damit vom Bot entkoppelt.
 
-import { getRegistrations } from './netzanmeldung';
+import { getRegistrations, getPortalCredentials } from './netzanmeldung';
 import { getProjectDataBatch } from './projektdaten';
 import { netzbetreiberForPlz } from './netzbetreiber';
-import { phasen, einspeiseart } from './geschaeftsregeln';
+import { phasen, einspeiseart, speicherkopplung, hatNotstrom, inselbildend, schwarzstartfaehig, naSchutzIntegriert } from './geschaeftsregeln';
 
 export interface BotJob {
   offerId: string;
@@ -23,14 +23,25 @@ export interface BotJob {
     moduleCount?: number;
     moduleType?: string;
     inverter?: string;
+    battery?: string;
+    batteryKwh?: number;
     phases?: 1 | 3;
     einspeiseart?: 'ueberschuss' | 'voll';
+    speicherkopplung?: 'dc' | 'ac';
+    naSchutz?: boolean;
+    notstrom?: boolean;
+    inselbildend?: boolean;
+    schwarzstartfaehig?: boolean;
   };
 }
 
 export async function getBotJobs(): Promise<BotJob[]> {
   const regs = await getRegistrations();
-  const candidates = regs.filter((r) => (r.docStatus ?? 'offen') === 'offen');
+  const now = new Date().toISOString();
+  const candidates = regs.filter((r) =>
+    (r.docStatus ?? 'offen') === 'offen' &&
+    (!r.botSkipUntil || r.botSkipUntil <= now) // respect exponential backoff
+  );
   if (candidates.length === 0) return [];
 
   const projects = await getProjectDataBatch(candidates.map((r) => r.offerId));
@@ -55,10 +66,30 @@ export async function getBotJobs(): Promise<BotJob[]> {
         moduleCount: p.moduleCount || undefined,
         moduleType: p.moduleType,
         inverter: p.inverter,
+        battery: p.battery || undefined,
+        batteryKwh: p.batteryKwh || undefined,
         phases: phasen(p),
         einspeiseart: einspeiseart(p),
+        speicherkopplung: p.battery ? speicherkopplung(p) : undefined,
+        naSchutz: naSchutzIntegriert(p),
+        notstrom: hatNotstrom(p) || undefined,
+        inselbildend: inselbildend(p) || undefined,
+        schwarzstartfaehig: schwarzstartfaehig(p) || undefined,
       },
     });
   }
   return jobs;
+}
+
+/** Jobs inklusive Portal-Credentials — nur für die Bot-API (Bearer-geschützt). */
+export interface BotJobWithCreds extends BotJob {
+  credentials?: { username: string; password: string; portalUrl: string };
+}
+
+export async function getBotJobsWithCredentials(): Promise<BotJobWithCreds[]> {
+  const [jobs, creds] = await Promise.all([getBotJobs(), getPortalCredentials()]);
+  return jobs.map((job) => ({
+    ...job,
+    credentials: creds.get(job.netzbetreiber),
+  }));
 }

@@ -81,6 +81,21 @@ export async function getEntities<T = unknown>(kind: string, slug = VOLTA_SLUG):
   return out;
 }
 
+/** Delete entities by external_id(s). */
+export async function deleteEntities(
+  tenant: string,
+  kind: string,
+  externalIds: string[],
+): Promise<number> {
+  const db = getDb();
+  if (!db || externalIds.length === 0) return 0;
+  const { error } = await db.from('entities').delete()
+    .eq('tenant_id', tenant)
+    .eq('kind', kind)
+    .in('external_id', externalIds);
+  return error ? 0 : externalIds.length;
+}
+
 /** Append time-series readings. */
 export async function insertReadings(tenant: string, readings: Reading[]): Promise<number> {
   const db = getDb();
