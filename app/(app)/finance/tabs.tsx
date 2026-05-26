@@ -5,12 +5,13 @@ import { useState, type ReactNode } from 'react';
 const tabs = [
   { key: 'rechnungen', label: 'Rechnungen' },
   { key: 'liquiditaet', label: 'Liquidität' },
+  { key: 'mahnwesen', label: 'Mahnwesen' },
   { key: 'intern', label: 'Intern' },
 ] as const;
 
 type TabKey = (typeof tabs)[number]['key'];
 
-export function FinanceTabs({ invoiceTab, cashflowTab, internTab }: { invoiceTab: ReactNode; cashflowTab: ReactNode; internTab: ReactNode }) {
+export function FinanceTabs({ invoiceTab, cashflowTab, dunningTab, internTab }: { invoiceTab: ReactNode; cashflowTab: ReactNode; dunningTab: ReactNode; internTab: ReactNode }) {
   const [active, setActive] = useState<TabKey>('rechnungen');
 
   return (
@@ -30,7 +31,7 @@ export function FinanceTabs({ invoiceTab, cashflowTab, internTab }: { invoiceTab
           </button>
         ))}
       </div>
-      {active === 'rechnungen' ? invoiceTab : active === 'liquiditaet' ? cashflowTab : internTab}
+      {active === 'rechnungen' ? invoiceTab : active === 'liquiditaet' ? cashflowTab : active === 'mahnwesen' ? dunningTab : internTab}
     </>
   );
 }

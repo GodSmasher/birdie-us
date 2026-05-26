@@ -4,10 +4,12 @@ import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 import { getSevdeskInvoices, getSevdeskExpenses, type Invoices, type Expenses } from '@/app/lib/sevdesk-server';
 import Link from 'next/link';
 import { getCashflowSummary, type CashflowSummary, type CashflowProject, categoryLabels } from '@/app/lib/cashflow-server';
+import { getDunningTemplates } from '@/app/lib/dunning-server';
 import { FinanceTabs } from './tabs';
 import { ImportButton } from './import-button';
 import { SyncButton } from './sync-button';
 import { ProjectTable } from './project-search';
+import { DunningEditor } from './dunning-editor';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +21,7 @@ const fmtWeek = (iso: string) => {
 };
 
 export default async function FinancePage() {
-  const [inv, cf, exp] = await Promise.all([getSevdeskInvoices(), getCashflowSummary(), getSevdeskExpenses()]);
+  const [inv, cf, exp, dunning] = await Promise.all([getSevdeskInvoices(), getCashflowSummary(), getSevdeskExpenses(), getDunningTemplates().catch(() => [])]);
   const hasInvoices = inv.configured && !inv.error;
 
   return (
@@ -33,6 +35,7 @@ export default async function FinancePage() {
         <FinanceTabs
           invoiceTab={hasInvoices ? <RealFinance inv={inv} /> : <MockFinance />}
           cashflowTab={<CashflowView cf={cf} />}
+          dunningTab={<DunningEditor initial={dunning} />}
           internTab={<InternView inv={inv} exp={exp} />}
         />
       </main>
@@ -44,7 +47,11 @@ export default async function FinancePage() {
 // RECHNUNGEN — sevDesk live
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function statusPill(i: { status: string; overdue: boolean }) {
+function statusPill(i: { status: string; overdue: boolean; reminderLevel?: string }) {
+  if (i.reminderLevel === 'mahnung-1') return <Pill label="MAHNUNG 1" tone="error" />;
+  if (i.reminderLevel === 'erinnerung-nach') return <Pill label="GEMAHNT" tone="warning" />;
+  if (i.reminderLevel === 'erinnerung-am') return <Pill label="ERINNERT" tone="warning" />;
+  if (i.reminderLevel === 'erinnerung-vor') return <Pill label="ERINNERT" tone="info" />;
   if (i.overdue) return <Pill label="ÜBERFÄLLIG" tone="error" />;
   if (i.status === 'paid') return <Pill label="BEZAHLT" tone="success" />;
   if (i.status === 'draft') return <Pill label="ENTWURF" tone="neutral" />;
@@ -80,20 +87,35 @@ function RealFinance({ inv }: { inv: Invoices }) {
           <Card>
             <div className="px-5 pt-5 pb-3.5 flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-accent-bg flex items-center justify-center text-accent font-bold text-sm">⚡</div>
-              <div className="flex flex-col"><span className="font-semibold text-[13px] text-fg">Mahnbot</span><span className="text-[11px] text-fg2">{inv.overdueCount > 0 ? `${inv.overdueCount} überfällige Rechnungen` : 'keine überfälligen'}</span></div>
+              <div className="flex flex-col"><span className="font-semibold text-[13px] text-fg">Mahnbot</span><span className="text-[11px] text-fg2">{(() => { const r = inv.invoices.filter(i => i.reminderLevel && i.reminderLevel !== 'none').length; return r > 0 ? `${r} überfällige Rechnungen` : inv.overdueCount > 0 ? `${inv.overdueCount} überfällige Rechnungen` : 'keine überfälligen'; })()}</span></div>
               <div className="ml-auto"><Pill label="LIVE" tone="success" /></div>
             </div>
-            {inv.aging.length > 0 ? inv.aging.map((b, i) => (
-              <div key={i} className="flex items-center gap-2.5 px-5 py-3.5 border-t border-line">
-                <div className="w-16 h-[22px] rounded bg-surface-2 flex items-center justify-center text-[10px] font-medium text-fg2 tracking-[0.12em]">{b.days}</div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-fg">{b.label}</span>
-                  <span className="text-[10px] text-fg3">{b.count} Rechnungen · {euro(b.sum)}</span>
+            {(() => {
+              const reminders = inv.invoices.filter(i => i.reminderLevel && i.reminderLevel !== 'none');
+              const levels = [
+                { key: 'erinnerung-vor', label: 'Erinnerung', days: '1–7 Tage' },
+                { key: 'erinnerung-am', label: 'Mahnung 1', days: '8–14 Tage' },
+                { key: 'erinnerung-nach', label: 'Mahnung 2', days: '15–30 Tage' },
+                { key: 'mahnung-1', label: 'Inkasso', days: '30+ Tage' },
+              ];
+              const buckets = levels.map(l => {
+                const items = reminders.filter(i => i.reminderLevel === l.key);
+                return { ...l, count: items.length, sum: Math.round(items.reduce((s, i) => s + i.gross, 0)) };
+              }).filter(b => b.count > 0);
+              const fallback = inv.aging.length > 0 ? inv.aging : [];
+              const display = buckets.length > 0 ? buckets : fallback;
+              return display.length > 0 ? display.map((b, i) => (
+                <div key={i} className="flex items-center gap-2.5 px-5 py-3.5 border-t border-line">
+                  <div className="w-16 h-[22px] rounded bg-surface-2 flex items-center justify-center text-[10px] font-medium text-fg2 tracking-[0.12em]">{b.days}</div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-fg">{b.label}</span>
+                    <span className="text-[10px] text-fg3">{b.count} Rechnungen · {euro(b.sum)}</span>
+                  </div>
                 </div>
-              </div>
-            )) : (
-              <div className="px-5 py-4 border-t border-line text-xs text-fg3">Alle Rechnungen pünktlich bezahlt</div>
-            )}
+              )) : (
+                <div className="px-5 py-4 border-t border-line text-xs text-fg3">Alle Rechnungen pünktlich bezahlt</div>
+              );
+            })()}
           </Card>
           <Card className="p-5 flex flex-col gap-3">
             <h3 className="font-semibold text-[13px] text-fg">Zusammenfassung</h3>

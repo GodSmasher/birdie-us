@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server';
 // (i.e. on the production deploy that carries real Reonic data). Without the
 // env var the app stays open as the public mock demo.
 
-const PUBLIC_PREFIXES = ['/gate', '/api/gate', '/api/sync', '/api/netzanmeldung/bot'];
+const PUBLIC_PREFIXES = ['/gate', '/api/gate', '/api/sync', '/api/netzanmeldung/bot', '/api/dunning'];
 
 async function sha256Hex(input: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
