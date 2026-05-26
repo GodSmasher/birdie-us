@@ -21,8 +21,15 @@ export interface Job {
     moduleCount?: number;
     moduleType?: string;
     inverter?: string;
+    battery?: string;
+    batteryKwh?: number;
     phases?: 1 | 3;
     einspeiseart?: 'ueberschuss' | 'voll';
+    speicherkopplung?: 'dc' | 'ac';
+    naSchutz?: boolean;
+    notstrom?: boolean;
+    inselbildend?: boolean;
+    schwarzstartfaehig?: boolean;
   };
 }
 

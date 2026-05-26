@@ -32,17 +32,22 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
   const browser = await chromium.launch({ headless: config.headless });
   const page    = await browser.newPage();
   let screenshotPath = '';
+  let currentStep = 'init';
 
   async function snap(label: string): Promise<void> {
     screenshotPath = `artifacts/ten_${label}.png`;
     await page.screenshot({ path: screenshotPath, fullPage: false }).catch(() => {});
   }
 
-  async function fillIfExists(sel: string, value: string | number | undefined): Promise<void> {
+  async function fillField(sel: string, value: string | number | undefined): Promise<void> {
     if (value === undefined || value === null || value === '') return;
     const el = page.locator(sel).first();
-    if (await el.isVisible({ timeout: 1500 }).catch(() => false)) {
+    if (await el.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await el.click();
       await el.fill(String(value));
+      // Trigger blur to activate validation
+      await el.evaluate((e) => e.dispatchEvent(new Event('blur', { bubbles: true })));
+      await page.waitForTimeout(300);
     }
   }
 
@@ -51,19 +56,54 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
     if (await el.isVisible({ timeout: 1500 }).catch(() => false)) await el.click();
   }
 
-  async function clickWeiter(): Promise<void> {
-    const btn = page.locator(
-      '#button-Weiter, button:has-text("Weiter"), ' +
-      'button[type="submit"]:not(:disabled), [class*="next"]:not([disabled])'
-    ).first();
-    if (await btn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await btn.click();
-      await page.waitForTimeout(1500);
+  /** Wait for "Weiter" to become enabled (validation pass), then click.
+   *  If it stays disabled, capture the validation error from the page. */
+  async function clickWeiter(stepLabel: string): Promise<void> {
+    currentStep = stepLabel;
+    const btn = page.locator('#button-Weiter').first();
+
+    // Wait for button to exist
+    if (!await btn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      // Fallback selectors
+      const alt = page.locator('button:has-text("Weiter")').first();
+      if (await alt.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await alt.click();
+        await page.waitForTimeout(1500);
+        return;
+      }
+      throw new Error(`[${stepLabel}] Weiter-Button nicht gefunden`);
     }
+
+    // Wait up to 15s for button to become enabled (portal validates async)
+    for (let i = 0; i < 30; i++) {
+      const disabled = await btn.getAttribute('disabled');
+      if (disabled === null) break;
+      await page.waitForTimeout(500);
+    }
+
+    // Check if still disabled
+    const stillDisabled = await btn.getAttribute('disabled');
+    if (stillDisabled !== null) {
+      // Capture validation errors shown on the page
+      const errors = await page.locator(
+        '.error-message, .validation-error, [class*="error"], [class*="invalid"], ' +
+        '.ten-error, .field-error, [role="alert"]'
+      ).allTextContents().catch(() => []);
+      const uniqueErrors = [...new Set(errors.map((e) => e.trim()).filter(Boolean))];
+      await snap(`${stepLabel}_validation_error`);
+      const errMsg = uniqueErrors.length > 0
+        ? `Validierungsfehler: ${uniqueErrors.join(' | ')}`
+        : 'Weiter-Button bleibt disabled — Pflichtfeld fehlt oder Validierung fehlgeschlagen';
+      throw new Error(`[${stepLabel}] ${errMsg}`);
+    }
+
+    await btn.click();
+    await page.waitForTimeout(1500);
   }
 
   try {
     // ── 1. Portal öffnen → Azure B2C Redirect ──────────────────────────────
+    currentStep = 'login';
     await page.goto(PORTAL_URL, { waitUntil: 'networkidle', timeout: 30000 });
     await snap('01_b2c_login');
 
@@ -76,19 +116,18 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
     await snap('02_nach_passwort');
 
     // ── 2. MFA (optional) ──────────────────────────────────────────────────
+    currentStep = 'mfa';
     const mfaField = page.locator(
       'input[autocomplete="one-time-code"], input[placeholder*="Code"], ' +
       'input[placeholder*="OTP"], input[placeholder*="Bestätigungscode"]'
     );
     if (await mfaField.isVisible({ timeout: 8000 }).catch(() => false)) {
       await snap('03_mfa_required');
-      // 30 s warten — Mensch kann manuell eingeben
       await page.waitForURL(/ten-netzkundenportal\.de/, { timeout: 35000 }).catch(() => {});
       if (page.url().includes('b2clogin.com')) {
         return {
-          ok: false,
-          screenshotPath,
-          error: 'TEN: MFA-Code erforderlich — bitte Konto-MFA deaktivieren oder manuell eingeben.',
+          ok: false, screenshotPath,
+          error: '[mfa] MFA-Code erforderlich — bitte Konto-MFA deaktivieren oder manuell eingeben.',
         };
       }
     } else {
@@ -97,6 +136,7 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
     await snap('03_nach_login');
 
     // ── 3. Einspeisung-Antragsstrecke ───────────────────────────────────────
+    currentStep = 'start';
     await page.goto(EINSPEISUNG_URL, { waitUntil: 'networkidle', timeout: 25000 });
     await snap('04_einspeisung_start');
 
@@ -108,17 +148,11 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
     await snap('05_step1_start');
 
     // ── Step 1: Antragsteller-Typ + Anlagenart + Leistungsbereich ──────────
-    const customerTypeEl = page.locator('#radiobutton-customerType-installer');
-    if (await customerTypeEl.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await customerTypeEl.click();
-      await page.waitForTimeout(400);
-    }
-
-    const serviceEl = page.locator('#radiobutton-service-newConstruction');
-    if (await serviceEl.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await serviceEl.click();
-      await page.waitForTimeout(400);
-    }
+    currentStep = 'step1_typ';
+    await clickIfExists('#radiobutton-customerType-installer');
+    await page.waitForTimeout(400);
+    await clickIfExists('#radiobutton-service-newConstruction');
+    await page.waitForTimeout(400);
 
     const plantSizeEl = page.locator('#dropdown-plantSize');
     if (await plantSizeEl.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -126,24 +160,22 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
       await page.waitForTimeout(400);
     }
     await snap('06_step1_fertig');
-
-    await page.locator('#button-Weiter').click().catch(async () => {
-      await page.locator('button:has-text("Weiter")').first().click().catch(() => {});
-    });
-    await page.waitForTimeout(1500);
+    await clickWeiter('step1');
     await snap('07_step2_start');
 
     // ── Step 2: Standort ────────────────────────────────────────────────────
-    await fillIfExists('input[id*="street"], input[name*="street"], input[placeholder*="Straße" i]', strasse);
-    await fillIfExists('input[id*="houseNumber"], input[name*="houseNumber"], input[placeholder*="Hausnr" i]', hnr);
-    await fillIfExists('input[id*="zipCode"], input[name*="zipCode"], input[placeholder*="PLZ" i]', f.zip);
-    await fillIfExists('input[id*="city"], input[name*="city"], input[placeholder*="Ort" i]', f.city);
+    currentStep = 'step2_adresse';
+    await fillField('input[id*="street"], input[name*="street"], input[placeholder*="Straße" i]', strasse);
+    await fillField('input[id*="houseNumber"], input[name*="houseNumber"], input[placeholder*="Hausnr" i]', hnr);
+    await fillField('input[id*="zipCode"], input[name*="zipCode"], input[placeholder*="PLZ" i]', f.zip);
+    await fillField('input[id*="city"], input[name*="city"], input[placeholder*="Ort" i]', f.city);
     await snap('08_step2_adresse');
-    await clickWeiter();
+    await clickWeiter('step2_adresse');
 
     // ── Step 3: PV-Technische Angaben ───────────────────────────────────────
-    await fillIfExists('input[id*="power"], input[id*="kwp"], input[placeholder*="kWp" i]', f.kwp);
-    await fillIfExists('input[id*="inverter"], input[placeholder*="Wechselrichter" i]', f.inverter);
+    currentStep = 'step3_pv';
+    await fillField('input[id*="power"], input[id*="kwp"], input[placeholder*="kWp" i]', f.kwp);
+    await fillField('input[id*="inverter"], input[placeholder*="Wechselrichter" i]', f.inverter);
 
     if (f.einspeiseart === 'voll') {
       await clickIfExists('[id*="Volleinspeisung"], [id*="full"]');
@@ -151,21 +183,24 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
       await clickIfExists('[id*="Überschuss"], [id*="overflow"], [id*="excess"]');
     }
     await snap('09_step3_pv');
-    await clickWeiter();
+    await clickWeiter('step3_pv');
 
     // ── Step 4: Betreiber ───────────────────────────────────────────────────
-    await fillIfExists('input[id*="firstName"], input[name*="firstName"]', vorname);
-    await fillIfExists('input[id*="lastName"], input[name*="lastName"]', nachname);
-    await fillIfExists('input[type="email"], input[id*="email"]', creds.username);
+    currentStep = 'step4_betreiber';
+    await fillField('input[id*="firstName"], input[name*="firstName"]', vorname);
+    await fillField('input[id*="lastName"], input[name*="lastName"]', nachname);
+    await fillField('input[type="email"], input[id*="email"]', creds.username);
     await snap('10_step4_betreiber');
-    await clickWeiter();
+    await clickWeiter('step4_betreiber');
 
     // ── Step 5: Installateur ────────────────────────────────────────────────
-    await fillIfExists('input[id*="installerEmail"]', creds.username);
+    currentStep = 'step5_installateur';
+    await fillField('input[id*="installerEmail"]', creds.username);
     await snap('11_step5_installateur');
-    await clickWeiter();
+    await clickWeiter('step5_installateur');
 
     // ── Step 6+: Datenschutz-Checkboxen ────────────────────────────────────
+    currentStep = 'step6_datenschutz';
     await snap('12_step6_weitere');
     const checkboxes = page.locator('input[type="checkbox"]:not(:checked)');
     const cbCount = await checkboxes.count();
@@ -173,9 +208,11 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
       await checkboxes.nth(i).click().catch(() => {});
       await page.waitForTimeout(200);
     }
-    await clickWeiter();
+    await clickWeiter('step6_datenschutz');
     await snap('13_zusammenfassung');
 
+    // ── Entwurf speichern ──────────────────────────────────────────────────
+    currentStep = 'save';
     const saveBtn = page.locator(
       'button:has-text("Entwurf"), button:has-text("Speichern"), ' +
       'button:has-text("Zwischenspeichern"), #button-Speichern'
@@ -189,8 +226,8 @@ async function fill(job: Job, creds: PortalCredentials): Promise<FillResult> {
     return { ok: true, draftRef: page.url(), screenshotPath };
 
   } catch (err) {
-    await snap('error');
-    return { ok: false, screenshotPath, error: String(err) };
+    await snap(`error_${currentStep}`);
+    return { ok: false, screenshotPath, error: `[${currentStep}] ${String(err).slice(0, 500)}` };
   } finally {
     await browser.close();
   }
