@@ -15,6 +15,7 @@ export interface InvoiceRow {
   id: string; number: string; customer: string;
   status: 'draft' | 'open' | 'paid'; gross: number;
   date?: string; dueDate?: string; overdue: boolean;
+  reminderLevel?: string;
 }
 
 export interface AgingBucket { label: string; days: string; count: number; sum: number }
