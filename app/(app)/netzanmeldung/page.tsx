@@ -97,6 +97,7 @@ export default async function NetzanmeldungPage({
                           <Card key={r.offerId} className="p-3 flex flex-col gap-2">
                             <div className="flex items-start gap-2">
                               <span className="text-[13px] font-medium text-fg leading-tight truncate flex-1">{r.customer}</span>
+                              {/\bWP\b/i.test(r.customer) && <Pill label="WP" tone="info" dot={false} />}
                               {overdue(r) && <Pill label="FRIST" tone="error" dot={false} />}
                             </div>
                             <div className="flex items-center justify-between text-[11px] text-fg3">

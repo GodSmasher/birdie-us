@@ -151,19 +151,35 @@ export async function seedRegistrations(): Promise<number> {
   const regMap = new Map(existingRegs.map((r) => [r.offerId, r]));
 
   const offers = await getEntities<RawOffer>('offer');
-  // Nur gewonnene Projekte die im richtigen Kanban-Status stehen (NTS/Zählerweise/HAK)
-  // oder die schon eine bestehende Registration haben (damit Updates nicht verloren gehen).
-  const won = offers.filter((o) =>
-    o.state === 'Won' && (regMap.has(o.id) || o.status === NETZ_READY_STATUS),
-  );
+  const offerMap = new Map(offers.map((o) => [o.id, o]));
+
+  // Nur gewonnene Projekte im richtigen Kanban-Status (NTS/Zählerweise/HAK).
+  const won = offers.filter((o) => o.state === 'Won' && o.status === NETZ_READY_STATUS);
+
+  // Bestehende Registrations aufräumen: wenn das Offer NICHT mehr im NTS-Status
+  // steht UND noch nicht bearbeitet wurde (anfrage + offen), löschen.
+  const toDelete = existingRegs
+    .filter((r) => {
+      const offer = offerMap.get(r.offerId);
+      if (!offer || offer.status === NETZ_READY_STATUS) return false; // keep
+      // Schon bearbeitet? → behalten (Status weiter als anfrage ODER Dokumente erzeugt)
+      if (r.status !== 'anfrage') return false;
+      if (r.docStatus && r.docStatus !== 'offen') return false;
+      if (r.documents && r.documents.length > 0) return false;
+      return true; // unbearbeitet + falscher Status → weg
+    })
+    .map((r) => r.offerId);
+  if (toDelete.length > 0) {
+    await deleteEntities(tid, 'registration', toDelete);
+  }
 
   const now = new Date();
+  // Nur NTS-Offers: neue anlegen oder bestehende aktualisieren
   const rows = won.map((o) => {
     const existing = regMap.get(o.id);
     const name = customerName(o.customer, o.name ?? o.customerNumber);
     const value = typeof o.totalPlannedPrice === 'number' ? o.totalPlannedPrice : 0;
     if (existing) {
-      // Refresh name + value but keep user-set status / documents
       return {
         externalId: o.id,
         data: {
