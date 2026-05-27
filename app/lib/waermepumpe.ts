@@ -18,6 +18,31 @@ const WP_PATTERN = /w[äa]rmepumpe|heat\s*pump|wp\b/i;
 const GAS_PATTERN = /\bgas\b|erdgas|gasheizung|gasz[äa]hler/i;
 const OIL_PATTERN = /[öo]l\b|[öo]lheizung|heiz[öo]l/i;
 
+/** Batch: returns Set of offerIds that contain a Wärmepumpe (lightweight check). */
+export async function getWpOfferIds(): Promise<Set<string>> {
+  const db = getDb();
+  const tid = await tenantId('volta');
+  if (!db || !tid) return new Set();
+  const out = new Set<string>();
+  const pageSize = 1000;
+  for (let from = 0; from < 20000; from += pageSize) {
+    const { data, error } = await db
+      .from('entities').select('external_id, data')
+      .eq('tenant_id', tid).eq('kind', 'offer')
+      .range(from, from + pageSize - 1);
+    if (error || !data || data.length === 0) break;
+    for (const row of data) {
+      const o = (row as { external_id: string; data: Record<string, unknown> }).data;
+      const eid = (row as { external_id: string }).external_id;
+      const t = ((o.type as string) || '').toLowerCase();
+      const n = ((o.name as string) || '').toLowerCase();
+      if (WP_PATTERN.test(t) || WP_PATTERN.test(n) || t.includes('wp')) out.add(eid);
+    }
+    if (data.length < pageSize) break;
+  }
+  return out;
+}
+
 /** Erkennt Wärmepumpe + Heizungstyp (Gas/Öl) aus einem Reonic-Angebot. */
 export async function getWaermepumpeInfo(offerId: string): Promise<WaermepumpeInfo | null> {
   const db = getDb();
