@@ -18,8 +18,8 @@ import { phasen, speicherkopplung, hatNotstrom, naSchutzIntegriert } from './ges
 // ── Installer (Volta) ──────────────────────────────────────────────────────
 const VOLTA = {
   name:   process.env.INSTALLER_COMPANY  || 'Volta Energietechnik GmbH',
-  street: process.env.INSTALLER_ADDRESS  || 'Kamenzer Str. 12',
-  plzOrt: process.env.INSTALLER_PLZORT   || '04347 Leipzig',
+  street: process.env.INSTALLER_ADDRESS  || 'Am Schenkberg 12',
+  plzOrt: process.env.INSTALLER_PLZORT   || '04349 Leipzig',
   phone:  process.env.INSTALLER_PHONE    || '',
   email:  process.env.INSTALLER_EMAIL    || '',
 };
@@ -136,14 +136,15 @@ export async function fillAN005(project: ProjectData, customer: string): Promise
   text('Straße Hausnummer_2', project.address?.line);
   text('PLZ Ort_2', plzOrt);
 
-  // ── 3. Grundstückseigentümer (= Betreiber bei Residential) ──
-  text('Vorname Name bzw Firmenname_2', customer);
-  text('Telefon_2', project.phone);
-  text('Straße Hausnummer_3', project.address?.line);
-  text('PLZ Ort_3', plzOrt);
-  text('EMail_2', project.email);
+  // ── 3. ausführender Elektrofachbetrieb = Volta ──
+  text('Vorname Name bzw Firmenname_2', VOLTA.name);
+  text('Telefon_2', VOLTA.phone);
+  text('Straße Hausnummer_3', VOLTA.street);
+  text('PLZ Ort_3', VOLTA.plzOrt);
+  text('EMail_2', VOLTA.email);
 
-  // ── 4. Anlagenerrichter = Volta (Felder mit _3/_4 Suffix) ──
+  // ── 4. ausführender Anlagenerrichter (falls abweichend von 3) ──
+  // Volta = beides, also gleiche Daten oder leer. Wir füllen gleich.
   text('Vorname Name bzw Firmenname_3', VOLTA.name);
   text('Telefon_3', VOLTA.phone);
   text('Straße Hausnummer_4', VOLTA.street);
