@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { StageSelect } from '@/components/stage-select';
+import { VbnSelect } from '@/components/vbn-select';
 import { DocActions } from '@/components/doc-actions';
 import { getRegistrations, STAGES, type StageId } from '@/app/lib/netzanmeldung';
 import { getProjectData } from '@/app/lib/projektdaten';
@@ -100,25 +101,17 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
               </div>
               <div className="border-t border-line pt-4 flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-semibold text-[13px] text-fg">Netzbetreiber</h3>
+                  <h3 className="font-semibold text-[13px] text-fg">Netzbetreiber (VNB)</h3>
                   {nb && <Pill label={CONFIDENCE_LABEL[nb.confidence].toUpperCase()} tone={nbTone} dot={false} />}
                 </div>
-                {nb ? (
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-xs text-fg font-medium">{nb.name}</span>
-                    <span className="text-[11px] text-fg3 leading-[15px]">
-                      Automatisch aus PLZ {project?.address?.zip} ermittelt. Bei „bitte prüfen" vor dem Einreichen verifizieren.
-                    </span>
-                    {nb.portalUrl && (
-                      <a href={nb.portalUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-accent self-start">
-                        Einspeise-Portal öffnen ↗
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-[11px] text-fg3 leading-[15px]">
-                    {project?.address?.zip ? 'Kein Betreiber zur PLZ hinterlegt — manuell prüfen.' : 'Keine PLZ im Projekt — Adresse in Reonic nachtragen.'}
-                  </p>
+                <VbnSelect offerId={reg?.offerId ?? project?.offerId ?? params.slug} current={reg?.netzbetreiber ?? nb?.name ?? '—'} />
+                <span className="text-[11px] text-fg3 leading-[15px]">
+                  {nb ? `Vorschlag aus PLZ ${project?.address?.zip}. Bitte vor Einreichung prüfen.` : project?.address?.zip ? 'Kein Betreiber zur PLZ hinterlegt — bitte manuell wählen.' : 'Keine PLZ im Projekt — VNB manuell wählen.'}
+                </span>
+                {nb?.portalUrl && (
+                  <a href={nb.portalUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-accent self-start">
+                    Einspeise-Portal öffnen ↗
+                  </a>
                 )}
               </div>
               <div className="border-t border-line pt-4">

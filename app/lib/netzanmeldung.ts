@@ -396,3 +396,13 @@ export async function assignNetzbetreiber(force = false): Promise<VbnResult> {
   }
   return result;
 }
+
+/** Manually set the Netzbetreiber (VBN) for a single registration. */
+export async function setNetzbetreiber(offerId: string, nbName: string): Promise<boolean> {
+  const loaded = await loadReg(offerId);
+  if (!loaded) return false;
+  const { tid, reg } = loaded;
+  reg.netzbetreiber = nbName;
+  const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
+  return n > 0;
+}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   setRegistrationStatus,
   setDocStatus,
+  setNetzbetreiber,
   recordDraft,
   STAGE_IDS,
   DOC_STATUS_IDS,
@@ -19,11 +20,16 @@ export async function POST(req: Request) {
     status?: string;
     docStatus?: string;
     recordDraft?: 'e2' | 'e3';
+    netzbetreiber?: string;
   };
   if (!body.offerId) {
     return NextResponse.json({ ok: false, message: 'offerId nötig' }, { status: 400 });
   }
 
+  if (body.netzbetreiber && typeof body.netzbetreiber === 'string') {
+    const ok = await setNetzbetreiber(body.offerId, body.netzbetreiber.trim());
+    return NextResponse.json({ ok }, { status: ok ? 200 : 404 });
+  }
   if (body.recordDraft === 'e2' || body.recordDraft === 'e3') {
     const ok = await recordDraft(body.offerId, body.recordDraft);
     return NextResponse.json({ ok }, { status: ok ? 200 : 404 });
