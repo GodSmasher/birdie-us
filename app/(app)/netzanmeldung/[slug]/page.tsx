@@ -42,7 +42,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
           </div>
         </header>
 
-        <div className="flex-1 px-4 py-5 lg:px-8 lg:py-7 flex flex-col gap-5 lg:gap-6 max-w-[1000px]">
+        <div className="flex-1 px-4 py-5 lg:px-8 lg:py-7 flex flex-col gap-5 lg:gap-6">
           {/* Completeness check */}
           {project && (
             <Card className={`p-5 flex flex-col gap-3 ${project.ready ? '' : 'border-warning/40'}`}>
@@ -93,7 +93,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
             </Card>
 
             {/* Status + actions */}
-            <Card className="w-full lg:w-[340px] shrink-0 p-4 lg:p-5 flex flex-col gap-4">
+            <Card className="w-full lg:w-[400px] shrink-0 p-4 lg:p-5 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <h3 className="font-semibold text-[13px] text-fg">Status</h3>
                 {reg && <StageSelect offerId={reg.offerId} status={reg.status as StageId} />}

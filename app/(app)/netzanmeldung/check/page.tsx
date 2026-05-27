@@ -31,7 +31,7 @@ export default async function DatencheckPage() {
       <Sidebar active="netzanmeldung" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar title="Datencheck" subtitle="Vollständigkeit aller Projekte für die Netzanmeldung" />
-        <div className="flex-1 px-8 py-7 flex flex-col gap-6 max-w-[1100px]">
+        <div className="flex-1 px-4 py-5 lg:px-8 lg:py-7 flex flex-col gap-5 lg:gap-6">
           <div className="flex items-center gap-3 text-[11px]">
             <Link href="/netzanmeldung" className="text-fg3 hover:text-fg2">Netzanmeldung</Link>
             <span className="text-fg4">/</span>
