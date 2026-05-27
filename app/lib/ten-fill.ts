@@ -298,7 +298,9 @@ export async function fillANS(project: ProjectData, customer: string): Promise<U
   text('4_c', wr.typ);                                      // Typ/Modell
   text('4_d', String(project.inverterCount ?? 1));           // Anzahl
   text('4_e', num(wrKw(project)));                           // Nennleistung kW
+  dropdown('4_f', phasen(project) === 3 ? 'DS' : 'WS');     // vorh. Messeinrichtung (DS=Drehstrom)
   text('4_g', num(project.kwp));                             // kWp Modulleistung
+  dropdown('4_h', 'iMSys');                                  // neue Messeinrichtung (§14a → iMSys)
   // 4_i = Strom pro Phase → WR kW / 3 Phasen / 230V ≈ A pro Phase
   const wrA = wrKw(project) ? Math.round((wrKw(project)! * 1000) / (3 * 230)) : undefined;
   text('4_i', wrA ? String(wrA) : undefined);
@@ -311,6 +313,8 @@ export async function fillANS(project: ProjectData, customer: string): Promise<U
     text('41_c', bat.typ);
     text('41_d', String(project.batteryModuleCount ?? 1));   // Anzahl Module
     text('41_e', num(batKwTotal(project)));                  // Gesamt Entladeleistung kW
+    dropdown('41_f', phasen(project) === 3 ? 'DS' : 'WS');  // vorh. Messeinrichtung
+    dropdown('41_h', 'iMSys');                               // neue Messeinrichtung
     text('41_k', num(batKwhTotal(project)));                 // Gesamt kWh
   }
 
