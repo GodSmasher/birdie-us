@@ -1,0 +1,7 @@
+.env*
+!.env.example
+netzbot-deploy.tar
+supabase/
+apps/
+packages/
+.turbo/

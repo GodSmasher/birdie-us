@@ -53,12 +53,13 @@ export async function getBotJobs(): Promise<BotJob[]> {
   for (const r of candidates) {
     const p = byId.get(r.offerId);
     if (!p || !p.ready) continue;
-    const nb = netzbetreiberForPlz(p.address?.zip);
-    if (!nb) continue;
+    // Exakter VNB aus DB (vnbdigital.de-Bot) > PLZ-Heuristik als Fallback
+    const nbName = (r.netzbetreiber && r.netzbetreiber !== '—') ? r.netzbetreiber : netzbetreiberForPlz(p.address?.zip)?.name;
+    if (!nbName) continue;
     jobs.push({
       offerId: r.offerId,
       customer: r.customer,
-      netzbetreiber: nb.name,
+      netzbetreiber: nbName,
       fields: {
         name: p.customerName || r.customer,
         street: p.address?.line,

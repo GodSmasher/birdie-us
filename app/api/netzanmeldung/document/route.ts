@@ -1,11 +1,15 @@
 import { getProjectData } from '@/app/lib/projektdaten';
 import { getRegistrations } from '@/app/lib/netzanmeldung';
 import { fillE2, fillE3 } from '@/app/lib/vde-fill';
+import { fillTenDoc, tenDocLabel, type TenDocType } from '@/app/lib/ten-fill';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
-// Generates a pre-filled VDE form (E.2 Anmeldung / E.3 Speicher). Gated by middleware.
+const TEN_FORMS = new Set<string>(['an005', 'ans', 'an002']);
+
+// Generates a pre-filled PDF form (VDE E.2/E.3 or NB-specific). Gated by middleware.
+// Query params: offerId, form (e2|e3|an005|ans|an002)
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const id = url.searchParams.get('offerId');
@@ -18,11 +22,22 @@ export async function GET(req: Request) {
   const regCustomer = regs.find((r) => r.offerId === id)?.customer;
   const customer = project.customerName || (regCustomer && regCustomer !== '—' ? regCustomer : '') || project.name;
 
-  const pdf = formType === 'e3' ? await fillE3(project, customer) : await fillE2(project, customer);
-  if (!pdf) return new Response('Formularvorlage nicht erreichbar (Drive)', { status: 502 });
+  let pdf: Uint8Array | null;
+  let label: string;
+
+  if (TEN_FORMS.has(formType)) {
+    // NB-specific TEN form
+    pdf = await fillTenDoc(formType as TenDocType, project, customer);
+    label = tenDocLabel(formType as TenDocType);
+  } else {
+    // Generic VDE E.2 / E.3
+    pdf = formType === 'e3' ? await fillE3(project, customer) : await fillE2(project, customer);
+    label = formType === 'e3' ? 'E3-Speicher' : 'E2-Anmeldung';
+  }
+
+  if (!pdf) return new Response('Formularvorlage nicht erreichbar', { status: 502 });
 
   const safe = customer.replace(/[^\w.-]+/g, '_');
-  const label = formType === 'e3' ? 'E3-Speicher' : 'E2-Anmeldung';
   return new Response(Buffer.from(pdf), {
     headers: {
       'Content-Type': 'application/pdf',

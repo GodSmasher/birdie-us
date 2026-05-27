@@ -410,7 +410,7 @@ export async function assignNetzbetreiber(force = false): Promise<VbnResult> {
 
 /** Bulk-assign VBN via the vnbdigital.de bot (exact lookup per address). */
 export async function assignNetzbetreiberBot(force = false): Promise<VbnResult> {
-  const { botVnbLookup } = await import('./vnb-bot');
+  const { botVnbLookupBatch } = await import('./vnb-bot');
   const result: VbnResult = { updated: 0, skipped: 0, noPlz: 0, details: [] };
   const db = getDb();
   const tid = await tenantId('volta');
@@ -420,22 +420,33 @@ export async function assignNetzbetreiberBot(force = false): Promise<VbnResult> 
   const offers = await getEntities<RawOffer>('offer');
   const offerMap = new Map(offers.map((o) => [o.id, o]));
 
-  const toUpdate: { externalId: string; data: Registration }[] = [];
+  // Collect addresses to look up in one batch call
+  const batchAddresses: { offerId: string; zip: string; city?: string; street?: string }[] = [];
+  const regMap = new Map<string, Registration>();
 
   for (const reg of regs) {
     if (!force && reg.netzbetreiber && reg.netzbetreiber !== '—') {
       result.skipped++;
       continue;
     }
-
     const offer = offerMap.get(reg.offerId);
     if (!offer) { result.skipped++; continue; }
-
     const addr = await addressForOffer(db, tid, offer);
     if (!addr.zip) { result.noPlz++; continue; }
+    batchAddresses.push({ offerId: reg.offerId, zip: addr.zip, city: addr.city, street: addr.street });
+    regMap.set(reg.offerId, reg);
+  }
 
-    const lookup = await botVnbLookup({ zip: addr.zip, city: addr.city, street: addr.street });
-    if (lookup.netzbetreiber) {
+  if (batchAddresses.length === 0) return result;
+
+  // Single batch call to VPS bot — Playwright handles sequential with delays
+  const batchResults = await botVnbLookupBatch(batchAddresses);
+
+  const toUpdate: { externalId: string; data: Registration }[] = [];
+  for (const addr of batchAddresses) {
+    const reg = regMap.get(addr.offerId)!;
+    const lookup = batchResults[addr.offerId];
+    if (lookup?.netzbetreiber) {
       reg.netzbetreiber = lookup.netzbetreiber;
       toUpdate.push({ externalId: reg.offerId, data: reg });
       result.details.push({ offerId: reg.offerId, customer: reg.customer, nb: lookup.netzbetreiber, confidence: lookup.confidence });

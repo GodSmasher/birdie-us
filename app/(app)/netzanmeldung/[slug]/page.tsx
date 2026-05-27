@@ -119,6 +119,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                   offerId={reg?.offerId ?? project?.offerId ?? params.slug}
                   ready={!!project?.ready}
                   hasBattery={!!project?.battery}
+                  netzbetreiber={reg?.netzbetreiber}
                   docStatus={reg?.docStatus}
                   documents={reg?.documents}
                 />

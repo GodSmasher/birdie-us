@@ -4,7 +4,7 @@ import { getReonicCatalog, getReonicOffersRaw, getReonicContactsRaw, getReonicDi
 import { seedRegistrations, assignNetzbetreiber, assignNetzbetreiberBot } from '@/app/lib/netzanmeldung';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 // Pull connector data into the DB. Protected by SYNC_SECRET (header x-sync-key or ?key=).
 // Sync one resource per call to stay within serverless time limits:

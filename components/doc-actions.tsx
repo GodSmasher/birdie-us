@@ -19,16 +19,25 @@ async function post(body: Record<string, unknown>) {
   }).catch(() => {});
 }
 
+// TEN-spezifische Formulare (Thüringer Energienetze)
+const TEN_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'an005', label: 'Antragstellung EZA+Speicher', phase: 'ANA' },
+  { form: 'ans',   label: 'Anmeldung Formblatt Strom',   phase: 'ANA' },
+  { form: 'an002', label: 'Inbetriebsetzungsprotokoll',  phase: 'FM' },
+];
+
 export function DocActions({
   offerId,
   ready,
   hasBattery,
+  netzbetreiber,
   docStatus = 'offen',
   documents = [],
 }: {
   offerId: string;
   ready: boolean;
   hasBattery: boolean;
+  netzbetreiber?: string;
   docStatus?: DocStatus;
   documents?: GeneratedDoc[];
 }) {
@@ -36,7 +45,9 @@ export function DocActions({
   const [busy, setBusy] = useState(false);
   const label = DOC_STAGES.find((s) => s.id === docStatus)?.label ?? 'Offen';
 
-  async function generate(form: 'e2' | 'e3') {
+  const isTEN = netzbetreiber?.toUpperCase().includes('TEN') || netzbetreiber?.toLowerCase().includes('thüringer energienetze');
+
+  async function generate(form: string) {
     setBusy(true);
     await post({ offerId, recordDraft: form });
     window.open(`/api/netzanmeldung/document?offerId=${offerId}&form=${form}`, '_blank', 'noopener');
@@ -76,6 +87,25 @@ export function DocActions({
         <button onClick={() => generate('e3')} disabled={busy} className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-center disabled:opacity-50">
           E.3 Speicher erzeugen ⤓
         </button>
+      )}
+
+      {/* NB-spezifische Formulare */}
+      {isTEN && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">TEN-Formulare</p>
+          {TEN_FORMS.map((f) => (
+            <button
+              key={f.form}
+              onClick={() => generate(f.form)}
+              disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40"
+            >
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
       )}
 
       {documents.length > 0 && (
