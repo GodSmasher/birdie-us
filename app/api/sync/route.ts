@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { tenantId, upsertEntities, recordSyncRun } from '@/app/lib/db';
 import { getReonicCatalog, getReonicOffersRaw, getReonicContactsRaw, getReonicDirectoryRaw } from '@/app/lib/reonic-server';
-import { seedRegistrations, assignNetzbetreiber } from '@/app/lib/netzanmeldung';
+import { seedRegistrations, assignNetzbetreiber, assignNetzbetreiberBot } from '@/app/lib/netzanmeldung';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -56,11 +56,20 @@ async function run(req: Request) {
     }
   }
 
-  if (resource === 'netzbetreiber' || resource === 'all') {
+  if (resource === 'netzbetreiber') {
     try {
       results.netzbetreiber = await assignNetzbetreiber();
     } catch (e) {
       results.netzbetreiber = `error: ${(e as Error).message}`;
+    }
+  }
+
+  // Bot-basierte VNB-Zuordnung über vnbdigital.de (exakt per Adresse)
+  if (resource === 'vnb-bot') {
+    try {
+      results.vnbBot = await assignNetzbetreiberBot(url.searchParams.get('force') === '1');
+    } catch (e) {
+      results.vnbBot = `error: ${(e as Error).message}`;
     }
   }
 

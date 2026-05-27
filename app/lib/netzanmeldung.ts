@@ -332,15 +332,26 @@ export async function setDocStatus(offerId: string, docStatus: DocStatus): Promi
 
 // ── VBN-Zuordnung ───────────────────────────────────────────────────────────
 
-/** Resolve PLZ for an offer by loading its linked contact. */
-async function plzForOffer(db: ReturnType<typeof getDb>, tid: string, offer: RawOffer): Promise<string | undefined> {
+export interface OfferAddress { zip?: string; city?: string; street?: string }
+
+/** Resolve address for an offer by loading its linked contact. */
+async function addressForOffer(db: ReturnType<typeof getDb>, tid: string, offer: RawOffer): Promise<OfferAddress> {
   const customerId = (offer.customer as { id?: string })?.id;
-  if (!customerId || !db) return undefined;
+  if (!customerId || !db) return {};
   const { data: cRow } = await db
     .from('entities').select('data').eq('tenant_id', tid).eq('kind', 'contact').eq('external_id', customerId).single();
-  if (!cRow) return undefined;
+  if (!cRow) return {};
   const c = (cRow as { data: Record<string, unknown> }).data;
-  return (c.postcode as string) || undefined;
+  return {
+    zip: (c.postcode as string) || undefined,
+    city: (c.city as string) || undefined,
+    street: (c.street as string) || undefined,
+  };
+}
+
+/** Legacy helper — just returns zip. */
+async function plzForOffer(db: ReturnType<typeof getDb>, tid: string, offer: RawOffer): Promise<string | undefined> {
+  return (await addressForOffer(db, tid, offer)).zip;
 }
 
 export interface VbnResult {
@@ -389,6 +400,56 @@ export async function assignNetzbetreiber(force = false): Promise<VbnResult> {
     reg.netzbetreiber = nb.name;
     toUpdate.push({ externalId: reg.offerId, data: reg });
     result.details.push({ offerId: reg.offerId, customer: reg.customer, nb: nb.name, confidence: nb.confidence });
+  }
+
+  if (toUpdate.length > 0) {
+    result.updated = await upsertEntities(tid, 'reonic', 'registration', toUpdate);
+  }
+  return result;
+}
+
+/** Bulk-assign VBN via the vnbdigital.de bot (exact lookup per address). */
+export async function assignNetzbetreiberBot(force = false): Promise<VbnResult> {
+  const { botVnbLookup } = await import('./vnb-bot');
+  const result: VbnResult = { updated: 0, skipped: 0, noPlz: 0, details: [] };
+  const db = getDb();
+  const tid = await tenantId('volta');
+  if (!db || !tid) return result;
+
+  const regs = await getEntities<Registration>('registration');
+  const offers = await getEntities<RawOffer>('offer');
+  const offerMap = new Map(offers.map((o) => [o.id, o]));
+
+  const toUpdate: { externalId: string; data: Registration }[] = [];
+
+  for (const reg of regs) {
+    if (!force && reg.netzbetreiber && reg.netzbetreiber !== '—') {
+      result.skipped++;
+      continue;
+    }
+
+    const offer = offerMap.get(reg.offerId);
+    if (!offer) { result.skipped++; continue; }
+
+    const addr = await addressForOffer(db, tid, offer);
+    if (!addr.zip) { result.noPlz++; continue; }
+
+    const lookup = await botVnbLookup({ zip: addr.zip, city: addr.city, street: addr.street });
+    if (lookup.netzbetreiber) {
+      reg.netzbetreiber = lookup.netzbetreiber;
+      toUpdate.push({ externalId: reg.offerId, data: reg });
+      result.details.push({ offerId: reg.offerId, customer: reg.customer, nb: lookup.netzbetreiber, confidence: lookup.confidence });
+    } else {
+      // Fallback auf PLZ-Heuristik
+      const nb = netzbetreiberForPlz(addr.zip);
+      if (nb) {
+        reg.netzbetreiber = nb.name;
+        toUpdate.push({ externalId: reg.offerId, data: reg });
+        result.details.push({ offerId: reg.offerId, customer: reg.customer, nb: nb.name, confidence: 'fallback-' + nb.confidence });
+      } else {
+        result.noPlz++;
+      }
+    }
   }
 
   if (toUpdate.length > 0) {
