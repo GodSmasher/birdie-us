@@ -142,19 +142,30 @@ const NETZ_READY_STATUS = 'NTS/Zählerweise/HAK';
 
 /** Create registrations for won offers that don't have one yet AND refresh
  *  customer name / value on existing ones (status, docStatus, documents stay). */
-export async function seedRegistrations(): Promise<number> {
+export interface SeedResult {
+  upserted: number;
+  deleted: number;
+  existing: number;
+  ntsOffers: number;
+  totalOffers: number;
+  wonOffers: number;
+}
+
+export async function seedRegistrations(): Promise<SeedResult> {
+  const zero: SeedResult = { upserted: 0, deleted: 0, existing: 0, ntsOffers: 0, totalOffers: 0, wonOffers: 0 };
   const db = getDb();
   const tid = await tenantId('volta');
-  if (!db || !tid) return 0;
+  if (!db || !tid) return zero;
 
   const existingRegs = await getEntities<Registration>('registration');
   const regMap = new Map(existingRegs.map((r) => [r.offerId, r]));
 
   const offers = await getEntities<RawOffer>('offer');
   const offerMap = new Map(offers.map((o) => [o.id, o]));
+  const wonAll = offers.filter((o) => o.state === 'Won');
 
   // Nur gewonnene Projekte im richtigen Kanban-Status (NTS/Zählerweise/HAK).
-  const won = offers.filter((o) => o.state === 'Won' && o.status === NETZ_READY_STATUS);
+  const won = wonAll.filter((o) => o.status === NETZ_READY_STATUS);
 
   // Bestehende Registrations aufräumen: wenn das Offer NICHT mehr im NTS-Status
   // steht UND noch nicht bearbeitet wurde (anfrage + offen), löschen.
@@ -204,7 +215,15 @@ export async function seedRegistrations(): Promise<number> {
     };
   });
 
-  return upsertEntities(tid, 'reonic', 'registration', rows);
+  const upserted = await upsertEntities(tid, 'reonic', 'registration', rows);
+  return {
+    upserted,
+    deleted: toDelete.length,
+    existing: existingRegs.length,
+    ntsOffers: won.length,
+    totalOffers: offers.length,
+    wonOffers: wonAll.length,
+  };
 }
 
 export async function setRegistrationStatus(offerId: string, status: StageId): Promise<boolean> {

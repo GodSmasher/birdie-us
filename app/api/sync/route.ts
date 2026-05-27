@@ -49,7 +49,8 @@ async function run(req: Request) {
 
   if (resource === 'registrations' || resource === 'all') {
     try {
-      results.registration = await seedRegistrations();
+      const seed = await seedRegistrations();
+      results.registration = seed;
     } catch (e) {
       results.registration = `error: ${(e as Error).message}`;
     }
