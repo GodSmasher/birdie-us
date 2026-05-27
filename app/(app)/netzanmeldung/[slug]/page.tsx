@@ -28,7 +28,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
     <>
       <Sidebar active="netzanmeldung" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
-        <header className="min-h-[96px] shrink-0 bg-bg border-b border-line flex flex-col justify-center px-8 gap-2 py-4 sticky top-0 z-10">
+        <header className="min-h-[72px] lg:min-h-[96px] shrink-0 bg-bg border-b border-line flex flex-col justify-center px-4 pl-16 lg:pl-8 lg:px-8 gap-2 py-3 lg:py-4 sticky top-0 z-10">
           <div className="flex items-center gap-1.5 text-[11px]">
             <Link href="/netzanmeldung" className="text-fg3 hover:text-fg2">Netzanmeldung</Link>
             <span className="text-fg4">/</span>
@@ -42,7 +42,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
           </div>
         </header>
 
-        <div className="flex-1 px-8 py-7 flex flex-col gap-6 max-w-[1000px]">
+        <div className="flex-1 px-4 py-5 lg:px-8 lg:py-7 flex flex-col gap-5 lg:gap-6 max-w-[1000px]">
           {/* Completeness check */}
           {project && (
             <Card className={`p-5 flex flex-col gap-3 ${project.ready ? '' : 'border-warning/40'}`}>
@@ -69,9 +69,9 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
             </Card>
           )}
 
-          <div className="flex gap-4 items-start">
+          <div className="flex flex-col lg:flex-row gap-4 items-start">
             {/* Project data */}
-            <Card className="flex-1 min-w-0 p-5 flex flex-col gap-3">
+            <Card className="flex-1 min-w-0 p-4 lg:p-5 flex flex-col gap-3">
               <h3 className="font-semibold text-[13px] text-fg">Anlagendaten (aus Reonic)</h3>
               <div className="flex flex-col gap-2 text-xs">
                 <Row k="Anlagengröße" v={project?.kwp ? `${project.kwp} kWp` : '—'} />
@@ -93,7 +93,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
             </Card>
 
             {/* Status + actions */}
-            <Card className="w-[340px] shrink-0 p-5 flex flex-col gap-4">
+            <Card className="w-full lg:w-[340px] shrink-0 p-4 lg:p-5 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <h3 className="font-semibold text-[13px] text-fg">Status</h3>
                 {reg && <StageSelect offerId={reg.offerId} status={reg.status as StageId} />}

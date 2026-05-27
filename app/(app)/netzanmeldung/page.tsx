@@ -77,7 +77,7 @@ export default async function NetzanmeldungPage({
       <Sidebar active="netzanmeldung" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar title="Netzanmeldung" subtitle={`${regs.length}${regs.length !== allRegs.length ? ' / ' + allRegs.length : ''} Anlagen · Bearbeitung, Netz-Status & MaStR`} />
-        <div className="flex-1 px-8 py-7 flex flex-col gap-6">
+        <div className="flex-1 px-4 py-5 lg:px-8 lg:py-7 flex flex-col gap-4 lg:gap-6">
           {regs.length === 0 ? (
             <Card className="p-8 text-center text-sm text-fg3 max-w-[620px] mx-auto mt-8">
               Noch keine Netzanmeldungen. Sie werden automatisch aus gewonnenen Reonic-Projekten angelegt
@@ -131,7 +131,7 @@ export default async function NetzanmeldungPage({
                 </a>
               </div>
 
-              <div className="flex flex-wrap gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
                 <KpiCard label="BITTE PRÜFEN" value={String(review)} sub="Entwurf wartet auf Freigabe" valueColor={review > 0 ? 'text-warning' : 'text-fg'} />
                 <KpiCard label="IN BEARBEITUNG" value={String(open)} sub="laufende Anmeldungen" />
                 <KpiCard label="MaStR ÜBERFÄLLIG" value={String(overdueCount)} sub="Frist 1 Monat überschritten" valueColor={overdueCount > 0 ? 'text-error' : 'text-fg'} />
@@ -195,7 +195,7 @@ export default async function NetzanmeldungPage({
                 <Pill label={`${withAccess} ZUGÄNGE`} tone="success" />
                 <span className="text-[11px] text-fg3">{portals.length} Betreiber · Logins sicher hinterlegt</span>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {portals.map((p) => (
                   <div key={p.name} className="bg-surface border border-line rounded-xl p-4 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-surface-3 flex items-center justify-center text-accent text-sm shrink-0">⚡</div>

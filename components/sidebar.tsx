@@ -1,4 +1,8 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Brand } from './ui';
 
 type NavKey =
@@ -25,10 +29,11 @@ const accountItems: { label: string; icon: string; href: string; key: NavKey }[]
   { label: 'Support', icon: '?', href: '/support', key: 'support' },
 ];
 
-function NavItem({ label, icon, href, active }: { label: string; icon: string; href: string; active: boolean }) {
+function NavItem({ label, icon, href, active, onClick }: { label: string; icon: string; href: string; active: boolean; onClick?: () => void }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`flex items-center gap-2.5 h-9 px-2.5 rounded-lg ${
         active ? 'bg-surface-2 text-fg' : 'text-fg2 hover:text-fg hover:bg-surface'
       }`}
@@ -39,23 +44,23 @@ function NavItem({ label, icon, href, active }: { label: string; icon: string; h
   );
 }
 
-export function Sidebar({ active }: { active: NavKey }) {
+function SidebarContent({ active, onNavigate }: { active: NavKey; onNavigate?: () => void }) {
   return (
-    <aside className="w-[248px] shrink-0 bg-bg border-r border-line flex flex-col py-6 px-5 h-screen sticky top-0">
+    <>
       <Brand />
       <div className="mt-7" />
 
-      <p className="text-[10px] font-medium text-fg4 tracking-[0.16em] mb-2">MENÜ</p>
+      <p className="text-[10px] font-medium text-fg4 tracking-[0.16em] mb-2">MENU</p>
       <nav className="flex flex-col gap-0.5">
         {items.map((it) => (
-          <NavItem key={it.label} label={it.label} icon={it.icon} href={it.href} active={it.key === active} />
+          <NavItem key={it.label} label={it.label} icon={it.icon} href={it.href} active={it.key === active} onClick={onNavigate} />
         ))}
       </nav>
 
       <p className="text-[10px] font-medium text-fg4 tracking-[0.16em] mb-2 mt-6">ACCOUNT</p>
       <nav className="flex flex-col gap-0.5">
         {accountItems.map((it) => (
-          <NavItem key={it.label} label={it.label} icon={it.icon} href={it.href} active={it.key === active} />
+          <NavItem key={it.label} label={it.label} icon={it.icon} href={it.href} active={it.key === active} onClick={onNavigate} />
         ))}
       </nav>
 
@@ -78,6 +83,49 @@ export function Sidebar({ active }: { active: NavKey }) {
           </div>
         </div>
       </div>
-    </aside>
+    </>
+  );
+}
+
+export function Sidebar({ active }: { active: NavKey }) {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close mobile sidebar on navigation
+  useEffect(() => { setOpen(false); }, [pathname]);
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-[220px] xl:w-[248px] shrink-0 bg-bg border-r border-line flex-col py-6 px-4 xl:px-5 h-screen sticky top-0">
+        <SidebarContent active={active} />
+      </aside>
+
+      {/* Mobile hamburger button — rendered by TopBar via global state */}
+      <button
+        onClick={() => setOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-surface border border-line rounded-lg flex items-center justify-center text-fg2 hover:text-fg"
+        aria-label="Menu"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-40 flex">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setOpen(false)} />
+          <aside className="relative w-[280px] bg-bg border-r border-line flex flex-col py-6 px-5 h-screen overflow-y-auto z-50">
+            <button
+              onClick={() => setOpen(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-surface border border-line flex items-center justify-center text-fg2 hover:text-fg"
+              aria-label="Schliessen"
+            >
+              ✕
+            </button>
+            <SidebarContent active={active} onNavigate={() => setOpen(false)} />
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
