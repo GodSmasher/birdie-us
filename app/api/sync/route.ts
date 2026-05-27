@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { tenantId, upsertEntities, recordSyncRun } from '@/app/lib/db';
 import { getReonicCatalog, getReonicOffersRaw, getReonicContactsRaw, getReonicDirectoryRaw } from '@/app/lib/reonic-server';
-import { seedRegistrations } from '@/app/lib/netzanmeldung';
+import { seedRegistrations, assignNetzbetreiber } from '@/app/lib/netzanmeldung';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -53,6 +53,14 @@ async function run(req: Request) {
       results.registration = seed;
     } catch (e) {
       results.registration = `error: ${(e as Error).message}`;
+    }
+  }
+
+  if (resource === 'netzbetreiber' || resource === 'all') {
+    try {
+      results.netzbetreiber = await assignNetzbetreiber();
+    } catch (e) {
+      results.netzbetreiber = `error: ${(e as Error).message}`;
     }
   }
 

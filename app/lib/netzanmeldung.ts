@@ -5,6 +5,7 @@
 
 import { getDb, tenantId, getEntities, upsertEntities, deleteEntities } from './db';
 import type { RawOffer } from './reonic-server';
+import { netzbetreiberForPlz } from './netzbetreiber';
 
 export const STAGES = [
   { id: 'anfrage', label: 'Netzanfrage', desc: 'Anschlussbegehren beim Netzbetreiber' },
@@ -327,4 +328,71 @@ export async function setDocStatus(offerId: string, docStatus: DocStatus): Promi
   reg.docStatus = docStatus;
   const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
   return n > 0;
+}
+
+// ── VBN-Zuordnung ───────────────────────────────────────────────────────────
+
+/** Resolve PLZ for an offer by loading its linked contact. */
+async function plzForOffer(db: ReturnType<typeof getDb>, tid: string, offer: RawOffer): Promise<string | undefined> {
+  const customerId = (offer.customer as { id?: string })?.id;
+  if (!customerId || !db) return undefined;
+  const { data: cRow } = await db
+    .from('entities').select('data').eq('tenant_id', tid).eq('kind', 'contact').eq('external_id', customerId).single();
+  if (!cRow) return undefined;
+  const c = (cRow as { data: Record<string, unknown> }).data;
+  return (c.postcode as string) || undefined;
+}
+
+export interface VbnResult {
+  updated: number;
+  skipped: number;
+  noPlz: number;
+  details: { offerId: string; customer: string; nb: string; confidence: string }[];
+}
+
+/** Bulk-assign Verteilnetzbetreiber (VBN) to all registrations via PLZ→NB lookup.
+ *  Only updates registrations where netzbetreiber is still '—' or empty, unless force=true. */
+export async function assignNetzbetreiber(force = false): Promise<VbnResult> {
+  const result: VbnResult = { updated: 0, skipped: 0, noPlz: 0, details: [] };
+  const db = getDb();
+  const tid = await tenantId('volta');
+  if (!db || !tid) return result;
+
+  const regs = await getEntities<Registration>('registration');
+  const offers = await getEntities<RawOffer>('offer');
+  const offerMap = new Map(offers.map((o) => [o.id, o]));
+
+  const toUpdate: { externalId: string; data: Registration }[] = [];
+
+  for (const reg of regs) {
+    // Skip already assigned unless force
+    if (!force && reg.netzbetreiber && reg.netzbetreiber !== '—') {
+      result.skipped++;
+      continue;
+    }
+
+    const offer = offerMap.get(reg.offerId);
+    if (!offer) { result.skipped++; continue; }
+
+    const plz = await plzForOffer(db, tid, offer);
+    if (!plz) {
+      result.noPlz++;
+      continue;
+    }
+
+    const nb = netzbetreiberForPlz(plz);
+    if (!nb) {
+      result.noPlz++;
+      continue;
+    }
+
+    reg.netzbetreiber = nb.name;
+    toUpdate.push({ externalId: reg.offerId, data: reg });
+    result.details.push({ offerId: reg.offerId, customer: reg.customer, nb: nb.name, confidence: nb.confidence });
+  }
+
+  if (toUpdate.length > 0) {
+    result.updated = await upsertEntities(tid, 'reonic', 'registration', toUpdate);
+  }
+  return result;
 }
