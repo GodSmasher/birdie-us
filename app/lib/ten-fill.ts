@@ -6,7 +6,8 @@
 //   AN002 = Inbetriebsetzungsprotokoll <= 30 kW      (FM-Phase)
 //
 // Templates liegen als PDF in nb-templates/TEN/. Die Feldnamen wurden am
-// 2026-05-27 per pdf-lib analysiert und hier hart gemappt.
+// 2026-05-27 per pdf-lib analysiert und gemappt. EcoFlow-Datenblattspecs
+// werden automatisch für korrekte technische Werte verwendet.
 
 import { PDFDocument } from 'pdf-lib';
 import fs from 'fs';
@@ -16,14 +17,14 @@ import { phasen, speicherkopplung, hatNotstrom, naSchutzIntegriert } from './ges
 
 // ── Installer (Volta) ──────────────────────────────────────────────────────
 const VOLTA = {
-  name:  process.env.INSTALLER_COMPANY || 'Volta Energietechnik GmbH',
-  street: process.env.INSTALLER_ADDRESS || 'Kamenzer Str. 12',
-  plzOrt: process.env.INSTALLER_PLZORT  || '04347 Leipzig',
-  phone:  process.env.INSTALLER_PHONE   || '',
-  email:  process.env.INSTALLER_EMAIL   || '',
+  name:   process.env.INSTALLER_COMPANY  || 'Volta Energietechnik GmbH',
+  street: process.env.INSTALLER_ADDRESS  || 'Kamenzer Str. 12',
+  plzOrt: process.env.INSTALLER_PLZORT   || '04347 Leipzig',
+  phone:  process.env.INSTALLER_PHONE    || '',
+  email:  process.env.INSTALLER_EMAIL    || '',
 };
 
-// ── Template paths (relative to project root) ──────────────────────────────
+// ── Template paths ─────────────────────────────────────────────────────────
 const TMPL_DIR = path.join(process.cwd(), 'nb-templates', 'TEN');
 const TEMPLATES = {
   an005: path.join(TMPL_DIR, 'ANA', 'AN005_Antragstellung_Erzeugung_und_Speicher_einschl_30kW.pdf'),
@@ -32,78 +33,141 @@ const TEMPLATES = {
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+/** Zahl → deutsches Format (Punkt→Komma) */
 function num(v?: number): string { return v != null ? String(v).replace('.', ',') : ''; }
 
 function loadTemplate(key: keyof typeof TEMPLATES): Buffer {
   return fs.readFileSync(TEMPLATES[key]);
 }
 
-function splitInverter(inv?: string): { hersteller: string; typ: string } {
-  if (!inv) return { hersteller: '', typ: '' };
-  const parts = inv.split(/\s+/);
-  return { hersteller: parts[0], typ: parts.slice(1).join(' ') || inv };
+/** "EcoFlow PowerOcean Hybrid-Wechselrichter 8 kW" → {hersteller:"EcoFlow", typ:"PowerOcean Hybrid-Wechselrichter 8 kW"} */
+function splitName(s?: string): { hersteller: string; typ: string } {
+  if (!s) return { hersteller: '', typ: '' };
+  const parts = s.split(/\s+/);
+  return { hersteller: parts[0], typ: parts.slice(1).join(' ') || s };
 }
 
-function splitModule(mod?: string): { hersteller: string; typ: string } {
-  if (!mod) return { hersteller: '', typ: '' };
-  const parts = mod.split(/\s+/);
-  return { hersteller: parts[0], typ: parts.slice(1).join(' ') || mod };
-}
-
-function splitBattery(bat?: string): { hersteller: string; typ: string } {
-  if (!bat) return { hersteller: '', typ: '' };
-  const parts = bat.split(/\s+/);
-  return { hersteller: parts[0], typ: parts.slice(1).join(' ') || bat };
-}
-
-// Module-Watt aus moduleType extrahieren (z.B. "JA Solar JAM54S30 410W" → 410)
+/** Module-Watt aus moduleType extrahieren (z.B. "Neostar 25+ AIKO 465W" → 465) */
 function moduleWatt(mod?: string): number | undefined {
   if (!mod) return undefined;
   const m = /(\d{3,4})\s*[Ww](?:p|att)?/.exec(mod);
   return m ? parseInt(m[1], 10) : undefined;
 }
 
+/** Wechselrichter kW — bevorzugt aus EcoFlow-Datenblatt, sonst aus String-Parsing */
+function wrKw(p: ProjectData): number | undefined {
+  return p.inverterSpec?.ratedPowerKw ?? p.inverterKw;
+}
+
+/** Wechselrichter kVA — aus Datenblatt oder = kW als Fallback */
+function wrKva(p: ProjectData): number | undefined {
+  return p.inverterSpec?.apparentPowerKva ?? wrKw(p);
+}
+
+/** Speicher max. Entladeleistung kW pro Modul — aus Datenblatt */
+function batKwPerModule(p: ProjectData): number | undefined {
+  return p.batterySpec?.maxDischargekW;
+}
+
+/** Speicher gesamt kW */
+function batKwTotal(p: ProjectData): number | undefined {
+  const perModule = batKwPerModule(p);
+  if (perModule && p.batteryModuleCount) return Math.round(perModule * p.batteryModuleCount * 100) / 100;
+  return perModule;
+}
+
+/** Speicher gesamt kWh — bevorzugt exakt aus Spec × Module, sonst aus Reonic */
+function batKwhTotal(p: ProjectData): number | undefined {
+  if (p.batterySpec && p.batteryModuleCount) {
+    return Math.round(p.batterySpec.capacityKwh * p.batteryModuleCount * 100) / 100;
+  }
+  return p.batteryKwh;
+}
+
+/** WR-Modellname aus EcoFlow-Spec (sauberer als Reonic-String) */
+function wrModelName(p: ProjectData): { hersteller: string; typ: string } {
+  if (p.inverterSpec) {
+    return { hersteller: 'EcoFlow', typ: p.inverterSpec.model.replace('EcoFlow ', '') };
+  }
+  return splitName(p.inverter);
+}
+
+/** Batterie-Modellname aus Spec */
+function batModelName(p: ProjectData): { hersteller: string; typ: string } {
+  if (p.batterySpec) {
+    return { hersteller: 'EcoFlow', typ: p.batterySpec.model.replace('EcoFlow ', '') };
+  }
+  return splitName(p.battery);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
-// AN005 — Antragstellung Erzeugung und Speicher <= 30 kW
+// AN005 — Antragstellung Erzeugung und Speicher <= 30 kW (4 Seiten)
 // ═══════════════════════════════════════════════════════════════════════════
+//
+// Seite 1: Betreiber, Standort, Eigentümer, Errichter, Anlagenart
+// Seite 2: Beigefügte Unterlagen, Netzanschluss, Bemerkungen
+// Seite 3: Datenblatt Erzeugungsanlagen (WR-Rows 1-3, Summen, Einspeisung)
+// Seite 4: Datenblatt Speicher (Bat-Rows 4-5, Summen, Primärenergie)
+//
 export async function fillAN005(project: ProjectData, customer: string): Promise<Uint8Array> {
   const pdf = await PDFDocument.load(loadTemplate('an005'));
   const form = pdf.getForm();
 
   const text = (name: string, val?: string) => {
     if (!val) return;
-    try { form.getTextField(name).setText(val); } catch { /* field absent */ }
+    try { form.getTextField(name).setText(val); } catch { /* absent */ }
   };
   const check = (name: string) => {
     try { form.getCheckBox(name).check(); } catch { /* absent */ }
   };
 
-  // ── 1. Betreiber / Anlagenbetreiber ──
+  const plzOrt = project.address ? [project.address.zip, project.address.city].filter(Boolean).join(' ') : '';
+
+  // ═══ SEITE 1: Personendaten ═══════════════════════════════════════════
+
+  // ── 1. Anlagenbetreiber (Kunde) ──
   text('Vorname Name bzw Firmenname', customer);
-  if (project.address) {
-    text('Straße Hausnummer', project.address.line);
-    text('PLZ Ort', [project.address.zip, project.address.city].filter(Boolean).join(' '));
-  }
+  text('Telefon', project.phone);
+  text('Straße Hausnummer', project.address?.line);
+  text('PLZ Ort', plzOrt);
+  text('EMail', project.email);
 
-  // ── 2. Anlagenstandort (_2 suffix) — same as Betreiber for residential ──
-  if (project.address) {
-    text('Straße Hausnummer_2', project.address.line);
-    text('PLZ Ort_2', [project.address.zip, project.address.city].filter(Boolean).join(' '));
-    text('Vorname Name bzw Firmenname_2', customer);
-  }
+  // ── 2. Anlagenstandort (= Betreiber-Adresse bei Residential) ──
+  text('Straße Hausnummer_2', project.address?.line);
+  text('PLZ Ort_2', plzOrt);
 
-  // ── 3. Errichter = Volta (_3 suffix) ──
+  // ── 3. Grundstückseigentümer (= Betreiber bei Residential) ──
+  text('Vorname Name bzw Firmenname_2', customer);
+  text('Telefon_2', project.phone);
+  text('Straße Hausnummer_3', project.address?.line);
+  text('PLZ Ort_3', plzOrt);
+  text('EMail_2', project.email);
+
+  // ── 4. Anlagenerrichter = Volta (Felder mit _3/_4 Suffix) ──
   text('Vorname Name bzw Firmenname_3', VOLTA.name);
-  text('Straße Hausnummer_4', VOLTA.street);   // _4 = Errichter Straße (nach _3 Straße=Standort)
-  text('PLZ Ort_4', VOLTA.plzOrt);
   text('Telefon_3', VOLTA.phone);
+  text('Straße Hausnummer_4', VOLTA.street);
+  text('PLZ Ort_4', VOLTA.plzOrt);
   text('EMail_3', VOLTA.email);
 
-  // ── 4. Anlagenart / Energieart ──
-  check('anlagenart');       // Neuanlage
-  check('energieart');       // Sonne (Photovoltaik)
+  // ── Anlagenart (4 Checkboxen: Neuanlage, Erweiterung, Rückbau, Austausch) ──
+  check('anlagenart'); // 1. Widget = Neuanlage
+
+  // Funkrundsteuerempfänger — ja, immer bei PV
+  check('Funkrundsteuerempfänger');
+
+  // ═══ SEITE 2: Unterlagen & Netzanschluss ══════════════════════════════
+
+  // Beigefügte Unterlagen
+  check('Anmeldung zum Netzanschluss Strom beigefügt bitte');
+  check('Lageplan mit Aufstellungsort der Erzeugungsanlage beigefügt');
+  check('Einheitenzertifikate nach VDEARN 4105 beigefügt');
+  check('Zertifikat für den NASchutz beigefügt');
+  check('Übersichtsschaltplan einpolige Darstellung ab Netzanschluss beigefügt inkl Anordnung der');
+  check('Vollmacht für AnlagenerrichterElektrofachbetrieb beigefügt');
+
+  // Netzanschluss
   check('niederspannung');   // Niederspannung
-  check('einspeisung');      // Überschusseinspeisung
 
   // Datenblatt-Checkboxen
   check('Datenblatt Erzeugungsanlagen bis einschließlich 30 kW');
@@ -111,58 +175,69 @@ export async function fillAN005(project: ProjectData, customer: string): Promise
     check('Datenblatt Speicher bis einschließlich 30 kW');
   }
 
-  // ── 5. Module (Erzeugungseinheit Zeile 1) ──
-  const mod = splitModule(project.moduleType);
-  const watt = moduleWatt(project.moduleType);
-  if (watt) {
-    text('leistung1', String(watt));                           // Leistung pro Modul in W
-    text('anzahl1', String(project.moduleCount));              // Anzahl
-    text('gesamtleistung1', num(project.kwp));                 // Gesamtleistung kWp
-  }
+  // ═══ SEITE 3: Datenblatt Erzeugungsanlagen ════════════════════════════
+  // Erzeugungseinheit = Wechselrichter (das Gerät am Netz)
 
-  // ── 6. Wechselrichter (Zeile 4 = Nennleistung rows) ──
-  const inv = splitInverter(project.inverter);
-  text('Hersteller', inv.hersteller);
-  text('TypModell', inv.typ);
-  text('nennleistung4', num(project.inverterKw));
-  text('anzahl4', String(project.inverterCount ?? 1));
-  const wrGesamt = (project.inverterKw ?? 0) * (project.inverterCount ?? 1);
-  text('gesamtleistung4', num(wrGesamt || undefined));
+  // Energieart = Sonne (Photovoltaik)
+  check('energieart');
 
-  // Summenfelder
-  text('Summe in kW', num(project.inverterKw ?? wrGesamt));
-  text('Summe in kWp', num(project.kwp));
+  // ── Row 1: Wechselrichter ──
+  const wr = wrModelName(project);
+  text('Hersteller', wr.hersteller);
+  text('TypModell', wr.typ);
+  const wrPower = wrKw(project);
+  text('leistung1', num(wrPower));                        // Nennleistung pro WR (kW)
+  text('anzahl1', String(project.inverterCount ?? 1));    // Anzahl WR
+  const wrTotal = (wrPower ?? 0) * (project.inverterCount ?? 1);
+  text('gesamtleistung1', num(wrTotal || undefined));     // Gesamt WR kW
 
-  // ── 7. Speicher (falls vorhanden) ──
-  if (project.battery) {
-    const bat = splitBattery(project.battery);
-    text('Hersteller_4', bat.hersteller);
-    text('TypModell_4', bat.typ);
-    text('Summe in kWh', num(project.batteryKwh));
-    // Speicher-kW = Entladeleistung (aus Spec oder Schätzung)
-    const speicherKw = project.batterySpec?.maxDischargekW ?? (project.batteryKwh ? Math.min(project.batteryKwh, 5) : undefined);
-    text('Summe in kW_2', num(speicherKw));
-  }
-
-  // ── 8. Primärenergieträger ──
-  text('Verwendete Primärenergieträger z B Sonne Wind Gas', 'Sonne');
-
-  // ── 9. Phasen / NA-Schutz ──
-  if (phasen(project) === 3) check('anschluss');  // 3-phasig (Drehstrom)
-  if (naSchutzIntegriert(project)) check('Ja_5'); // NA-Schutz ja
-
-  // Inselbetrieb-Checkboxen
+  // Inselbetrieb der Erzeugungseinheit
   if (!hatNotstrom(project)) {
     check('inselbetrieb1'); // kein Inselbetrieb
   } else {
     check('inselbetrieb2'); // Inselbetrieb möglich
   }
 
-  // Beigefügte Unterlagen
-  check('Anmeldung zum Netzanschluss Strom beigefügt bitte');
-  check('Übersichtsschaltplan einpolige Darstellung ab Netzanschluss beigefügt inkl Anordnung der');
-  check('Einheitenzertifikate nach VDEARN 4105 beigefügt');
-  check('Zertifikat für den NASchutz beigefügt');
+  // Summenfelder
+  text('Summe in kW', num(wrTotal || wrPower));           // Gesamt Wirkleistung WR
+  text('Summe in kWp', num(project.kwp));                 // Gesamt installierte Modulleistung
+
+  // Einspeisung
+  check('einspeisung'); // Überschusseinspeisung
+  text('Überschussstromeinspeisung über derzeitigen Bezugszähler', 'ja');
+
+  // ═══ SEITE 4: Datenblatt Speicher ═════════════════════════════════════
+
+  // Phasen-Anschluss (Drehstrom/Wechselstrom)
+  if (phasen(project) === 3) check('anschluss'); // 1. Widget = Drehstrom (3-phasig)
+
+  if (project.battery) {
+    // ── Row 4: Speichereinheit ──
+    const bat = batModelName(project);
+    text('Hersteller_4', bat.hersteller);
+    text('TypModell_4', bat.typ);
+    const batDischargePerModule = batKwPerModule(project);
+    text('nennleistung4', num(batDischargePerModule));                    // Entladeleistung pro Modul kW
+    text('anzahl4', String(project.batteryModuleCount ?? 1));             // Anzahl Batterie-Module
+    text('gesamtleistung4', num(batKwTotal(project)));                    // Gesamt Entladeleistung kW
+
+    // Speicher-Inselbetrieb
+    if (!hatNotstrom(project)) {
+      check('inselbetrieb4'); // kein Inselbetrieb
+    } else {
+      check('inselbetrieb5'); // Inselbetrieb möglich
+    }
+
+    // Summenfelder Speicher
+    text('Summe in kW_2', num(batKwTotal(project)));                     // Gesamt Speicher kW
+    text('Summe in kWh', num(batKwhTotal(project)));                     // Gesamt Speicher kWh
+  }
+
+  // Primärenergieträger
+  text('Verwendete Primärenergieträger z B Sonne Wind Gas', 'Sonne');
+
+  // NA-Schutz
+  if (naSchutzIntegriert(project)) check('Ja_5'); // Integrierter NA-Schutz
 
   try { form.updateFieldAppearances(); } catch { /* on save */ }
   return pdf.save();
@@ -186,29 +261,28 @@ export async function fillANS(project: ProjectData, customer: string): Promise<U
     try { form.getDropdown(name).select(val); } catch { /* absent/no match */ }
   };
 
+  const plzOrt = project.address ? [project.address.zip, project.address.city].filter(Boolean).join(' ') : '';
+
   // ── Anschlussort (Anlagenstandort) ──
-  if (project.address) {
-    text('Straße und HausNr ggf Anschlussnutzer', project.address.line);
-    text('Postleitzahl Ort', [project.address.zip, project.address.city].filter(Boolean).join(' '));
-  }
+  text('Straße und HausNr ggf Anschlussnutzer', project.address?.line);
+  text('Postleitzahl Ort', plzOrt);
 
-  // ── Checkbox: Neuanmeldung ──
-  check('anmeldung');
-  check('Erzeugungsanlagen');
+  // ── Art der Anmeldung ──
+  check('anmeldung');           // Neuanmeldung
+  check('Erzeugungsanlagen');   // Erzeugungsanlagen
+  check('Steuerbarkeit § 14a'); // Steuerbarkeit §14a EnWG
 
-  // ── Abschnitt 5: Anschlussnutzer ──
+  // ── Abschnitt 5: Anschlussnutzer (= Kunde) ──
   text('Name Vorname bzw Firmenname', customer);
-  if (project.address) {
-    text('Straße und HausNr', project.address.line);
-    text('Postleitzahl Ort_3', [project.address.zip, project.address.city].filter(Boolean).join(' '));
-  }
+  text('Straße und HausNr', project.address?.line);
+  text('Postleitzahl Ort_3', plzOrt);
+  text('Telefon Fax EMail', [project.phone, project.email].filter(Boolean).join(' / '));
 
   // ── Abschnitt 5: Betreiber (= Anschlussnutzer bei Residential) ──
   text('Name Vorname bzw Firmenname_2', customer);
-  if (project.address) {
-    text('Straße und HausNr_2', project.address.line);
-    text('Postleitzahl Ort_4', [project.address.zip, project.address.city].filter(Boolean).join(' '));
-  }
+  text('Straße und HausNr_2', project.address?.line);
+  text('Postleitzahl Ort_4', plzOrt);
+  text('Telefon Fax EMail_2', [project.phone, project.email].filter(Boolean).join(' / '));
 
   // ── Abschnitt 7: Errichter = Volta ──
   text('Firmenname', VOLTA.name);
@@ -216,34 +290,32 @@ export async function fillANS(project: ProjectData, customer: string): Promise<U
   text('Postleitzahl Ort_5', VOLTA.plzOrt);
   text('Telefon Fax EMail_3', [VOLTA.phone, VOLTA.email].filter(Boolean).join(' / '));
 
-  // ── Geräteeintrag Zeile 1 (4_*) = Wechselrichter + EZA ──
-  // 4_a = Verwendungszweck-Dropdown: b) = Erzeugungsanlagen
+  // ── Geräteeintrag Zeile 1 (4_*): Wechselrichter / EZA ──
+  // 4_a = Verwendungszweck: b) = Erzeugungsanlagen
   dropdown('4_a', 'b)');
-  // 4_b = Hersteller, 4_c = Typ
-  const inv = splitInverter(project.inverter);
-  text('4_b', inv.hersteller);
-  text('4_c', inv.typ);
-  // 4_d = Anzahl
-  text('4_d', String(project.inverterCount ?? 1));
-  // 4_e = Nennleistung kW
-  text('4_e', num(project.inverterKw));
-  // 4_g = kWp Erzeugung
-  text('4_g', num(project.kwp));
+  const wr = wrModelName(project);
+  text('4_b', wr.hersteller);                              // Hersteller
+  text('4_c', wr.typ);                                      // Typ/Modell
+  text('4_d', String(project.inverterCount ?? 1));           // Anzahl
+  text('4_e', num(wrKw(project)));                           // Nennleistung kW
+  text('4_g', num(project.kwp));                             // kWp Modulleistung
+  // 4_i = Strom pro Phase → WR kW / 3 Phasen / 230V ≈ A pro Phase
+  const wrA = wrKw(project) ? Math.round((wrKw(project)! * 1000) / (3 * 230)) : undefined;
+  text('4_i', wrA ? String(wrA) : undefined);
 
-  // ── Geräteeintrag Zeile 2 (41_*) = Speicher (falls vorhanden) ──
+  // ── Geräteeintrag Zeile 2 (41_*): Speicher ──
   if (project.battery) {
     dropdown('41_a', 'b)');
-    const bat = splitBattery(project.battery);
+    const bat = batModelName(project);
     text('41_b', bat.hersteller);
     text('41_c', bat.typ);
-    text('41_d', '1');
-    const speicherKw = project.batterySpec?.maxDischargekW ?? (project.batteryKwh ? Math.min(project.batteryKwh, 5) : undefined);
-    text('41_e', num(speicherKw));
-    text('41_k', num(project.batteryKwh));
+    text('41_d', String(project.batteryModuleCount ?? 1));   // Anzahl Module
+    text('41_e', num(batKwTotal(project)));                  // Gesamt Entladeleistung kW
+    text('41_k', num(batKwhTotal(project)));                 // Gesamt kWh
   }
 
-  // ── Steuerbarkeit § 14a ──
-  check('Steuerbarkeit § 14a');
+  // ── Terminwunsch ──
+  // text('6 Terminwunsch', ''); // Leer lassen — Katrin füllt manuell
 
   try { form.updateFieldAppearances(); } catch { /* on save */ }
   return pdf.save();
@@ -264,38 +336,39 @@ export async function fillAN002(project: ProjectData, customer: string): Promise
     try { form.getCheckBox(name).check(); } catch { /* absent */ }
   };
 
+  const plzOrt = project.address ? [project.address.zip, project.address.city].filter(Boolean).join(' ') : '';
+
   // ── Betreiber ──
   text('Vorname Name bzw Firmenname', customer);
-  if (project.address) {
-    text('Straße Hausnummer', project.address.line);
-    text('PLZ Ort', [project.address.zip, project.address.city].filter(Boolean).join(' '));
-  }
+  text('Telefon', project.phone);
+  text('Straße Hausnummer', project.address?.line);
+  text('PLZ Ort', plzOrt);
+  text('EMail', project.email);
 
   // ── Anlagenstandort (_2 suffix) ──
-  if (project.address) {
-    text('Straße Hausnummer_2', project.address.line);
-    text('PLZ Ort_2', [project.address.zip, project.address.city].filter(Boolean).join(' '));
-  }
+  text('Straße Hausnummer_2', project.address?.line);
+  text('PLZ Ort_2', plzOrt);
 
-  // ── Errichter = Volta (_3 suffix) ──
+  // ── Errichter = Volta ──
   text('Vorname Name bzw Firmenname_2', VOLTA.name);
+  text('Telefon_2', VOLTA.phone);
   text('Straße Hausnummer_3', VOLTA.street);
   text('PLZ Ort_3', VOLTA.plzOrt);
-  text('Telefon_2', VOLTA.phone);
   text('EMail_2', VOLTA.email);
 
-  // ── Technische Daten ──
-  // kVA = Scheinleistung des WR
-  const kva = project.inverterSpec?.apparentPowerKva ?? project.inverterKw;
-  text('kVA', num(kva));
-  text('kW', num(project.inverterKw));
-  text('kWp', num(project.kwp));
+  // ── Technische Daten (aus EcoFlow-Datenblatt) ──
+  text('kVA', num(wrKva(project)));                          // Scheinleistung WR (kVA)
+  text('kW', num(wrKw(project)));                            // Wirkleistung WR (kW)
+  text('kWp', num(project.kwp));                             // Installierte Modulleistung (kWp)
 
   if (project.battery) {
-    text('kWh', num(project.batteryKwh));
-    const speicherKva = project.batterySpec?.maxDischargekW ?? (project.batteryKwh ? Math.min(project.batteryKwh, 5) : undefined);
-    text('kVA_2', num(speicherKva));
-    text('kW_2', num(speicherKva));
+    text('kWh', num(batKwhTotal(project)));                  // Speicher gesamt kWh
+    text('kVA_2', num(batKwTotal(project)));                 // Speicher Scheinleistung kVA
+    text('kW_2', num(batKwTotal(project)));                  // Speicher Wirkleistung kW
+    // kW_3 = Notstrom-Ausgangsleistung (wenn vorhanden)
+    if (hatNotstrom(project) && project.inverterSpec?.backupPowerKw) {
+      text('kW_3', num(project.inverterSpec.backupPowerKw));
+    }
   }
 
   // ── Checkboxen ──
@@ -304,13 +377,15 @@ export async function fillAN002(project: ProjectData, customer: string): Promise
     check('Integrierter NASchutz vorhanden');
     check('funktionstest'); // Funktionstest NA-Schutz durchgeführt
   }
+  // Funkrundsteuerempfänger eingebaut
+  check('funkrundsteuerempfänger');
 
   try { form.updateFieldAppearances(); } catch { /* on save */ }
   return pdf.save();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Convenience: alle TEN-Dokumente auf einmal generieren
+// Registry
 // ═══════════════════════════════════════════════════════════════════════════
 export type TenDocType = 'an005' | 'ans' | 'an002';
 
@@ -332,9 +407,6 @@ export async function fillTenDoc(type: TenDocType, project: ProjectData, custome
   return FILLERS[type](project, customer);
 }
 
-/** Which TEN documents are applicable for a project. */
-export function tenDocsForProject(project: ProjectData): TenDocType[] {
-  // ANA phase: AN005 (Antragstellung) + ANS (Anmeldung Strom) — always
-  // FM phase:  AN002 (IBN-Protokoll) — always (filled partially, completed after IBN)
+export function tenDocsForProject(_project: ProjectData): TenDocType[] {
   return ['an005', 'ans', 'an002'];
 }

@@ -14,6 +14,8 @@ export interface ProjectData {
   name: string;
   customerName: string;
   type?: string;
+  phone?: string;              // Telefon des Kunden (aus Reonic-Kontakt)
+  email?: string;              // E-Mail des Kunden (aus Reonic-Kontakt)
   address?: { line: string; zip?: string; city?: string };
   kwp: number;
   moduleCount: number;
@@ -23,6 +25,7 @@ export interface ProjectData {
   inverterCount?: number;     // Anzahl Wechselrichter (default 1)
   battery?: string;
   batteryKwh?: number;
+  batteryModuleCount?: number; // Anzahl Batterie-Module (z.B. 2× 5kWh = 10kWh)
   annualKwh?: number;
   inverterSpec?: InverterSpec;  // Datenblatt-Specs des Wechselrichters
   batterySpec?: BatterySpec;    // Datenblatt-Specs des Batteriemoduls
@@ -95,9 +98,11 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
       .reduce((sum, c) => sum + (Number(c.quantity) || 1), 0) || 1;
   }
 
-  // Address + name from the linked contact
+  // Address + name + phone + email from the linked contact
   let address: ProjectData['address'];
   let contactName = '';
+  let phone: string | undefined;
+  let email: string | undefined;
   const customerId = (o.customer as { id?: string })?.id;
   if (customerId) {
     const { data: cRow } = await db
@@ -107,6 +112,8 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
       const line = [c.street, c.number].filter(Boolean).join(' ').trim();
       address = { line, zip: c.postcode as string, city: c.city as string };
       contactName = [c.firstName, c.lastName].filter(Boolean).join(' ').trim();
+      phone = (c.phone || c.phoneNumber || c.mobile || c.telefon) as string | undefined;
+      email = (c.email || c.emailAddress) as string | undefined;
     }
   }
   // Fallback: derive a clean name from the offer title ("Max Müller 2 - PV" → "Max Müller")
@@ -122,10 +129,16 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   if (!inverter) missing.push('Wechselrichter');
   if (moduleCount === 0) missing.push('Module');
 
+  const batSpec = battery ? findBattery(battery) : undefined;
+  // Batterie-Modulanzahl: Gesamt-kWh / Kapazität pro Modul (z.B. 10,24kWh / 5,12kWh = 2)
+  const batteryModuleCount = batSpec && batteryKwh ? Math.round(batteryKwh / batSpec.capacityKwh) || 1 : undefined;
+
   return {
     offerId,
     name: (o.name as string) || offerId,
     customerName,
+    phone,
+    email,
     type: o.type as string,
     address,
     kwp,
@@ -136,9 +149,10 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
     inverterCount,
     battery,
     batteryKwh,
+    batteryModuleCount,
     annualKwh,
     inverterSpec: inverter ? findInverter(inverter) : undefined,
-    batterySpec: battery ? findBattery(battery) : undefined,
+    batterySpec: batSpec,
     missing,
     ready: missing.length === 0,
   };
