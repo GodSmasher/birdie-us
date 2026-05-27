@@ -21,6 +21,8 @@ export interface Job {
     moduleCount?: number;
     moduleType?: string;
     inverter?: string;
+    inverterKw?: number;
+    inverterCount?: number;
     battery?: string;
     batteryKwh?: number;
     phases?: 1 | 3;

@@ -3,6 +3,7 @@
 // office can see whether the salesperson entered everything.
 
 import { getDb, tenantId } from './db';
+import { findInverter, findBattery, type InverterSpec, type BatterySpec } from './ecoflow-specs';
 
 const INV = /wechselrichter|inverter|hybrid/i;
 const BAT = /speicher|batterie|battery|\blfp\b|powerocean.*(batt|lfp)|akku/i;
@@ -18,9 +19,13 @@ export interface ProjectData {
   moduleCount: number;
   moduleType?: string;
   inverter?: string;
+  inverterKw?: number;        // Wechselrichter-Nennleistung in kW (aus Inverter-String)
+  inverterCount?: number;     // Anzahl Wechselrichter (default 1)
   battery?: string;
   batteryKwh?: number;
   annualKwh?: number;
+  inverterSpec?: InverterSpec;  // Datenblatt-Specs des Wechselrichters
+  batterySpec?: BatterySpec;    // Datenblatt-Specs des Batteriemoduls
   missing: string[];
   ready: boolean;
 }
@@ -78,6 +83,18 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   const batMatch = battery ? /(\d+(?:[.,]\d+)?)\s*kwh/i.exec(battery) : null;
   const batteryKwh = batMatch ? Number(batMatch[1].replace(',', '.')) : undefined;
 
+  // Wechselrichter-Nennleistung (kW) und Anzahl aus Inverter-String extrahieren
+  let inverterKw: number | undefined;
+  let inverterCount = 1;
+  if (inverter) {
+    const kwMatch = /(\d+(?:[.,]\d+)?)\s*k[Ww]/.exec(inverter);
+    if (kwMatch) inverterKw = Number(kwMatch[1].replace(',', '.'));
+    // Anzahl WR = Summe aller INV-Komponenten-Quantities (meist 1)
+    inverterCount = comps
+      .filter((c) => INV.test((c.name || '').trim()))
+      .reduce((sum, c) => sum + (Number(c.quantity) || 1), 0) || 1;
+  }
+
   // Address + name from the linked contact
   let address: ProjectData['address'];
   let contactName = '';
@@ -115,9 +132,13 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
     moduleCount,
     moduleType,
     inverter,
+    inverterKw,
+    inverterCount,
     battery,
     batteryKwh,
     annualKwh,
+    inverterSpec: inverter ? findInverter(inverter) : undefined,
+    batterySpec: battery ? findBattery(battery) : undefined,
     missing,
     ready: missing.length === 0,
   };

@@ -23,6 +23,8 @@ export interface BotJob {
     moduleCount?: number;
     moduleType?: string;
     inverter?: string;
+    inverterKw?: number;
+    inverterCount?: number;
     battery?: string;
     batteryKwh?: number;
     phases?: 1 | 3;
@@ -66,6 +68,8 @@ export async function getBotJobs(): Promise<BotJob[]> {
         moduleCount: p.moduleCount || undefined,
         moduleType: p.moduleType,
         inverter: p.inverter,
+        inverterKw: p.inverterKw,
+        inverterCount: p.inverterCount,
         battery: p.battery || undefined,
         batteryKwh: p.batteryKwh || undefined,
         phases: phasen(p),
@@ -88,8 +92,17 @@ export interface BotJobWithCreds extends BotJob {
 
 export async function getBotJobsWithCredentials(): Promise<BotJobWithCreds[]> {
   const [jobs, creds] = await Promise.all([getBotJobs(), getPortalCredentials()]);
+
+  // Build a normalized lookup: "bayernwerk netz" → creds for "Bayernwerk Netz GmbH" etc.
+  // This bridges mismatches between PLZ-lookup names and portal import names.
+  const normalize = (s: string) => s.toLowerCase().replace(/\s*(gmbh|ag|netz|mbh|co\.?\s*kg)\s*/gi, '').trim();
+  const normalizedCreds = new Map<string, { username: string; password: string; portalUrl: string }>();
+  for (const [name, c] of creds) {
+    normalizedCreds.set(normalize(name), c);
+  }
+
   return jobs.map((job) => ({
     ...job,
-    credentials: creds.get(job.netzbetreiber),
+    credentials: creds.get(job.netzbetreiber) ?? normalizedCreds.get(normalize(job.netzbetreiber)),
   }));
 }

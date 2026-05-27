@@ -5,7 +5,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { downloadDriveFile } from './google-server';
 import type { ProjectData } from './projektdaten';
-import { phasen } from './geschaeftsregeln';
+import { phasen, speicherkopplung, hatNotstrom, naSchutzIntegriert } from './geschaeftsregeln';
 
 const E2_TEMPLATE_ID = process.env.VDE_E2_TEMPLATE_ID || '1chcs6b0Zp6PYXJxGviY4au2zCDqegxYE';
 const E3_TEMPLATE_ID = process.env.VDE_E3_TEMPLATE_ID || '1t_ErQV7Xj7NWmKvr2H_XTXE5gTEn4PpZ';
@@ -47,18 +47,33 @@ export async function fillE2(project: ProjectData, customerName: string): Promis
   }
   // Energieart = Sonne
   check('Sonne');
-  // Erzeugungseinheit Hersteller/Typ (Modul)
-  if (project.moduleType) {
-    text('Hersteller', project.moduleType.split(' ')[0]);
-    text('Typ', project.moduleType);
+  // Erzeugungseinheit = WECHSELRICHTER (nicht Module!)
+  // Hersteller = erstes Wort des Inverter-Strings, Typ = Rest
+  if (project.inverter) {
+    const parts = project.inverter.split(/\s+/);
+    text('Hersteller', parts[0]);
+    text('Typ', parts.slice(1).join(' ') || project.inverter);
   }
-  // Anzahl baugleicher Einheiten + max. Wirkleistung (kW)
-  if (project.moduleCount) text('E2_Text8', String(project.moduleCount));
-  if (project.kwp > 0) text('E2_Text9', String(project.kwp).replace('.', ','));
-  // Netzanschluss-Phasen (Geschäftsregel: > 4,6 kVA → 3-phasig). Eindeutige
-  // Checkbox-Felder im Formular. Einspeiseart bleibt vorerst manuell (doppelte
-  // Feldnamen in der Vorlage — erst nach Live-Feldabgleich sicher setzbar).
+  // Anzahl baugleicher Einheiten = Anzahl Wechselrichter (i.d.R. 1)
+  text('E2_Text8', String(project.inverterCount ?? 1));
+  // max. Wirkleistung = Wechselrichter-Nennleistung in kW
+  const wrKw = project.inverterKw ?? (project.kwp > 0 ? project.kwp : undefined);
+  if (wrKw) text('E2_Text9', String(wrKw).replace('.', ','));
+  // Netzanschluss-Phasen — Volta: immer 3-phasig (bestätigt 2026-05-26)
   check(phasen(project) === 3 ? '3-phasig' : '1-phasig');
+  // NA-Schutz — immer integriert im Wechselrichter
+  if (naSchutzIntegriert(project)) check('NA-Schutz');
+  // Überschusseinspeisung (bestätigt)
+  check('Ueberschusseinspeisung');
+  // Speicherkopplung: DC-gekoppelt
+  if (project.battery) {
+    check(speicherkopplung(project) === 'dc' ? 'DC-gekoppelt' : 'AC-gekoppelt');
+    if (hatNotstrom(project)) {
+      check('Notstrom');
+      check('Inselbildend');
+      check('Schwarzstartfaehig');
+    }
+  }
 
   try {
     form.updateFieldAppearances();
@@ -78,6 +93,9 @@ export async function fillE3(project: ProjectData, customerName: string): Promis
     if (!val) return;
     try { form.getTextField(name).setText(val); } catch { /* absent */ }
   };
+  const check = (name: string) => {
+    try { form.getCheckBox(name).check(); } catch { /* absent */ }
+  };
 
   // Anlagenanschrift
   text('E3_Text1', customerName);
@@ -95,6 +113,14 @@ export async function fillE3(project: ProjectData, customerName: string): Promis
     text('E3_Text8', '1');
   }
   if (project.batteryKwh) text('E3_Text9', String(project.batteryKwh).replace('.', ','));
+  // Kopplung: immer DC-gekoppelt (bestätigt 2026-05-26)
+  check(speicherkopplung(project) === 'dc' ? 'DC-gekoppelt' : 'AC-gekoppelt');
+  // Notstrom nur bei Notstromersatzpaket
+  if (hatNotstrom(project)) {
+    check('Notstrom');
+    check('Inselbildend');
+    check('Schwarzstartfaehig');
+  }
 
   try { form.updateFieldAppearances(); } catch { /* on save */ }
   return pdf.save();

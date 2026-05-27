@@ -8,13 +8,14 @@ import { getRegistrations, STAGES, type StageId } from '@/app/lib/netzanmeldung'
 import { getProjectData } from '@/app/lib/projektdaten';
 import { netzbetreiberForPlz, CONFIDENCE_LABEL } from '@/app/lib/netzbetreiber';
 import { buildMastrSheet, mastrOpenCount, type FieldSource } from '@/app/lib/mastr';
+import { getWaermepumpeInfo } from '@/app/lib/waermepumpe';
 
 export const dynamic = 'force-dynamic';
 
 const euro = (n: number) => (n > 0 ? '€ ' + Math.round(n).toLocaleString('de-DE') : '—');
 
 export default async function RegistrationDetail({ params }: { params: { slug: string } }) {
-  const [regs, project] = await Promise.all([getRegistrations(), getProjectData(params.slug)]);
+  const [regs, project, wp] = await Promise.all([getRegistrations(), getProjectData(params.slug), getWaermepumpeInfo(params.slug)]);
   const reg = regs.find((r) => r.offerId === params.slug);
   if (!reg && !project) notFound();
   const stageLabel = STAGES.find((s) => s.id === reg?.status)?.label ?? '—';
@@ -76,7 +77,15 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                 <Row k="Anlagengröße" v={project?.kwp ? `${project.kwp} kWp` : '—'} />
                 <Row k="Module" v={project?.moduleCount ? `${project.moduleCount}× ${project.moduleType ?? ''}` : '—'} />
                 <Row k="Wechselrichter" v={project?.inverter ?? '—'} />
+                <Row k="WR Nennleistung" v={project?.inverterKw ? `${project.inverterKw} kW` : project?.inverterSpec ? `${project.inverterSpec.ratedPowerKw} kW` : '—'} />
                 <Row k="Speicher" v={project?.battery ?? 'keiner'} />
+                {project?.batterySpec && (
+                  <>
+                    <Row k="Speicher-Kapazität" v={`${project.batterySpec.capacityKwh} kWh (nutzbar ${project.batterySpec.usableKwh} kWh)`} />
+                    <Row k="Speicher-Chemie" v={project.batterySpec.chemistry} />
+                    <Row k="Zyklen / DoD" v={`${project.batterySpec.cycleLife}× / ${project.batterySpec.dod}%`} />
+                  </>
+                )}
                 <Row k="Jahresverbrauch" v={project?.annualKwh ? `${project.annualKwh.toLocaleString('de-DE')} kWh` : '—'} />
                 <Row k="Adresse" v={project?.address?.zip ? `${project.address.line}, ${project.address.zip} ${project.address.city}` : '—'} />
                 <Row k="Auftragswert" v={euro(reg?.value ?? 0)} />
@@ -123,6 +132,28 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
               </div>
             </Card>
           </div>
+
+          {/* Wärmepumpe */}
+          {wp?.hasWaermepumpe && (
+            <Card className={`p-5 flex flex-col gap-3 ${wp.needsGasAbmeldung ? 'border-warning/40' : ''}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔥</span>
+                <h3 className="font-semibold text-[13px] text-fg">Wärmepumpe</h3>
+                <Pill label={wp.heatingFuel === 'gas' ? 'GAS → ABMELDUNG' : wp.heatingFuel === 'oil' ? 'ÖL' : 'HEIZUNG UNBEKANNT'} tone={wp.needsGasAbmeldung ? 'warning' : 'info'} dot={false} />
+              </div>
+              {wp.waermepumpeType && <p className="text-xs text-fg2">{wp.waermepumpeType}</p>}
+              {wp.needsGasAbmeldung && (
+                <div className="flex flex-col gap-2 mt-1">
+                  <p className="text-xs text-warning font-medium">Gaszähler muss abgemeldet werden:</p>
+                  <div className="flex flex-col gap-1.5 text-[11px] text-fg2 leading-[15px]">
+                    <span>① Kunde muss Gaszähler beim Versorger abmelden</span>
+                    <span>② Bezirksschornsteinfeger über Stilllegung informieren</span>
+                  </div>
+                  <p className="text-[11px] text-fg3 mt-1">Mail-Vorlagen verfügbar unter /api/netzanmeldung/waermepumpe?offerId={reg?.offerId ?? project?.offerId}</p>
+                </div>
+              )}
+            </Card>
+          )}
 
           {/* MaStR data sheet */}
           {project && (

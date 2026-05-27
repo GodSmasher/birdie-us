@@ -79,9 +79,14 @@ export interface Portal { name: string; username?: string; password?: string; po
 
 export async function getPortals(): Promise<Portal[]> {
   const rows = await getEntities<Portal>('portal');
-  // Deduplicate by name — last entry wins (preserves corrected driver names)
+  // Deduplicate by name — prefer entry with complete credentials over stub
   const byName = new Map<string, Portal>();
-  for (const p of rows) byName.set(p.name, p);
+  for (const p of rows) {
+    const existing = byName.get(p.name);
+    if (!existing || (p.password && !existing.password)) {
+      byName.set(p.name, p);
+    }
+  }
   return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -132,6 +137,9 @@ export async function getRegistrations(): Promise<Registration[]> {
   return rows.sort((a, b) => STAGE_IDS.indexOf(a.status) - STAGE_IDS.indexOf(b.status));
 }
 
+// Kanban-Spalte bei der Projekte reif für Netzanmeldung sind.
+const NETZ_READY_STATUS = 'NTS/Zählerweise/HAK';
+
 /** Create registrations for won offers that don't have one yet AND refresh
  *  customer name / value on existing ones (status, docStatus, documents stay). */
 export async function seedRegistrations(): Promise<number> {
@@ -143,7 +151,11 @@ export async function seedRegistrations(): Promise<number> {
   const regMap = new Map(existingRegs.map((r) => [r.offerId, r]));
 
   const offers = await getEntities<RawOffer>('offer');
-  const won = offers.filter((o) => o.state === 'Won');
+  // Nur gewonnene Projekte die im richtigen Kanban-Status stehen (NTS/Zählerweise/HAK)
+  // oder die schon eine bestehende Registration haben (damit Updates nicht verloren gehen).
+  const won = offers.filter((o) =>
+    o.state === 'Won' && (regMap.has(o.id) || o.status === NETZ_READY_STATUS),
+  );
 
   const now = new Date();
   const rows = won.map((o) => {
@@ -253,6 +265,22 @@ export async function reportBotError(
   reg.botSkipUntil = new Date(Date.now() + backoffMs).toISOString();
   const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
   return n > 0;
+}
+
+/** Reset backoff for ALL registrations so the bot retries immediately. */
+export async function resetAllBackoff(): Promise<number> {
+  const tid = await tenantId();
+  if (!tid) return 0;
+  const regs = await getRegistrations();
+  const toReset = regs.filter((r) => r.botSkipUntil || r.botRetries);
+  if (toReset.length === 0) return 0;
+  const batch = toReset.map((r) => {
+    delete r.botSkipUntil;
+    r.botRetries = 0;
+    r.botErrors = [];
+    return { externalId: r.offerId, data: r };
+  });
+  return upsertEntities(tid, 'reonic', 'registration', batch);
 }
 
 /** Set the document/review status (Freigabe, Eingereicht …). */
