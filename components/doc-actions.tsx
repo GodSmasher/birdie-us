@@ -43,6 +43,23 @@ const SN_FORMS: { form: string; label: string; phase: 'ANA' | 'FM'; needsBat?: b
   { form: 'sn-ibn',      label: 'Inbetriebsetzungsprotokoll NS',  phase: 'FM' },
 ];
 
+// Werra Energie
+const WE_FORMS: { form: string; label: string; phase: 'ANA' | 'FM'; needsBat?: boolean }[] = [
+  { form: 'we-e2', label: 'E.2 Datenblatt EZA',   phase: 'ANA' },
+  { form: 'we-e3', label: 'E.3 Datenblatt Speicher', phase: 'ANA', needsBat: true },
+  { form: 'we-e8', label: 'E.8 Inbetriebsetzung',  phase: 'FM' },
+];
+
+// SW Ilmenau
+const SWI_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'swi-f2', label: 'F.2 Datenblatt EZA', phase: 'ANA' },
+];
+
+// SWW Wunsiedel
+const SWW_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'sww-ibn', label: 'Inbetriebsetzungsprotokoll', phase: 'FM' },
+];
+
 export function DocActions({
   offerId,
   ready,
@@ -65,6 +82,9 @@ export function DocActions({
   const isTEN = netzbetreiber?.toUpperCase().includes('TEN') || netzbetreiber?.toLowerCase().includes('thüringer energienetze');
   const isSN = netzbetreiber?.toLowerCase().includes('sachsen netze') || netzbetreiber?.toLowerCase().includes('sachsennetze');
   const isNM = netzbetreiber?.toLowerCase().includes('netze magdeburg') || netzbetreiber?.toLowerCase().includes('netzmagdeburg');
+  const isWE = netzbetreiber?.toLowerCase().includes('werra energie') || netzbetreiber?.toLowerCase().includes('werraenergie');
+  const isSWI = netzbetreiber?.toLowerCase().includes('ilmenau');
+  const isSWW = netzbetreiber?.toLowerCase().includes('wunsiedel');
 
   async function generate(form: string) {
     setBusy(true);
@@ -153,6 +173,45 @@ export function DocActions({
               disabled={busy}
               className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40"
             >
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isWE && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Werra Energie</p>
+          {WE_FORMS.filter((f) => !f.needsBat || hasBattery).map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSWI && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Ilmenau</p>
+          {SWI_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSWW && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SWW Wunsiedel</p>
+          {SWW_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
               <span className="text-fg2">{f.label}</span>
               <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
               <span className="float-right text-accent">⤓</span>
