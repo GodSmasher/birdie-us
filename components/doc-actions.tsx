@@ -26,6 +26,14 @@ const TEN_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
   { form: 'an002', label: 'Inbetriebsetzungsprotokoll',  phase: 'FM' },
 ];
 
+// Sachsen Netze — NB-spezifische Formulare
+const SN_FORMS: { form: string; label: string; phase: 'ANA' | 'FM'; needsBat?: boolean }[] = [
+  { form: 'sn-eza',      label: 'Datenblatt Erzeugungsanlage',    phase: 'ANA' },
+  { form: 'sn-speicher', label: 'Datenblatt Stromspeicher',       phase: 'ANA', needsBat: true },
+  { form: 'sn-svr',      label: 'Steuerbare VE (§14a)',           phase: 'ANA', needsBat: true },
+  { form: 'sn-ibn',      label: 'Inbetriebsetzungsprotokoll NS',  phase: 'FM' },
+];
+
 export function DocActions({
   offerId,
   ready,
@@ -46,6 +54,7 @@ export function DocActions({
   const label = DOC_STAGES.find((s) => s.id === docStatus)?.label ?? 'Offen';
 
   const isTEN = netzbetreiber?.toUpperCase().includes('TEN') || netzbetreiber?.toLowerCase().includes('thüringer energienetze');
+  const isSN = netzbetreiber?.toLowerCase().includes('sachsen netze') || netzbetreiber?.toLowerCase().includes('sachsennetze');
 
   async function generate(form: string) {
     setBusy(true);
@@ -94,6 +103,23 @@ export function DocActions({
         <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
           <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">TEN-Formulare</p>
           {TEN_FORMS.map((f) => (
+            <button
+              key={f.form}
+              onClick={() => generate(f.form)}
+              disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40"
+            >
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSN && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Sachsen Netze</p>
+          {SN_FORMS.filter((f) => !f.needsBat || hasBattery).map((f) => (
             <button
               key={f.form}
               onClick={() => generate(f.form)}
