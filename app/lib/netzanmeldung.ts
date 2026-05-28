@@ -24,13 +24,12 @@ export const STAGE_IDS = STAGES.map((s) => s.id) as StageId[];
 export const DOC_STAGES = [
   { id: 'offen', label: 'Offen', desc: 'noch kein Entwurf erzeugt' },
   { id: 'pruefen', label: 'Bitte prüfen', desc: 'Entwurf erzeugt — auf Freigabe wartend' },
-  { id: 'freigegeben', label: 'Freigegeben', desc: 'geprüft, bereit zum Hochladen' },
   { id: 'hochgeladen', label: 'Bei pCloud', desc: 'bei pCloud hochgeladen — wartet auf Unterschrift' },
   { id: 'unterschrieben', label: 'Unterschrieben', desc: 'vom Elektriker unterschrieben — bereit zum Einreichen' },
   { id: 'eingereicht', label: 'Eingereicht', desc: 'beim Netzbetreiber eingereicht' },
 ] as const;
 
-export type DocStatus = (typeof DOC_STAGES)[number]['id'];
+export type DocStatus = (typeof DOC_STAGES)[number]['id'] | 'freigegeben';
 export const DOC_STATUS_IDS = DOC_STAGES.map((s) => s.id) as DocStatus[];
 
 export interface GeneratedDoc {

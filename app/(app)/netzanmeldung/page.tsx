@@ -20,7 +20,11 @@ export const dynamic = 'force-dynamic';
 const euro = (n: number) => (n > 0 ? '€ ' + Math.round(n).toLocaleString('de-DE') : '—');
 const overdue = (r: { status: StageId; dueDate?: string }) =>
   r.status === 'mastr' && !!r.dueDate && Date.parse(r.dueDate) < Date.now();
-const docStatusOf = (r: Registration): DocStatus => r.docStatus ?? 'offen';
+const docStatusOf = (r: Registration): DocStatus => {
+  const s = r.docStatus ?? 'offen';
+  // freigegeben is a transient status (approve → upload), map to hochgeladen for display
+  return s === 'freigegeben' ? 'hochgeladen' : s;
+};
 
 const COLUMN_CAP = 12;
 
