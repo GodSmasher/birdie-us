@@ -40,10 +40,14 @@ export interface BotJob {
 export async function getBotJobs(): Promise<BotJob[]> {
   const regs = await getRegistrations();
   const now = new Date().toISOString();
-  const candidates = regs.filter((r) =>
-    (r.docStatus ?? 'offen') === 'offen' &&
-    (!r.botSkipUntil || r.botSkipUntil <= now) // respect exponential backoff
-  );
+  // Bot darf nur einreichen, wenn Dokumente unterschrieben sind (pCloud-Workflow).
+  // Fallback: 'offen' für Netzbetreiber ohne PDF-Formulare (rein portal-basiert).
+  const candidates = regs.filter((r) => {
+    const ds = r.docStatus ?? 'offen';
+    if (ds !== 'unterschrieben' && ds !== 'offen') return false;
+    if (r.botSkipUntil && r.botSkipUntil > now) return false; // respect exponential backoff
+    return true;
+  });
   if (candidates.length === 0) return [];
 
   const projects = await getProjectDataBatch(candidates.map((r) => r.offerId));

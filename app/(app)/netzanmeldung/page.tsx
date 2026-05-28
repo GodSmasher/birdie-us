@@ -65,6 +65,8 @@ export default async function NetzanmeldungPage({
   const withAccess = portals.filter((p) => p.hasPassword).length;
   const open = regs.filter((r) => r.status !== 'abschluss').length;
   const review = regs.filter((r) => docStatusOf(r) === 'pruefen').length;
+  const atPCloud = regs.filter((r) => docStatusOf(r) === 'hochgeladen').length;
+  const signed = regs.filter((r) => docStatusOf(r) === 'unterschrieben').length;
   const overdueCount = regs.filter(overdue).length;
 
   const columns =
@@ -131,8 +133,10 @@ export default async function NetzanmeldungPage({
                 </a>
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 lg:gap-4">
                 <KpiCard label="BITTE PRÜFEN" value={String(review)} sub="Entwurf wartet auf Freigabe" valueColor={review > 0 ? 'text-warning' : 'text-fg'} />
+                <KpiCard label="BEI PCLOUD" value={String(atPCloud)} sub="wartet auf Unterschrift" valueColor={atPCloud > 0 ? 'text-accent' : 'text-fg'} />
+                <KpiCard label="UNTERSCHRIEBEN" value={String(signed)} sub="bereit zum Einreichen" valueColor={signed > 0 ? 'text-success' : 'text-fg'} />
                 <KpiCard label="IN BEARBEITUNG" value={String(open)} sub="laufende Anmeldungen" />
                 <KpiCard label="MaStR ÜBERFÄLLIG" value={String(overdueCount)} sub="Frist 1 Monat überschritten" valueColor={overdueCount > 0 ? 'text-error' : 'text-fg'} />
                 <KpiCard label="GESAMT" value={String(regs.length)} sub="aus gewonnenen Projekten" />
@@ -158,6 +162,8 @@ export default async function NetzanmeldungPage({
                             <div className="flex items-start gap-2">
                               <span className="text-[13px] font-medium text-fg leading-tight truncate flex-1">{r.customer}</span>
                               {wpIds.has(r.offerId) && <Pill label="WP" tone="info" dot={false} />}
+                              {docStatusOf(r) === 'hochgeladen' && <Pill label="☁ pCloud" tone="info" dot={false} />}
+                              {docStatusOf(r) === 'unterschrieben' && <Pill label="✓ Signiert" tone="success" dot={false} />}
                               {overdue(r) && <Pill label="FRIST" tone="error" dot={false} />}
                             </div>
                             <div className="flex items-center justify-between text-[11px] text-fg3">

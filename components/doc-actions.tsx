@@ -8,6 +8,8 @@ const docTone: Record<DocStatus, string> = {
   offen: 'bg-surface-3 text-fg2',
   pruefen: 'bg-warning-bg text-warning',
   freigegeben: 'bg-info-bg text-info',
+  hochgeladen: 'bg-accent/10 text-accent',
+  unterschrieben: 'bg-accent/20 text-accent',
   eingereicht: 'bg-success-bg text-success',
 };
 
@@ -170,6 +172,63 @@ export function DocActions({
   async function advance(next: DocStatus) {
     setBusy(true);
     await post({ offerId, docStatus: next });
+    setBusy(false);
+    router.refresh();
+  }
+
+  async function uploadToPCloud() {
+    setBusy(true);
+    try {
+      // Determine which forms to upload based on NB
+      const forms: string[] = [];
+      if (isTEN) forms.push('an005', 'ans');
+      else if (isSN) forms.push('sn-eza', ...(hasBattery ? ['sn-speicher', 'sn-svr'] : []));
+      else if (isNM) forms.push('nm-db', 'nm-e2', ...(hasBattery ? ['nm-e3'] : []));
+      else if (isWE) forms.push('we-e2', ...(hasBattery ? ['we-e3'] : []));
+      else if (isSWI) forms.push('swi-f2');
+      else if (isSWW) forms.push('sww-ibn');
+      else if (isSWQ) forms.push('swq-pv');
+      else if (isSWM) forms.push('swm-ana', 'swm-db');
+      else if (isSWE) forms.push('swe-ana', 'swe-db');
+      else if (isSWSK) forms.push('swsk-speicher');
+      else if (isSWMB) forms.push('swmb-pv');
+      else if (isGRE) forms.push('gre-ana', ...(hasBattery ? ['gre-14a'] : []));
+      else if (isZW) forms.push('zw-wp');
+      else if (isRED) forms.push('red-wp');
+      else if (isSWV) forms.push('swv-fm');
+      else if (isEWP) forms.push('ewp-pv');
+      else if (isSEI) forms.push('sei-ana');
+      else forms.push('e2', ...(hasBattery ? ['e3'] : []));
+
+      const res = await fetch('/api/netzanmeldung/pcloud', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId, forms }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        alert(`Upload fehlgeschlagen: ${data.error}`);
+      }
+    } catch (err) {
+      alert(`Upload-Fehler: ${err}`);
+    }
+    setBusy(false);
+    router.refresh();
+  }
+
+  async function checkSigned() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/netzanmeldung/pcloud?offerId=${offerId}`);
+      const data = await res.json();
+      if (data.matched?.length > 0) {
+        alert(`Unterschriebene Dokumente gefunden! (${data.matched[0].signedFiles.join(', ')})`);
+      } else {
+        alert('Noch keine unterschriebenen Dokumente gefunden.');
+      }
+    } catch {
+      alert('Fehler beim Prüfen.');
+    }
     setBusy(false);
     router.refresh();
   }
@@ -377,7 +436,7 @@ export function DocActions({
       )}
       {isZW && ready && (
         <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
-          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Zwickauer Energieversorgung</p>
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">ZEV Zwickau</p>
           {ZW_FORMS.map((f) => (
             <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
               className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
@@ -462,12 +521,29 @@ export function DocActions({
         </div>
       )}
 
+      {/* ── Workflow-Buttons ── */}
       {docStatus === 'pruefen' && (
         <button onClick={() => advance('freigegeben')} disabled={busy} className="px-3.5 py-2 bg-info-bg text-info rounded-lg font-semibold text-xs disabled:opacity-50">
           ✓ Prüfen &amp; freigeben
         </button>
       )}
       {docStatus === 'freigegeben' && (
+        <button onClick={uploadToPCloud} disabled={busy} className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs disabled:opacity-50">
+          ☁ Bei pCloud hochladen
+        </button>
+      )}
+      {docStatus === 'hochgeladen' && (
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[11px] text-fg3">Wartet auf Unterschrift vom Elektriker...</p>
+          <button onClick={checkSigned} disabled={busy} className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs disabled:opacity-50">
+            Unterschrift prüfen
+          </button>
+          <button onClick={() => advance('unterschrieben')} disabled={busy} className="px-3.5 py-2 bg-accent/10 text-accent rounded-lg font-medium text-xs disabled:opacity-50">
+            Manuell als unterschrieben markieren
+          </button>
+        </div>
+      )}
+      {docStatus === 'unterschrieben' && (
         <button onClick={() => advance('eingereicht')} disabled={busy} className="px-3.5 py-2 bg-success-bg text-success rounded-lg font-semibold text-xs disabled:opacity-50">
           Als eingereicht markieren
         </button>

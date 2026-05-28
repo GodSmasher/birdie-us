@@ -39,8 +39,8 @@ const RULES: Rule[] = [
   { match: startsWith('144', '145'), nb: { name: 'EWP Potsdam', confidence: 'wahrscheinlich' } },
   // Werra Energie — Bad Salzungen / Wartburgkreis (Thüringen, PLZ 364xx)
   { match: (p) => p >= '36400' && p <= '36469', nb: { name: 'Werra Energie', confidence: 'wahrscheinlich' } },
-  // Zwickauer Energieversorgung — Zwickau Stadt
-  { match: startsWith('0805', '0806'), nb: { name: 'Zwickauer Energieversorgung', confidence: 'wahrscheinlich' } },
+  // ZEV Zwickau (Zwickauer Energieversorgung) — Zwickau Stadt
+  { match: startsWith('0805', '0806'), nb: { name: 'ZEV Zwickau', confidence: 'wahrscheinlich' } },
   // SW Eilenburg
   { match: (p) => p === '04838', nb: { name: 'SW Eilenburg', confidence: 'wahrscheinlich' } },
   // SW Schkeuditz

@@ -24,7 +24,9 @@ export const STAGE_IDS = STAGES.map((s) => s.id) as StageId[];
 export const DOC_STAGES = [
   { id: 'offen', label: 'Offen', desc: 'noch kein Entwurf erzeugt' },
   { id: 'pruefen', label: 'Bitte prüfen', desc: 'Entwurf erzeugt — auf Freigabe wartend' },
-  { id: 'freigegeben', label: 'Freigegeben', desc: 'geprüft, bereit zum Einreichen' },
+  { id: 'freigegeben', label: 'Freigegeben', desc: 'geprüft, bereit zum Hochladen' },
+  { id: 'hochgeladen', label: 'Bei pCloud', desc: 'bei pCloud hochgeladen — wartet auf Unterschrift' },
+  { id: 'unterschrieben', label: 'Unterschrieben', desc: 'vom Elektriker unterschrieben — bereit zum Einreichen' },
   { id: 'eingereicht', label: 'Eingereicht', desc: 'beim Netzbetreiber eingereicht' },
 ] as const;
 
@@ -36,6 +38,14 @@ export interface GeneratedDoc {
   at: string;
   source?: 'manuell' | 'bot';
   draftRef?: string;
+}
+
+export interface PCloudUpload {
+  fileid: number;
+  filename: string;
+  uploadedAt: string;
+  signedFileid?: number;
+  signedAt?: string;
 }
 
 export interface BotError {
@@ -56,6 +66,7 @@ export interface Registration {
   dueDate?: string;
   docStatus?: DocStatus;
   documents?: GeneratedDoc[];
+  pcloudUploads?: PCloudUpload[];
   botErrors?: BotError[];
   botRetries?: number;   // Gesamtzahl Versuche
   botSkipUntil?: string; // exponentielles Backoff — vor diesem Zeitpunkt nicht erneut versuchen
@@ -326,6 +337,46 @@ export async function setDocStatus(offerId: string, docStatus: DocStatus): Promi
   if (!loaded) return false;
   const { tid, reg } = loaded;
   reg.docStatus = docStatus;
+  const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
+  return n > 0;
+}
+
+// ── pCloud Upload/Signing ────────────────────────────────────────────────────
+
+/** Record that a document was uploaded to pCloud for signing. */
+export async function recordPCloudUpload(
+  offerId: string,
+  upload: { fileid: number; filename: string },
+): Promise<boolean> {
+  const loaded = await loadReg(offerId);
+  if (!loaded) return false;
+  const { tid, reg } = loaded;
+  const uploads = reg.pcloudUploads ?? [];
+  // Don't duplicate
+  if (uploads.some((u) => u.fileid === upload.fileid)) return true;
+  uploads.push({ fileid: upload.fileid, filename: upload.filename, uploadedAt: new Date().toISOString() });
+  reg.pcloudUploads = uploads;
+  if (reg.docStatus === 'freigegeben') reg.docStatus = 'hochgeladen';
+  const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
+  return n > 0;
+}
+
+/** Record that a signed version was uploaded by the electrician. */
+export async function recordSigned(
+  offerId: string,
+  signedFileid: number,
+): Promise<boolean> {
+  const loaded = await loadReg(offerId);
+  if (!loaded) return false;
+  const { tid, reg } = loaded;
+  // Mark all uploads as signed (in practice there's usually one batch)
+  for (const u of reg.pcloudUploads ?? []) {
+    if (!u.signedFileid) {
+      u.signedFileid = signedFileid;
+      u.signedAt = new Date().toISOString();
+    }
+  }
+  if (reg.docStatus === 'hochgeladen') reg.docStatus = 'unterschrieben';
   const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
   return n > 0;
 }
