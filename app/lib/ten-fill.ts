@@ -17,11 +17,13 @@ import { phasen, speicherkopplung, hatNotstrom, naSchutzIntegriert } from './ges
 
 // ── Installer (Volta) ──────────────────────────────────────────────────────
 const VOLTA = {
-  name:   process.env.INSTALLER_COMPANY  || 'Volta Energietechnik GmbH',
-  street: process.env.INSTALLER_ADDRESS  || 'Am Schenkberg 12',
-  plzOrt: process.env.INSTALLER_PLZORT   || '04349 Leipzig',
-  phone:  process.env.INSTALLER_PHONE    || '',
-  email:  process.env.INSTALLER_EMAIL    || '',
+  name:    process.env.INSTALLER_COMPANY   || 'Volta Energietechnik GmbH',
+  street:  process.env.INSTALLER_ADDRESS   || 'Am Schenkberg 12',
+  plzOrt:  process.env.INSTALLER_PLZORT    || '04349 Leipzig',
+  phone:   process.env.INSTALLER_PHONE     || '',
+  email:   process.env.INSTALLER_EMAIL     || '',
+  ausweis: process.env.INSTALLER_AUSWEIS   || '',  // HWKN/IHK-Ausweisnummer
+  nbReg:   process.env.INSTALLER_NB_REG    || '',  // Eintragungsnummer beim Netzbetreiber
 };
 
 // ── Template paths ─────────────────────────────────────────────────────────
@@ -142,6 +144,7 @@ export async function fillAN005(project: ProjectData, customer: string): Promise
   text('Straße Hausnummer_3', VOLTA.street);
   text('PLZ Ort_3', VOLTA.plzOrt);
   text('EMail_2', VOLTA.email);
+  text('Ausweisnummer', VOLTA.ausweis);   // HWKN/IHK-Ausweisnr des Elektrofachbetriebs
 
   // ── 4. ausführender Anlagenerrichter (falls abweichend von 3) ──
   // Volta = beides, also gleiche Daten oder leer. Wir füllen gleich.
@@ -151,26 +154,28 @@ export async function fillAN005(project: ProjectData, customer: string): Promise
   text('PLZ Ort_4', VOLTA.plzOrt);
   text('EMail_3', VOLTA.email);
 
-  // ── Anlagenart (4 Checkboxen: Neuanlage, Erweiterung, Rückbau, Austausch) ──
+  // ── 5. Anlagenart (4 Checkboxen: Neuanlage, Erweiterung, Rückbau, Austausch) ──
   check('anlagenart'); // 1. Widget = Neuanlage
 
-  // Funkrundsteuerempfänger — ja, immer bei PV
+  // ── 6. Funkrundsteuerempfänger — ja, immer bei PV ──
   check('Funkrundsteuerempfänger');
 
   // ═══ SEITE 2: Unterlagen & Netzanschluss ══════════════════════════════
 
-  // Beigefügte Unterlagen
+  // ── 7. Beigefügte Unterlagen ──
   check('Anmeldung zum Netzanschluss Strom beigefügt bitte');
   check('Lageplan mit Aufstellungsort der Erzeugungsanlage beigefügt');
   check('Einheitenzertifikate nach VDEARN 4105 beigefügt');
   check('Zertifikat für den NASchutz beigefügt');
+  // Leistungsflussüberwachung — entfällt bei ≤30 kW Residential
   check('Übersichtsschaltplan einpolige Darstellung ab Netzanschluss beigefügt inkl Anordnung der');
   check('Vollmacht für AnlagenerrichterElektrofachbetrieb beigefügt');
+  // Technischer Betriebsführer — entfällt (Betreiber = Kunde)
 
-  // Netzanschluss
-  check('niederspannung');   // Niederspannung
+  // ── 8. Angaben zum Hausanschluss ──
+  check('niederspannung');   // Niederspannung (Standard Residential)
 
-  // Datenblatt-Checkboxen
+  // ── Datenblatt-Auswahl ──
   check('Datenblatt Erzeugungsanlagen bis einschließlich 30 kW');
   if (project.battery) {
     check('Datenblatt Speicher bis einschließlich 30 kW');
@@ -232,13 +237,17 @@ export async function fillAN005(project: ProjectData, customer: string): Promise
     // Summenfelder Speicher
     text('Summe in kW_2', num(batKwTotal(project)));                     // Gesamt Speicher kW
     text('Summe in kWh', num(batKwhTotal(project)));                     // Gesamt Speicher kWh
+
+    // Betriebsart Speicher
+    check('lieferung');       // Lieferung von Leistung an das Netz = Ja (Überschusseinspeisung)
+    // leistungsbezug — NICHT ankreuzen: DC-gekoppelter Speicher lädt nur von PV, nicht aus Netz
   }
 
   // Primärenergieträger
   text('Verwendete Primärenergieträger z B Sonne Wind Gas', 'Sonne');
 
   // NA-Schutz
-  if (naSchutzIntegriert(project)) check('Ja_5'); // Integrierter NA-Schutz
+  if (naSchutzIntegriert(project)) check('Ja_5'); // Integrierter NA-Schutz vorhanden
 
   try { form.updateFieldAppearances(); } catch { /* on save */ }
   return pdf.save();
@@ -271,6 +280,9 @@ export async function fillANS(project: ProjectData, customer: string): Promise<U
   // ── Art der Anmeldung ──
   check('anmeldung');           // Neuanmeldung
   check('Erzeugungsanlagen');   // Erzeugungsanlagen
+  if (hatNotstrom(project)) {
+    check('Notstromanlagen');   // Notstromanlage (nur wenn Notstrompaket vorhanden)
+  }
   check('Steuerbarkeit § 14a'); // Steuerbarkeit §14a EnWG
 
   // ── Abschnitt 5: Anschlussnutzer (= Kunde) ──
@@ -285,42 +297,54 @@ export async function fillANS(project: ProjectData, customer: string): Promise<U
   text('Postleitzahl Ort_4', plzOrt);
   text('Telefon Fax EMail_2', [project.phone, project.email].filter(Boolean).join(' / '));
 
+  // ── Unterschriften Anschlussnutzer / Betreiber (Name in Druckschrift) ──
+  text('Name in Druckschrift', customer);        // Anschlussnutzer
+  text('Name in Druckschrift_2', customer);       // Betreiber
+
   // ── Abschnitt 7: Errichter = Volta ──
   text('Firmenname', VOLTA.name);
+  text('Eingetragen bei NB', VOLTA.nbReg);        // Eintragungsnummer bei TEN
   text('Straße und HausNr_3', VOLTA.street);
+  text('Ausweisnummer', VOLTA.ausweis);            // HWKN/IHK-Ausweisnummer
   text('Postleitzahl Ort_5', VOLTA.plzOrt);
   text('Telefon Fax EMail_3', [VOLTA.phone, VOLTA.email].filter(Boolean).join(' / '));
+  text('Name in Druckschrift_3', VOLTA.name);      // Errichter-Unterschrift Name
 
   // ── Geräteeintrag Zeile 1 (4_*): Wechselrichter / EZA ──
-  // 4_a = Verwendungszweck: b) = Erzeugungsanlagen
-  dropdown('4_a', 'b)');
+  // Spalten: a=Zweck b=Hersteller c=Typ d=Anzahl e=kW f=Messeing.vorh g=kWp
+  //          h=Messeing.neu i=A/Phase j=kVA k=kWh l=Sich.vorh m=Sich.neu
+  dropdown('4_a', 'b)');                                       // b) = Erzeugungsanlagen
   const wr = wrModelName(project);
-  text('4_b', wr.hersteller);                              // Hersteller
-  text('4_c', wr.typ);                                      // Typ/Modell
-  text('4_d', String(project.inverterCount ?? 1));           // Anzahl
-  text('4_e', num(wrKw(project)));                           // Nennleistung kW
-  dropdown('4_f', phasen(project) === 3 ? 'DS' : 'WS');     // vorh. Messeinrichtung (DS=Drehstrom)
-  text('4_g', num(project.kwp));                             // kWp Modulleistung
-  dropdown('4_h', 'iMSys');                                  // neue Messeinrichtung (§14a → iMSys)
-  // 4_i = Strom pro Phase → WR kW / 3 Phasen / 230V ≈ A pro Phase
+  text('4_b', wr.hersteller);                                  // Hersteller
+  text('4_c', wr.typ);                                         // Typ/Modell
+  text('4_d', String(project.inverterCount ?? 1));              // Anzahl
+  text('4_e', num(wrKw(project)));                              // Nennleistung kW
+  dropdown('4_f', phasen(project) === 3 ? 'DS' : 'WS');        // vorh. Messeinrichtung
+  text('4_g', num(project.kwp));                                // kWp Modulleistung
+  dropdown('4_h', 'iMSys');                                     // neue Messeinrichtung (§14a → iMSys)
   const wrA = wrKw(project) ? Math.round((wrKw(project)! * 1000) / (3 * 230)) : undefined;
-  text('4_i', wrA ? String(wrA) : undefined);
+  text('4_i', wrA ? String(wrA) : undefined);                   // Strom pro Phase (A)
+  text('4_j', num(wrKva(project)));                              // Scheinleistung kVA
 
   // ── Geräteeintrag Zeile 2 (41_*): Speicher ──
   if (project.battery) {
-    dropdown('41_a', 'b)');
+    dropdown('41_a', 'b)');                                     // b) = Erzeugungsanlagen
     const bat = batModelName(project);
-    text('41_b', bat.hersteller);
-    text('41_c', bat.typ);
-    text('41_d', String(project.batteryModuleCount ?? 1));   // Anzahl Module
-    text('41_e', num(batKwTotal(project)));                  // Gesamt Entladeleistung kW
-    dropdown('41_f', phasen(project) === 3 ? 'DS' : 'WS');  // vorh. Messeinrichtung
-    dropdown('41_h', 'iMSys');                               // neue Messeinrichtung
-    text('41_k', num(batKwhTotal(project)));                 // Gesamt kWh
+    text('41_b', bat.hersteller);                               // Hersteller
+    text('41_c', bat.typ);                                      // Typ/Modell
+    text('41_d', String(project.batteryModuleCount ?? 1));       // Anzahl Module
+    text('41_e', num(batKwTotal(project)));                      // Gesamt Entladeleistung kW
+    dropdown('41_f', phasen(project) === 3 ? 'DS' : 'WS');      // vorh. Messeinrichtung
+    dropdown('41_h', 'iMSys');                                   // neue Messeinrichtung
+    const batA = batKwTotal(project) ? Math.round((batKwTotal(project)! * 1000) / (3 * 230)) : undefined;
+    text('41_i', batA ? String(batA) : undefined);               // Strom pro Phase (A)
+    text('41_j', num(batKwTotal(project)));                      // Scheinleistung kVA ≈ kW
+    text('41_k', num(batKwhTotal(project)));                     // Gesamt kWh
   }
 
-  // ── Terminwunsch ──
-  // text('6 Terminwunsch', ''); // Leer lassen — Katrin füllt manuell
+  // ── Terminwunsch / Bemerkungen ──
+  // text('6 Terminwunsch', '');  // Leer — Katrin füllt manuell
+  // text('6Bemerkungen1', '');   // Leer — bei Bedarf manuell
 
   try { form.updateFieldAppearances(); } catch { /* on save */ }
   return pdf.save();
@@ -376,14 +400,25 @@ export async function fillAN002(project: ProjectData, customer: string): Promise
     }
   }
 
-  // ── Checkboxen ──
+  // ═══ SEITE 1: Checkboxen (Nachweise) ═══════════════════════════════════
   check('Übereinstimmung des ausgefüllten Datenblattes Datenerfassungsblatt oder EinspeiserPortal mit dem');
+  check('Abrechnungsmessung');                     // Abrechnungsmessung vorhanden/eingebaut
+  check('Zählerstand zum Datum der Inbetriebsetzung der Erzeugungsanlagedes Speichers');
+  check('Einheitenzertifikat für ErzeugungseinheitenSpeicher nach VDEARN 4105 2 soweit jeweils in der');
+  // Leistungsflussüberwachung — entfällt bei ≤30 kW Residential
+
+  // ═══ SEITE 2: Prüfungen & Einstellungen ══════════════════════════════
   if (naSchutzIntegriert(project)) {
     check('Integrierter NASchutz vorhanden');
-    check('funktionstest'); // Funktionstest NA-Schutz durchgeführt
+    check('funktionstest');                        // Funktionstest NA-Schutz durchgeführt
   }
-  // Funkrundsteuerempfänger eingebaut
-  check('funkrundsteuerempfänger');
+  check('funkrundsteuerempfänger');                // Funkrundsteuerempfänger eingebaut
+  check('protokoll');                              // Inbetriebsetzungsprotokoll
+  check('energieflussrichtungssensor');             // Energieflussrichtungssensor vorhanden
+
+  // Blindleistungseinstellung: cos φ(P) Standardkennlinie (VDE-AR-N 4105)
+  check('standardkennlinie');                      // cos φ(P) Standardkennlinie
+  check('standardkennlinie2');                     // Q(U) Standardkennlinie
 
   try { form.updateFieldAppearances(); } catch { /* on save */ }
   return pdf.save();
