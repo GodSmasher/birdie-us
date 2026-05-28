@@ -538,19 +538,14 @@ export function DocActions({
       )}
       {docStatus === 'hochgeladen' && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-[11px] text-fg3">Wartet auf Unterschrift vom Elektriker...</p>
+          <p className="text-[11px] text-fg3">Wartet auf Unterschrift vom Elektriker — wird automatisch erkannt.</p>
           <button onClick={checkSigned} disabled={busy} className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs disabled:opacity-50">
-            Unterschrift prüfen
-          </button>
-          <button onClick={() => advance('unterschrieben')} disabled={busy} className="px-3.5 py-2 bg-accent/10 text-accent rounded-lg font-medium text-xs disabled:opacity-50">
-            Manuell als unterschrieben markieren
+            Jetzt prüfen
           </button>
         </div>
       )}
       {docStatus === 'unterschrieben' && (
-        <button onClick={() => advance('eingereicht')} disabled={busy} className="px-3.5 py-2 bg-success-bg text-success rounded-lg font-semibold text-xs disabled:opacity-50">
-          Als eingereicht markieren
-        </button>
+        <p className="text-[11px] text-fg3">Unterschrieben — Bot reicht beim Netzbetreiber ein.</p>
       )}
     </div>
   );

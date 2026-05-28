@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { tenantId, upsertEntities, recordSyncRun } from '@/app/lib/db';
 import { getReonicCatalog, getReonicOffersRaw, getReonicContactsRaw, getReonicDirectoryRaw } from '@/app/lib/reonic-server';
-import { seedRegistrations, assignNetzbetreiber, assignNetzbetreiberBot } from '@/app/lib/netzanmeldung';
+import { seedRegistrations, assignNetzbetreiber, assignNetzbetreiberBot, getRegistrations, recordSigned } from '@/app/lib/netzanmeldung';
+import { listFolder, getUnterschriebenFolder } from '@/app/lib/pcloud';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -61,6 +62,36 @@ async function run(req: Request) {
       results.netzbetreiber = await assignNetzbetreiber();
     } catch (e) {
       results.netzbetreiber = `error: ${(e as Error).message}`;
+    }
+  }
+
+  // pCloud: Unterschriebene Dokumente automatisch erkennen
+  if (resource === 'pcloud-check' || resource === 'all') {
+    try {
+      const regs = await getRegistrations();
+      const candidates = regs.filter((r) => r.docStatus === 'hochgeladen' && r.pcloudUploads?.length);
+      let matched = 0;
+      if (candidates.length > 0) {
+        const unterschriebenId = await getUnterschriebenFolder();
+        const contents = await listFolder(unterschriebenId);
+        for (const reg of candidates) {
+          for (const upload of reg.pcloudUploads!) {
+            if (upload.signedFileid) continue;
+            const baseName = upload.filename.replace('.pdf', '').toLowerCase();
+            const found = contents.files.find((f) =>
+              f.name.toLowerCase().includes(baseName) ||
+              baseName.includes(f.name.replace('.pdf', '').toLowerCase())
+            );
+            if (found) {
+              await recordSigned(reg.offerId, found.fileid);
+              matched++;
+            }
+          }
+        }
+      }
+      results.pcloudCheck = { checked: candidates.length, matched };
+    } catch (e) {
+      results.pcloudCheck = `error: ${(e as Error).message}`;
     }
   }
 
