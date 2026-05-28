@@ -89,6 +89,37 @@ const SWMB_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
   { form: 'swmb-ibn', label: 'Inbetriebsetzung EZA', phase: 'FM' },
 ];
 
+// Greizer Energienetze
+const GRE_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'gre-ana', label: 'Anmeldung Netzanschluss', phase: 'ANA' },
+  { form: 'gre-wp',  label: 'Datenblatt Wärmepumpe',   phase: 'ANA' },
+];
+
+// Zwickau
+const ZW_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'zw-wp', label: 'Datenblatt Wärmepumpe', phase: 'ANA' },
+];
+
+// Redinet Burgenland
+const RED_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'red-wp', label: 'Datenblatt WPA', phase: 'ANA' },
+];
+
+// SW Velten
+const SWV_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'swv-fm', label: 'Fertigmeldung Strom', phase: 'FM' },
+];
+
+// EWP Potsdam
+const EWP_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'ewp-pv', label: 'Datenerfassung PV', phase: 'ANA' },
+];
+
+// SW Eilenburg
+const SEI_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'sei-ana', label: 'Anmeldung Strom', phase: 'ANA' },
+];
+
 export function DocActions({
   offerId,
   ready,
@@ -119,6 +150,12 @@ export function DocActions({
   const isSWE = netzbetreiber?.toLowerCase().includes('weißenfels') || netzbetreiber?.toLowerCase().includes('weissenfels');
   const isSWSK = netzbetreiber?.toLowerCase().includes('schkeuditz');
   const isSWMB = netzbetreiber?.toLowerCase().includes('münchberg') || netzbetreiber?.toLowerCase().includes('muenchberg');
+  const isGRE = netzbetreiber?.toLowerCase().includes('greizer') || netzbetreiber?.toLowerCase().includes('greiz');
+  const isZW = netzbetreiber?.toLowerCase().includes('zwickau');
+  const isRED = netzbetreiber?.toLowerCase().includes('redinet') || netzbetreiber?.toLowerCase().includes('burgenland');
+  const isSWV = netzbetreiber?.toLowerCase().includes('velten');
+  const isEWP = netzbetreiber?.toLowerCase().includes('potsdam') || netzbetreiber?.toLowerCase().includes('ewp');
+  const isSEI = netzbetreiber?.toLowerCase().includes('eilenburg');
 
   async function generate(form: string) {
     setBusy(true);
@@ -309,6 +346,84 @@ export function DocActions({
         <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
           <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Münchberg</p>
           {SWMB_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isGRE && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Greizer Energienetze</p>
+          {GRE_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isZW && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Zwickauer Energieversorgung</p>
+          {ZW_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isRED && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Redinet Burgenland</p>
+          {RED_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSWV && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Velten</p>
+          {SWV_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isEWP && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">EWP Potsdam</p>
+          {EWP_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSEI && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Eilenburg</p>
+          {SEI_FORMS.map((f) => (
             <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
               className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
               <span className="text-fg2">{f.label}</span>

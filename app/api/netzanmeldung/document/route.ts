@@ -12,6 +12,12 @@ import { fillSwmDoc, swmDocLabel, type SwmDocType } from '@/app/lib/sw-merseburg
 import { fillSweDoc, sweDocLabel, type SweDocType } from '@/app/lib/sw-weissenfels-fill';
 import { fillSwskDoc, swskDocLabel, type SwskDocType } from '@/app/lib/sw-schkeuditz-fill';
 import { fillSwmbDoc, swmbDocLabel, type SwmbDocType } from '@/app/lib/sw-muenchberg-fill';
+import { fillGreDoc, greDocLabel, type GreDocType } from '@/app/lib/greizer-fill';
+import { fillZwDoc, zwDocLabel, type ZwDocType } from '@/app/lib/zwickau-fill';
+import { fillRedDoc, redDocLabel, type RedDocType } from '@/app/lib/redinet-fill';
+import { fillSwvDoc, swvDocLabel, type SwvDocType } from '@/app/lib/sw-velten-fill';
+import { fillEwpDoc, ewpDocLabel, type EwpDocType } from '@/app/lib/ewp-potsdam-fill';
+import { fillSeiDoc, seiDocLabel, type SeiDocType } from '@/app/lib/sw-eilenburg-fill';
 import type { ProjectData } from '@/app/lib/projektdaten';
 
 export const dynamic = 'force-dynamic';
@@ -53,6 +59,24 @@ for (const f of ['swsk-speicher'])
 // SW Münchberg
 for (const f of ['swmb-pv', 'swmb-ibn'])
   FORM_MAP.set(f, { fill: (_f, p, c) => fillSwmbDoc(_f as SwmbDocType, p, c), label: (f2) => swmbDocLabel(f2 as SwmbDocType) });
+// Greizer Energienetze
+for (const f of ['gre-ana', 'gre-wp'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillGreDoc(_f as GreDocType, p, c), label: (f2) => greDocLabel(f2 as GreDocType) });
+// Zwickau
+for (const f of ['zw-wp'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillZwDoc(_f as ZwDocType, p, c), label: (f2) => zwDocLabel(f2 as ZwDocType) });
+// Redinet Burgenland
+for (const f of ['red-wp'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillRedDoc(_f as RedDocType, p, c), label: (f2) => redDocLabel(f2 as RedDocType) });
+// SW Velten
+for (const f of ['swv-fm'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillSwvDoc(_f as SwvDocType, p, c), label: (f2) => swvDocLabel(f2 as SwvDocType) });
+// EWP Potsdam
+for (const f of ['ewp-pv'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillEwpDoc(_f as EwpDocType, p, c), label: (f2) => ewpDocLabel(f2 as EwpDocType) });
+// SW Eilenburg
+for (const f of ['sei-ana'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillSeiDoc(_f as SeiDocType, p, c), label: (f2) => seiDocLabel(f2 as SeiDocType) });
 
 // Generates a pre-filled PDF form (VDE E.2/E.3 or NB-specific). Gated by middleware.
 // Query params: offerId, form
