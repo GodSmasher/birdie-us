@@ -91,8 +91,9 @@ const SWMB_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
 
 // Greizer Energienetze
 const GRE_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
-  { form: 'gre-ana', label: 'Anmeldung Netzanschluss', phase: 'ANA' },
-  { form: 'gre-wp',  label: 'Datenblatt Wärmepumpe',   phase: 'ANA' },
+  { form: 'gre-ana',  label: 'Anmeldung Netzanschluss', phase: 'ANA' },
+  { form: 'gre-wp',   label: 'Datenblatt Wärmepumpe',   phase: 'ANA' },
+  { form: 'gre-14a',  label: 'Anmeldung §14a sVE',      phase: 'ANA' },
 ];
 
 // Zwickau
@@ -117,7 +118,8 @@ const EWP_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
 
 // SW Eilenburg
 const SEI_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
-  { form: 'sei-ana', label: 'Anmeldung Strom', phase: 'ANA' },
+  { form: 'sei-ana', label: 'Anmeldung Strom (PV)', phase: 'ANA' },
+  { form: 'sei-wp',  label: 'Anmeldung Strom (WP)', phase: 'ANA' },
 ];
 
 export function DocActions({

@@ -1,8 +1,9 @@
 // Greizer Energienetze — NB-spezifische PDF-Formularfüller.
 //
 // Formulare:
-//   gre-ana = Anmeldung Netzanschluss Strom (WPA)    — 166 Felder, 4 Seiten
-//   gre-wp  = Datenblatt Elektro-Wärmepumpen (WPA)   — 146 Felder, 2 Seiten
+//   gre-ana  = Anmeldung Netzanschluss Strom (WPA)    — 166 Felder, 4 Seiten
+//   gre-wp   = Datenblatt Elektro-Wärmepumpen (WPA)   — 146 Felder, 2 Seiten
+//   gre-14a  = Anmeldung steuerbare VE §14a (WPA)     — 31 Felder, 1 Seite
 //
 // Templates: nb-templates/Greizer Energienetze/
 
@@ -23,8 +24,9 @@ const VOLTA = {
 
 const TMPL_DIR = path.join(process.cwd(), 'nb-templates', 'Greizer Energienetze');
 const TEMPLATES = {
-  'gre-ana': path.join(TMPL_DIR, 'WPA', '2025-ana.pdf'),
-  'gre-wp':  path.join(TMPL_DIR, 'WPA', 'elektro-waermepumpen-und-waermespeicheranlagen.pdf'),
+  'gre-ana':  path.join(TMPL_DIR, 'WPA', '2025-ana.pdf'),
+  'gre-wp':   path.join(TMPL_DIR, 'WPA', 'elektro-waermepumpen-und-waermespeicheranlagen.pdf'),
+  'gre-14a':  path.join(TMPL_DIR, 'WPA', 'anmeldung-steuerbare-verbrauchseinrichtungen-14a.pdf'),
 };
 
 function num(v?: number): string { return v != null ? String(v).replace('.', ',') : ''; }
@@ -139,17 +141,106 @@ export async function fillGREWp(project: ProjectData, customer: string): Promise
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// gre-14a — Anmeldung steuerbare VE §14a (1 Seite, 31 Felder)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Position-Mapping (Widget-Koordinaten, y absteigend):
+//
+//   Betreiber-Block:
+//     TF1_5  (y=660, x=50)  = Name/Firma
+//     TF1_2  (y=660, x=330) = Geburtsdatum/Registernr
+//     TF1    (y=631, x=50)  = Straße
+//     TF1_3  (y=631, x=330) = PLZ
+//     TF1_4  (y=631, x=394) = Ort
+//     TF1_6  (y=587, x=50)  = Telefon
+//     TF1_8  (y=587, x=330) = Email
+//     TF1_7  (y=559, x=50)  = Ansprechpartner / 2. Zeile
+//     TF1_9  (y=559, x=330) = Fax
+//
+//   Art der Anlage (Checkboxen y=527-491):
+//     Ankreuzfeld6  (y=509, x=122) = Wärmepumpe (links)
+//     Ankreuzfeld50 (y=509, x=283) = ?
+//     Ankreuzfeld7  (y=527, x=284) = ?
+//     Ankreuzfeld8  (y=491, x=122) = Speicher (links)
+//     Ankreuzfeld9  (y=491, x=283) = ?
+//
+//   Standort (y=470-413):
+//     TF1_10 (y=470, x=50)  = Straße + HNr
+//     TF1_11 (y=470, x=280) = PLZ Ort
+//     TF1_16 (y=441, x=51)  = Gemarkung
+//     TF1_17 (y=441, x=279) = Flurstück
+//     TF1_14 (y=413, x=51)  = Zähler-Nr
+//     TF1_15 (y=413, x=279) = Zählpunkt
+//
+//   Anmeldungsart (y=363):
+//     Ankreuzfeld10 (y=363, x=54)  = Neuanmeldung
+//     Ankreuzfeld20 (y=363, x=152) = Leistungserhöhung
+//
+//   Modul (y=325):
+//     Ankreuzfeld11 (y=325, x=51)  = Modul 1
+//     Ankreuzfeld12 (y=325, x=317) = Modul 2
+//
+//   Netzanschluss (y=301):
+//     Markierfeld 2_2 (y=301, x=51)  = netzorientiert
+//     Markierfeld 2   (y=300, x=317) = marktorientiert
+//
+//   TF1_13 (y=277) = Bemerkung
+//   TF1_12 (y=155) = Ort, Datum
+//
+export async function fillGRE14a(project: ProjectData, customer: string): Promise<Uint8Array> {
+  const pdf = await PDFDocument.load(loadTemplate('gre-14a'));
+  const form = pdf.getForm();
+  const text = (n: string, v?: string) => { if (!v) return; try { form.getTextField(n).setText(v); } catch {} };
+  const check = (n: string) => { try { form.getCheckBox(n).check(); } catch {} };
+
+  // ═══ Betreiber ═══
+  text('Textfeld 1_5', customer);
+  text('Textfeld 1', project.address?.line);
+  text('Textfeld 1_3', project.address?.zip);
+  text('Textfeld 1_4', project.address?.city);
+  text('Textfeld 1_6', project.phone);
+  text('Textfeld 1_8', project.email);
+
+  // ═══ Standort ═══
+  text('Textfeld 1_10', project.address?.line);
+  text('Textfeld 1_11', [project.address?.zip, project.address?.city].filter(Boolean).join(' '));
+
+  // ═══ Art der Anlage: Wärmepumpe ═══
+  check('Ankreuzfeld6');
+
+  // ═══ Speicher (falls vorhanden) ═══
+  if (project.battery) {
+    check('Ankreuzfeld8');
+  }
+
+  // ═══ Neuanmeldung ═══
+  check('Ankreuzfeld10');
+
+  // ═══ Modul 1 (netzorientierte Steuerung) ═══
+  check('Ankreuzfeld11');
+  check('Markierfeld 2_2');
+
+  // ═══ Ort, Datum ═══
+  text('Textfeld 1_12', 'Leipzig');
+
+  try { form.updateFieldAppearances(); } catch {}
+  return pdf.save();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Registry
 // ═══════════════════════════════════════════════════════════════════════════
-export type GreDocType = 'gre-ana' | 'gre-wp';
+export type GreDocType = 'gre-ana' | 'gre-wp' | 'gre-14a';
 
 const FILLERS: Record<GreDocType, (p: ProjectData, c: string) => Promise<Uint8Array>> = {
-  'gre-ana': fillGREAna,
-  'gre-wp':  fillGREWp,
+  'gre-ana':  fillGREAna,
+  'gre-wp':   fillGREWp,
+  'gre-14a':  fillGRE14a,
 };
 const LABELS: Record<GreDocType, string> = {
-  'gre-ana': 'GRE-Anmeldung-Strom',
-  'gre-wp':  'GRE-Datenblatt-WP',
+  'gre-ana':  'GRE-Anmeldung-Strom',
+  'gre-wp':   'GRE-Datenblatt-WP',
+  'gre-14a':  'GRE-Anmeldung-14a',
 };
 
 export function greDocLabel(type: GreDocType): string { return LABELS[type]; }

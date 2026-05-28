@@ -1,13 +1,15 @@
 // SW Eilenburg — NB-spezifische PDF-Formularfüller.
 //
 // Formulare:
-//   sei-ana = Anmeldung Strom (ANA/WP) — 210 Felder, 2 Seiten
+//   sei-ana = Anmeldung Strom (ANA)     — 210 Felder, 2 Seiten
+//   sei-wp  = Anmeldung Strom (WP)      — 210 Felder, 2 Seiten (gleiche Felder)
 //
 // Hinweis: Generische Feldnamen (Auswahl 1-38, Text_1-90).
 //          Mapping per Widget-Positionsanalyse:
 //          Seite 1 oben: 2 Adressblöcke (Betreiber + Standort)
 //          Seite 1 unten: Zähler/Anlagen-Tabelle
 //          Seite 2: weitere Tabelle + Errichter + Unterschriften
+//          DB_EEA, DB_WPA, IB_Erkl, Erkl_VZ = flat PDFs (0 Felder)
 //
 // Templates: nb-templates/SW Eilenburg/
 
@@ -25,6 +27,7 @@ const VOLTA = {
 const TMPL_DIR = path.join(process.cwd(), 'nb-templates', 'SW Eilenburg');
 const TEMPLATES = {
   'sei-ana': path.join(TMPL_DIR, 'ANA', 'ANA_SE_2021-01.pdf'),
+  'sei-wp':  path.join(TMPL_DIR, 'WP', 'ANA_SE_2021-01.pdf'),
 };
 
 function num(v?: number): string { return v != null ? String(v).replace('.', ',') : ''; }
@@ -112,15 +115,63 @@ export async function fillSEIAna(project: ProjectData, customer: string): Promis
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// sei-wp — Anmeldung Strom WP-Variante (gleiche 210 Felder, WP-Template)
+// ═══════════════════════════════════════════════════════════════════════════
+export async function fillSEIWp(project: ProjectData, customer: string): Promise<Uint8Array> {
+  const pdf = await PDFDocument.load(loadTemplate('sei-wp'));
+  const form = pdf.getForm();
+  const text = (n: string, v?: string) => { if (!v) return; try { form.getTextField(n).setText(v); } catch {} };
+  const check = (n: string) => { try { form.getCheckBox(n).check(); } catch {} };
+
+  // ═══ Betreiber / Anschlussnehmer ═══
+  text('Text_1', customer + ' WP');
+  text('Text_2', customer);
+  text('Text_4', project.address?.line);
+  text('Text_5', project.address?.zip);
+  text('Text_6', project.address?.city);
+  text('Text_7', project.phone);
+  text('Text_9', project.email);
+
+  // ═══ Grundstückseigentümer (= Betreiber) ═══
+  text('Text_10', project.address?.line);
+  text('Text_11', project.address?.zip);
+  text('Text_12', project.address?.city);
+  text('Text_13', project.phone);
+  text('Text_14', project.email);
+
+  // ═══ Anlagenstandort ═══
+  text('Text_15', project.address?.line + ', ' + [project.address?.zip, project.address?.city].filter(Boolean).join(' '));
+  text('Text_16', project.address?.line);
+  text('Text_17', [project.address?.zip, project.address?.city].filter(Boolean).join(' '));
+
+  // ═══ Anmeldungsart: Neuanschluss ═══
+  check('Auswahl 1');
+
+  // ═══ Errichter ═══
+  text('Text_75', VOLTA.name);
+  text('Text_76', VOLTA.name);
+  text('Text_78', VOLTA.plzOrt);
+
+  // ═══ Unterschriften ═══
+  text('Text_82', VOLTA.name);
+  text('Text_88', customer);
+
+  try { form.updateFieldAppearances(); } catch {}
+  return pdf.save();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Registry
 // ═══════════════════════════════════════════════════════════════════════════
-export type SeiDocType = 'sei-ana';
+export type SeiDocType = 'sei-ana' | 'sei-wp';
 
 const FILLERS: Record<SeiDocType, (p: ProjectData, c: string) => Promise<Uint8Array>> = {
   'sei-ana': fillSEIAna,
+  'sei-wp':  fillSEIWp,
 };
 const LABELS: Record<SeiDocType, string> = {
   'sei-ana': 'SEI-Anmeldung-Strom',
+  'sei-wp':  'SEI-Anmeldung-WP',
 };
 
 export function seiDocLabel(type: SeiDocType): string { return LABELS[type]; }

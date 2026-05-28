@@ -60,7 +60,7 @@ for (const f of ['swsk-speicher'])
 for (const f of ['swmb-pv', 'swmb-ibn'])
   FORM_MAP.set(f, { fill: (_f, p, c) => fillSwmbDoc(_f as SwmbDocType, p, c), label: (f2) => swmbDocLabel(f2 as SwmbDocType) });
 // Greizer Energienetze
-for (const f of ['gre-ana', 'gre-wp'])
+for (const f of ['gre-ana', 'gre-wp', 'gre-14a'])
   FORM_MAP.set(f, { fill: (_f, p, c) => fillGreDoc(_f as GreDocType, p, c), label: (f2) => greDocLabel(f2 as GreDocType) });
 // Zwickau
 for (const f of ['zw-wp'])
@@ -75,7 +75,7 @@ for (const f of ['swv-fm'])
 for (const f of ['ewp-pv'])
   FORM_MAP.set(f, { fill: (_f, p, c) => fillEwpDoc(_f as EwpDocType, p, c), label: (f2) => ewpDocLabel(f2 as EwpDocType) });
 // SW Eilenburg
-for (const f of ['sei-ana'])
+for (const f of ['sei-ana', 'sei-wp'])
   FORM_MAP.set(f, { fill: (_f, p, c) => fillSeiDoc(_f as SeiDocType, p, c), label: (f2) => seiDocLabel(f2 as SeiDocType) });
 
 // Generates a pre-filled PDF form (VDE E.2/E.3 or NB-specific). Gated by middleware.
