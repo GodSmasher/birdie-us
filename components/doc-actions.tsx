@@ -60,6 +60,35 @@ const SWW_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
   { form: 'sww-ibn', label: 'Inbetriebsetzungsprotokoll', phase: 'FM' },
 ];
 
+// SW Quedlinburg
+const SWQ_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'swq-pv', label: 'Datenblatt PV-Anlagen', phase: 'ANA' },
+];
+
+// SW Merseburg
+const SWM_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'swm-ana', label: 'Anmeldung Strom',      phase: 'ANA' },
+  { form: 'swm-db',  label: 'Datenblatt EEA',        phase: 'ANA' },
+  { form: 'swm-iba', label: 'Inbetriebsetzung',      phase: 'FM' },
+];
+
+// SW Weißenfels
+const SWE_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'swe-ana', label: 'Anmeldung Strom',  phase: 'ANA' },
+  { form: 'swe-db',  label: 'Datenblatt EEA',    phase: 'ANA' },
+];
+
+// SW Schkeuditz
+const SWSK_FORMS: { form: string; label: string; phase: 'ANA' | 'FM'; needsBat?: boolean }[] = [
+  { form: 'swsk-speicher', label: 'Datenblatt Speicher', phase: 'ANA', needsBat: true },
+];
+
+// SW Münchberg
+const SWMB_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
+  { form: 'swmb-pv',  label: 'Datenerfassung PV',    phase: 'ANA' },
+  { form: 'swmb-ibn', label: 'Inbetriebsetzung EZA', phase: 'FM' },
+];
+
 export function DocActions({
   offerId,
   ready,
@@ -85,6 +114,11 @@ export function DocActions({
   const isWE = netzbetreiber?.toLowerCase().includes('werra energie') || netzbetreiber?.toLowerCase().includes('werraenergie');
   const isSWI = netzbetreiber?.toLowerCase().includes('ilmenau');
   const isSWW = netzbetreiber?.toLowerCase().includes('wunsiedel');
+  const isSWQ = netzbetreiber?.toLowerCase().includes('quedlinburg');
+  const isSWM = netzbetreiber?.toLowerCase().includes('merseburg');
+  const isSWE = netzbetreiber?.toLowerCase().includes('weißenfels') || netzbetreiber?.toLowerCase().includes('weissenfels');
+  const isSWSK = netzbetreiber?.toLowerCase().includes('schkeuditz');
+  const isSWMB = netzbetreiber?.toLowerCase().includes('münchberg') || netzbetreiber?.toLowerCase().includes('muenchberg');
 
   async function generate(form: string) {
     setBusy(true);
@@ -210,6 +244,71 @@ export function DocActions({
         <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
           <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SWW Wunsiedel</p>
           {SWW_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSWQ && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Quedlinburg</p>
+          {SWQ_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSWM && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Merseburg</p>
+          {SWM_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSWE && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Weißenfels</p>
+          {SWE_FORMS.map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSWSK && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Schkeuditz</p>
+          {SWSK_FORMS.filter((f) => !f.needsBat || hasBattery).map((f) => (
+            <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isSWMB && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">SW Münchberg</p>
+          {SWMB_FORMS.map((f) => (
             <button key={f.form} onClick={() => generate(f.form)} disabled={busy}
               className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40">
               <span className="text-fg2">{f.label}</span>

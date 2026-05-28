@@ -7,6 +7,11 @@ import { fillNmDoc, nmDocLabel, type NmDocType } from '@/app/lib/netze-magdeburg
 import { fillWeDoc, weDocLabel, type WeDocType } from '@/app/lib/werra-energie-fill';
 import { fillSwiDoc, swiDocLabel, type SwiDocType } from '@/app/lib/sw-ilmenau-fill';
 import { fillSwwDoc, swwDocLabel, type SwwDocType } from '@/app/lib/sww-wunsiedel-fill';
+import { fillSwqDoc, swqDocLabel, type SwqDocType } from '@/app/lib/sw-quedlinburg-fill';
+import { fillSwmDoc, swmDocLabel, type SwmDocType } from '@/app/lib/sw-merseburg-fill';
+import { fillSweDoc, sweDocLabel, type SweDocType } from '@/app/lib/sw-weissenfels-fill';
+import { fillSwskDoc, swskDocLabel, type SwskDocType } from '@/app/lib/sw-schkeuditz-fill';
+import { fillSwmbDoc, swmbDocLabel, type SwmbDocType } from '@/app/lib/sw-muenchberg-fill';
 import type { ProjectData } from '@/app/lib/projektdaten';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +38,21 @@ for (const f of ['swi-f2'])
 // SWW Wunsiedel
 for (const f of ['sww-ibn'])
   FORM_MAP.set(f, { fill: (_f, p, c) => fillSwwDoc(_f as SwwDocType, p, c), label: (f2) => swwDocLabel(f2 as SwwDocType) });
+// SW Quedlinburg
+for (const f of ['swq-pv'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillSwqDoc(_f as SwqDocType, p, c), label: (f2) => swqDocLabel(f2 as SwqDocType) });
+// SW Merseburg
+for (const f of ['swm-ana', 'swm-db', 'swm-iba'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillSwmDoc(_f as SwmDocType, p, c), label: (f2) => swmDocLabel(f2 as SwmDocType) });
+// SW Weißenfels
+for (const f of ['swe-ana', 'swe-db'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillSweDoc(_f as SweDocType, p, c), label: (f2) => sweDocLabel(f2 as SweDocType) });
+// SW Schkeuditz
+for (const f of ['swsk-speicher'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillSwskDoc(_f as SwskDocType, p, c), label: (f2) => swskDocLabel(f2 as SwskDocType) });
+// SW Münchberg
+for (const f of ['swmb-pv', 'swmb-ibn'])
+  FORM_MAP.set(f, { fill: (_f, p, c) => fillSwmbDoc(_f as SwmbDocType, p, c), label: (f2) => swmbDocLabel(f2 as SwmbDocType) });
 
 // Generates a pre-filled PDF form (VDE E.2/E.3 or NB-specific). Gated by middleware.
 // Query params: offerId, form
