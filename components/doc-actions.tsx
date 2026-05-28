@@ -174,6 +174,9 @@ export function DocActions({
     router.refresh();
   }
 
+  // NB-spezifische Formulare vorhanden → generische E.2/E.3 ausblenden
+  const hasNbForms = isTEN || isSN || isNM || isWE || isSWI || isSWW || isSWQ || isSWM || isSWE || isSWSK || isSWMB || isGRE || isZW || isRED || isSWV || isEWP || isSEI;
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
@@ -183,10 +186,12 @@ export function DocActions({
         </span>
       </div>
       <p className="text-[11px] text-fg3 leading-[16px]">
-        VDE-AR-N 4105 vorausgefüllt aus den Projektdaten. Vor dem Einreichen prüfen — Felder bleiben editierbar.
+        {hasNbForms
+          ? 'NB-spezifische Formulare vorausgefüllt aus den Projektdaten. Vor dem Einreichen prüfen — Felder bleiben editierbar.'
+          : 'VDE-AR-N 4105 vorausgefüllt aus den Projektdaten. Vor dem Einreichen prüfen — Felder bleiben editierbar.'}
       </p>
 
-      {ready ? (
+      {!hasNbForms && (ready ? (
         <button onClick={() => generate('e2')} disabled={busy} className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs text-center disabled:opacity-50">
           E.2 Anmeldung erzeugen ⤓
         </button>
@@ -194,8 +199,8 @@ export function DocActions({
         <button disabled className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs opacity-40 cursor-not-allowed">
           E.2 erzeugen (Daten fehlen)
         </button>
-      )}
-      {hasBattery && (
+      ))}
+      {!hasNbForms && hasBattery && (
         <button onClick={() => generate('e3')} disabled={busy} className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-center disabled:opacity-50">
           E.3 Speicher erzeugen ⤓
         </button>
