@@ -176,10 +176,13 @@ export function DocActions({
     router.refresh();
   }
 
-  async function uploadToPCloud() {
+  async function approveAndUpload() {
     setBusy(true);
     try {
-      // Determine which forms to upload based on NB
+      // 1. Freigeben (status → freigegeben)
+      await post({ offerId, docStatus: 'freigegeben' });
+
+      // 2. Determine which forms to upload based on NB
       const forms: string[] = [];
       if (isTEN) forms.push('an005', 'ans');
       else if (isSN) forms.push('sn-eza', ...(hasBattery ? ['sn-speicher', 'sn-svr'] : []));
@@ -200,6 +203,7 @@ export function DocActions({
       else if (isSEI) forms.push('sei-ana');
       else forms.push('e2', ...(hasBattery ? ['e3'] : []));
 
+      // 3. Upload to pCloud (sets status → hochgeladen automatically)
       const res = await fetch('/api/netzanmeldung/pcloud', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -523,12 +527,12 @@ export function DocActions({
 
       {/* ── Workflow-Buttons ── */}
       {docStatus === 'pruefen' && (
-        <button onClick={() => advance('freigegeben')} disabled={busy} className="px-3.5 py-2 bg-info-bg text-info rounded-lg font-semibold text-xs disabled:opacity-50">
-          ✓ Prüfen &amp; freigeben
+        <button onClick={approveAndUpload} disabled={busy} className="px-3.5 py-2 bg-info-bg text-info rounded-lg font-semibold text-xs disabled:opacity-50">
+          ✓ Freigeben &amp; hochladen
         </button>
       )}
       {docStatus === 'freigegeben' && (
-        <button onClick={uploadToPCloud} disabled={busy} className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs disabled:opacity-50">
+        <button onClick={approveAndUpload} disabled={busy} className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs disabled:opacity-50">
           ☁ Bei pCloud hochladen
         </button>
       )}

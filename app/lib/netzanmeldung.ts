@@ -356,7 +356,7 @@ export async function recordPCloudUpload(
   if (uploads.some((u) => u.fileid === upload.fileid)) return true;
   uploads.push({ fileid: upload.fileid, filename: upload.filename, uploadedAt: new Date().toISOString() });
   reg.pcloudUploads = uploads;
-  if (reg.docStatus === 'freigegeben') reg.docStatus = 'hochgeladen';
+  if (reg.docStatus === 'freigegeben' || reg.docStatus === 'pruefen') reg.docStatus = 'hochgeladen';
   const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
   return n > 0;
 }
