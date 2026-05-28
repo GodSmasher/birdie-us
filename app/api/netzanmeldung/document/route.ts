@@ -3,12 +3,14 @@ import { getRegistrations } from '@/app/lib/netzanmeldung';
 import { fillE2, fillE3 } from '@/app/lib/vde-fill';
 import { fillTenDoc, tenDocLabel, type TenDocType } from '@/app/lib/ten-fill';
 import { fillSnDoc, snDocLabel, type SnDocType } from '@/app/lib/sachsen-netze-fill';
+import { fillNmDoc, nmDocLabel, type NmDocType } from '@/app/lib/netze-magdeburg-fill';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
 const TEN_FORMS = new Set<string>(['an005', 'ans', 'an002']);
 const SN_FORMS = new Set<string>(['sn-eza', 'sn-speicher', 'sn-svr', 'sn-ibn']);
+const NM_FORMS = new Set<string>(['nm-db', 'nm-e2', 'nm-e3', 'nm-e8', 'nm-inbe']);
 
 // Generates a pre-filled PDF form (VDE E.2/E.3 or NB-specific). Gated by middleware.
 // Query params: offerId, form (e2|e3|an005|ans|an002)
@@ -35,6 +37,10 @@ export async function GET(req: Request) {
     // NB-specific Sachsen Netze form
     pdf = await fillSnDoc(formType as SnDocType, project, customer);
     label = snDocLabel(formType as SnDocType);
+  } else if (NM_FORMS.has(formType)) {
+    // NB-specific Netze Magdeburg form
+    pdf = await fillNmDoc(formType as NmDocType, project, customer);
+    label = nmDocLabel(formType as NmDocType);
   } else {
     // Generic VDE E.2 / E.3
     pdf = formType === 'e3' ? await fillE3(project, customer) : await fillE2(project, customer);

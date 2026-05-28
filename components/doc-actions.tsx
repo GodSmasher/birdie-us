@@ -26,6 +26,15 @@ const TEN_FORMS: { form: string; label: string; phase: 'ANA' | 'FM' }[] = [
   { form: 'an002', label: 'Inbetriebsetzungsprotokoll',  phase: 'FM' },
 ];
 
+// Netze Magdeburg — NB-spezifische Formulare
+const NM_FORMS: { form: string; label: string; phase: 'ANA' | 'FM'; needsBat?: boolean }[] = [
+  { form: 'nm-db',   label: 'Datenblatt EZA+Speicher',    phase: 'ANA' },
+  { form: 'nm-e2',   label: 'E.2 Anmeldung EZA',          phase: 'ANA' },
+  { form: 'nm-e3',   label: 'E.3 Datenblatt Speicher',    phase: 'ANA', needsBat: true },
+  { form: 'nm-e8',   label: 'E.8 Inbetriebsetzung',       phase: 'FM' },
+  { form: 'nm-inbe', label: 'PV-Inbetriebnahme',          phase: 'FM' },
+];
+
 // Sachsen Netze — NB-spezifische Formulare
 const SN_FORMS: { form: string; label: string; phase: 'ANA' | 'FM'; needsBat?: boolean }[] = [
   { form: 'sn-eza',      label: 'Datenblatt Erzeugungsanlage',    phase: 'ANA' },
@@ -55,6 +64,7 @@ export function DocActions({
 
   const isTEN = netzbetreiber?.toUpperCase().includes('TEN') || netzbetreiber?.toLowerCase().includes('thüringer energienetze');
   const isSN = netzbetreiber?.toLowerCase().includes('sachsen netze') || netzbetreiber?.toLowerCase().includes('sachsennetze');
+  const isNM = netzbetreiber?.toLowerCase().includes('netze magdeburg') || netzbetreiber?.toLowerCase().includes('netzmagdeburg');
 
   async function generate(form: string) {
     setBusy(true);
@@ -120,6 +130,23 @@ export function DocActions({
         <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
           <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Sachsen Netze</p>
           {SN_FORMS.filter((f) => !f.needsBat || hasBattery).map((f) => (
+            <button
+              key={f.form}
+              onClick={() => generate(f.form)}
+              disabled={busy}
+              className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-left disabled:opacity-50 hover:border-accent/40"
+            >
+              <span className="text-fg2">{f.label}</span>
+              <span className="ml-1.5 text-[10px] text-fg4">({f.phase})</span>
+              <span className="float-right text-accent">⤓</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {isNM && ready && (
+        <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Netze Magdeburg</p>
+          {NM_FORMS.filter((f) => !f.needsBat || hasBattery).map((f) => (
             <button
               key={f.form}
               onClick={() => generate(f.form)}
