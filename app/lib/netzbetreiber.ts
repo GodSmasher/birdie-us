@@ -30,6 +30,40 @@ const RULES: Rule[] = [
   { match: (p) => p >= '20000' && p <= '22769', nb: { name: 'Stromnetz Hamburg', portalUrl: 'https://www.stromnetz-hamburg.de/einspeiser', confidence: 'sicher' } },
   { match: startsWith('80', '81'), nb: { name: 'SWM Infrastruktur (München)', portalUrl: 'https://www.swm-infrastruktur.de/strom/netzanschluss', confidence: 'sicher' } },
 
+  // --- Kleine Stadtwerke / NB mit birdie-Formularen (VOR breiten Regeln) ---
+  // Sachsen Netze — Dresden Stadt
+  { match: startsWith('010', '011', '012', '013'), nb: { name: 'Sachsen Netze', confidence: 'wahrscheinlich' } },
+  // Netze Magdeburg — Magdeburg Stadt
+  { match: startsWith('391'), nb: { name: 'Netze Magdeburg', confidence: 'wahrscheinlich' } },
+  // EWP Potsdam — Potsdam Stadt
+  { match: startsWith('144', '145'), nb: { name: 'EWP Potsdam', confidence: 'wahrscheinlich' } },
+  // Werra Energie — Bad Salzungen / Wartburgkreis (Thüringen, PLZ 364xx)
+  { match: (p) => p >= '36400' && p <= '36469', nb: { name: 'Werra Energie', confidence: 'wahrscheinlich' } },
+  // Zwickauer Energieversorgung — Zwickau Stadt
+  { match: startsWith('0805', '0806'), nb: { name: 'Zwickauer Energieversorgung', confidence: 'wahrscheinlich' } },
+  // SW Eilenburg
+  { match: (p) => p === '04838', nb: { name: 'SW Eilenburg', confidence: 'wahrscheinlich' } },
+  // SW Schkeuditz
+  { match: (p) => p === '04435', nb: { name: 'SW Schkeuditz', confidence: 'wahrscheinlich' } },
+  // SW Merseburg
+  { match: (p) => p === '06217', nb: { name: 'SW Merseburg', confidence: 'wahrscheinlich' } },
+  // SW Weißenfels
+  { match: (p) => p === '06667', nb: { name: 'SW Weißenfels', confidence: 'wahrscheinlich' } },
+  // SW Quedlinburg
+  { match: (p) => p === '06484' || p === '06485', nb: { name: 'SW Quedlinburg', confidence: 'wahrscheinlich' } },
+  // Redinet Burgenland — Naumburg/Saale, Burgenlandkreis
+  { match: (p) => p >= '06618' && p <= '06632', nb: { name: 'Redinet Burgenland', confidence: 'pruefen' } },
+  // Greizer Energienetze — Greiz (Thüringen)
+  { match: (p) => p === '07973', nb: { name: 'Greizer Energienetze', confidence: 'wahrscheinlich' } },
+  // SW Ilmenau
+  { match: (p) => p === '98693', nb: { name: 'SW Ilmenau', confidence: 'wahrscheinlich' } },
+  // SWW Wunsiedel
+  { match: (p) => p === '95632', nb: { name: 'SWW Wunsiedel', confidence: 'wahrscheinlich' } },
+  // SW Münchberg
+  { match: (p) => p === '95213', nb: { name: 'SW Münchberg', confidence: 'wahrscheinlich' } },
+  // SW Velten (Brandenburg)
+  { match: (p) => p === '16727', nb: { name: 'SW Velten', confidence: 'wahrscheinlich' } },
+
   // --- Große Flächennetzbetreiber ---
   // MITNETZ STROM (envia) — Sachsen, Südbrandenburg, Teile Sachsen-Anhalt/Thüringen
   { match: startsWith('01', '02', '03', '04', '08', '09'), nb: { name: 'MITNETZ STROM', portalUrl: 'https://www.mitnetz-strom.de/einspeisung', confidence: 'wahrscheinlich' } },

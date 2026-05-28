@@ -141,7 +141,7 @@ export function DocActions({
   const [busy, setBusy] = useState(false);
   const label = DOC_STAGES.find((s) => s.id === docStatus)?.label ?? 'Offen';
 
-  const isTEN = netzbetreiber?.toUpperCase().includes('TEN') || netzbetreiber?.toLowerCase().includes('thüringer energienetze');
+  const isTEN = /\bTEN\b/.test(netzbetreiber ?? '') || netzbetreiber?.toLowerCase().includes('thüringer energienetze');
   const isSN = netzbetreiber?.toLowerCase().includes('sachsen netze') || netzbetreiber?.toLowerCase().includes('sachsennetze');
   const isNM = netzbetreiber?.toLowerCase().includes('netze magdeburg') || netzbetreiber?.toLowerCase().includes('netzmagdeburg');
   const isWE = netzbetreiber?.toLowerCase().includes('werra energie') || netzbetreiber?.toLowerCase().includes('werraenergie');
