@@ -5,6 +5,8 @@ import { Card, CardHeader, Pill } from '@/components/ui';
 import { StageSelect } from '@/components/stage-select';
 import { VbnSelect } from '@/components/vbn-select';
 import { DocActions } from '@/components/doc-actions';
+import { Timeline } from '@/components/timeline';
+import { BotStatus } from '@/components/bot-status';
 import { getRegistrations, STAGES, type StageId } from '@/app/lib/netzanmeldung';
 import { getProjectData } from '@/app/lib/projektdaten';
 import { netzbetreiberForPlz, CONFIDENCE_LABEL } from '@/app/lib/netzbetreiber';
@@ -124,8 +126,52 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                   documents={reg?.documents}
                 />
               </div>
+
+              {/* pCloud-Dokumente */}
+              {reg?.pcloudUploads && reg.pcloudUploads.length > 0 && (
+                <div className="border-t border-line pt-4 flex flex-col gap-2">
+                  <h3 className="font-semibold text-[13px] text-fg">pCloud-Dokumente</h3>
+                  {reg.pcloudUploads.map((u) => (
+                    <div key={u.fileid} className="flex items-center justify-between gap-2 text-[11px]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-fg3 shrink-0">{u.signedFileid ? '✓' : '☁'}</span>
+                        <span className="text-fg2 truncate">{u.filename}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {u.signedFileid && <Pill label="Signiert" tone="success" dot={false} />}
+                        <span className="text-fg4">{new Date(u.uploadedAt).toLocaleDateString('de-DE')}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Bot-Status */}
+              {reg && (
+                <div className="border-t border-line pt-4">
+                  <BotStatus
+                    docStatus={reg.docStatus}
+                    botErrors={reg.botErrors}
+                    botRetries={reg.botRetries}
+                    botSkipUntil={reg.botSkipUntil}
+                  />
+                </div>
+              )}
             </Card>
           </div>
+
+          {/* Timeline */}
+          {reg && (
+            <Card className="p-4 lg:p-5 flex flex-col gap-3">
+              <h3 className="font-semibold text-[13px] text-fg">Verlauf</h3>
+              <Timeline
+                startedAt={reg.startedAt}
+                documents={reg.documents}
+                pcloudUploads={reg.pcloudUploads}
+                botErrors={reg.botErrors}
+              />
+            </Card>
+          )}
 
           {/* Wärmepumpe */}
           {wp?.hasWaermepumpe && (

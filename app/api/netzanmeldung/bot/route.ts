@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getBotJobsWithCredentials } from '@/app/lib/netzbot-jobs';
-import { recordDraft, reportBotError, seedRegistrations } from '@/app/lib/netzanmeldung';
+import { recordDraft, reportBotError, setDocStatus, seedRegistrations } from '@/app/lib/netzanmeldung';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
     recordDraft?: 'e2' | 'e3';
     draftRef?: string;
     error?: { step: string; error: string; screenshot?: string };
+    submitted?: boolean; // Bot hat erfolgreich eingereicht
   };
   if (!body.offerId) {
     return NextResponse.json({ ok: false, message: 'offerId nötig' }, { status: 400 });
@@ -43,9 +44,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok, backoff: true }, { status: ok ? 200 : 404 });
   }
 
+  // Successful submission — Bot meldet Einreichung
+  if (body.submitted) {
+    const ok = await setDocStatus(body.offerId, 'eingereicht');
+    return NextResponse.json({ ok }, { status: ok ? 200 : 404 });
+  }
+
   // Draft report
   if (body.recordDraft !== 'e2' && body.recordDraft !== 'e3') {
-    return NextResponse.json({ ok: false, message: 'recordDraft (e2|e3) oder error nötig' }, { status: 400 });
+    return NextResponse.json({ ok: false, message: 'recordDraft (e2|e3), error, oder submitted nötig' }, { status: 400 });
   }
   const ok = await recordDraft(body.offerId, body.recordDraft, { source: 'bot', draftRef: body.draftRef });
   return NextResponse.json({ ok }, { status: ok ? 200 : 404 });

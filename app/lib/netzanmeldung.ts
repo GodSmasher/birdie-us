@@ -30,7 +30,7 @@ export const DOC_STAGES = [
 ] as const;
 
 export type DocStatus = (typeof DOC_STAGES)[number]['id'] | 'freigegeben';
-export const DOC_STATUS_IDS = DOC_STAGES.map((s) => s.id) as DocStatus[];
+export const DOC_STATUS_IDS: DocStatus[] = [...DOC_STAGES.map((s) => s.id), 'freigegeben'];
 
 export interface GeneratedDoc {
   form: 'e2' | 'e3';
