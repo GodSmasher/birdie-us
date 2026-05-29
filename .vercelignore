@@ -1,7 +1,11 @@
 .env*
 !.env.example
+node_modules/
+.next/
 netzbot-deploy.tar
 supabase/
 apps/
 packages/
 .turbo/
+nb-templates/
+scripts/
