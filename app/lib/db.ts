@@ -19,10 +19,10 @@ export function getDb(): SupabaseClient | null {
   return cached;
 }
 
-const VOLTA_SLUG = 'volta';
+const DEFAULT_SLUG = process.env.DEFAULT_TENANT_SLUG || 'volta';
 
-/** Resolve a tenant's id by slug (defaults to the Volta pilot tenant). */
-export async function tenantId(slug = VOLTA_SLUG): Promise<string | null> {
+/** Resolve a tenant's id by slug (defaults to DEFAULT_TENANT_SLUG env var, then 'volta'). */
+export async function tenantId(slug = DEFAULT_SLUG): Promise<string | null> {
   const db = getDb();
   if (!db) return null;
   const { data } = await db.from('tenants').select('id').eq('slug', slug).single();
@@ -60,7 +60,7 @@ export async function upsertEntities(
 }
 
 /** Read synced entities of a kind from the DB. Returns the stored `data` objects. */
-export async function getEntities<T = unknown>(kind: string, slug = VOLTA_SLUG): Promise<T[]> {
+export async function getEntities<T = unknown>(kind: string, slug = DEFAULT_SLUG): Promise<T[]> {
   const db = getDb();
   if (!db) return [];
   const tid = await tenantId(slug);
