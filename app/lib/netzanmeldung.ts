@@ -1,4 +1,4 @@
-// Netzanmeldung — grid-registration tracker. There is no Netzbetreiber/MaStR API,
+// Interconnection — grid-registration tracker. There is no utility/registry API,
 // so .birdie owns this workflow: each won project moves through fixed stages.
 // Registrations are stored in the DB (entities kind='registration'), seeded from
 // won Reonic offers and advanced manually (one place instead of portal-shuffling).
@@ -8,11 +8,11 @@ import type { RawOffer } from './reonic-server';
 import { netzbetreiberForPlz } from './netzbetreiber';
 
 export const STAGES = [
-  { id: 'anfrage', label: 'Netzanfrage', desc: 'Anschlussbegehren beim Netzbetreiber' },
-  { id: 'zusage', label: 'Zusage', desc: 'Netzbetreiber bestätigt' },
-  { id: 'inbetriebnahme', label: 'Inbetriebnahme', desc: 'Anlage in Betrieb + Protokoll' },
-  { id: 'mastr', label: 'MaStR', desc: 'Marktstammdatenregister · Frist 1 Monat' },
-  { id: 'abschluss', label: 'Abgeschlossen', desc: 'Zähler gesetzt, fertig' },
+  { id: 'anfrage', label: 'Interconnection Request', desc: 'Connection request to utility' },
+  { id: 'zusage', label: 'Approval', desc: 'Utility confirmed' },
+  { id: 'inbetriebnahme', label: 'Commissioning', desc: 'System operational + protocol' },
+  { id: 'mastr', label: 'Registry', desc: 'Interconnection registry · 1 month deadline' },
+  { id: 'abschluss', label: 'Completed', desc: 'Meter set, done' },
 ] as const;
 
 export type StageId = (typeof STAGES)[number]['id'];
@@ -20,13 +20,13 @@ export const STAGE_IDS = STAGES.map((s) => s.id) as StageId[];
 
 // Document/review lifecycle — the office's actual to-do flow. Separate from the
 // grid-process STAGES above. A (later) portal bot would create drafts → 'pruefen';
-// a human reviews + frees them → 'freigegeben'; after portal submission → 'eingereicht'.
+// a human reviews + approves them → 'freigegeben'; after portal submission → 'eingereicht'.
 export const DOC_STAGES = [
-  { id: 'offen', label: 'Offen', desc: 'noch kein Entwurf erzeugt' },
-  { id: 'pruefen', label: 'Bitte prüfen', desc: 'Entwurf erzeugt — auf Freigabe wartend' },
-  { id: 'hochgeladen', label: 'Bei pCloud', desc: 'bei pCloud hochgeladen — wartet auf Unterschrift' },
-  { id: 'unterschrieben', label: 'Unterschrieben', desc: 'vom Elektriker unterschrieben — bereit zum Einreichen' },
-  { id: 'eingereicht', label: 'Eingereicht', desc: 'beim Netzbetreiber eingereicht' },
+  { id: 'offen', label: 'Open', desc: 'no draft generated yet' },
+  { id: 'pruefen', label: 'Needs Review', desc: 'Draft generated — awaiting approval' },
+  { id: 'hochgeladen', label: 'Uploaded', desc: 'Uploaded to cloud — awaiting signature' },
+  { id: 'unterschrieben', label: 'Signed', desc: 'Signed by electrician — ready for submission' },
+  { id: 'eingereicht', label: 'Submitted', desc: 'Submitted to utility' },
 ] as const;
 
 export type DocStatus = (typeof DOC_STAGES)[number]['id'] | 'freigegeben';
@@ -35,7 +35,7 @@ export const DOC_STATUS_IDS: DocStatus[] = [...DOC_STAGES.map((s) => s.id), 'fre
 export interface GeneratedDoc {
   form: string;
   at: string;
-  source?: 'manuell' | 'bot';
+  source?: 'manual' | 'bot';
   draftRef?: string;
 }
 
@@ -49,17 +49,17 @@ export interface PCloudUpload {
 
 export interface BotError {
   at: string;
-  step: string;         // welcher Schritt fehlgeschlagen ist (z.B. "login", "step2_adresse")
-  error: string;        // Fehlerbeschreibung
-  screenshot?: string;  // Pfad/URL zum Screenshot
-  retries: number;      // wie oft schon versucht
+  step: string;         // which step failed (e.g. "login", "step2_address")
+  error: string;        // error description
+  screenshot?: string;  // path/URL to screenshot
+  retries: number;      // how many attempts so far
 }
 
 export interface PortalUpdate {
   at: string;           // ISO timestamp
   type: 'message' | 'status' | 'document' | 'error';
-  content: string;      // Nachricht/Status-Text vom Portal
-  source?: string;      // z.B. "MITNETZ Portal", "TEN Portal"
+  content: string;      // message/status text from the portal
+  source?: string;      // e.g. "MITNETZ Portal", "TEN Portal"
 }
 
 export interface Registration {
@@ -68,7 +68,7 @@ export interface Registration {
   value: number;
   netzbetreiber: string;
   status: StageId;
-  reonicoColumn?: string; // Quell-Kanban-Spalte aus Reonic (für Display)
+  reonicoColumn?: string; // source Kanban column from Reonic (for display)
   startedAt: string;
   dueDate?: string;
   docStatus?: DocStatus;
@@ -77,8 +77,8 @@ export interface Registration {
   botErrors?: BotError[];
   botRetries?: number;
   botSkipUntil?: string;
-  portalUpdates?: PortalUpdate[]; // Nachrichten/Updates vom Portal-Bot
-  portalLastChecked?: string;     // Letzter Portal-Check Timestamp
+  portalUpdates?: PortalUpdate[]; // messages/updates from the portal bot
+  portalLastChecked?: string;     // last portal check timestamp
 }
 
 function customerName(c: unknown, ...fallbacks: (string | undefined | null)[]): string {
@@ -158,11 +158,11 @@ export async function getRegistrations(): Promise<Registration[]> {
   return rows.sort((a, b) => STAGE_IDS.indexOf(a.status) - STAGE_IDS.indexOf(b.status));
 }
 
-// Kanban-Spalten im Installationsablauf PV-Anlage Board (ff565b9f...)
-// v3: Projekte werden über kanbanColumnId identifiziert.
+// Kanban columns in the PV installation workflow board (ff565b9f...)
+// v3: Projects are identified via kanbanColumnId.
 const NETZ_COLUMNS: Record<string, { label: string; startStatus: StageId }> = {
-  '662b6e5a-006c-47d2-b0cf-523d2713adae': { label: 'NTS/ Zählerwechsel/HAK öffnen', startStatus: 'anfrage' },
-  '3ffa1624-a9a5-4fb0-8161-5d4652555958': { label: 'Inbetriebnahme einreichen', startStatus: 'inbetriebnahme' },
+  '662b6e5a-006c-47d2-b0cf-523d2713adae': { label: 'NTS / Meter swap / Service entrance', startStatus: 'anfrage' },
+  '3ffa1624-a9a5-4fb0-8161-5d4652555958': { label: 'Submit commissioning', startStatus: 'inbetriebnahme' },
 };
 
 /** Check whether an offer is relevant for Netzanmeldung (NTS or IBN column). */
@@ -194,18 +194,18 @@ export async function seedRegistrations(): Promise<SeedResult> {
   const offerMap = new Map(offers.map((o) => [o.id, o]));
   const wonAll = offers.filter((o) => (o.dealState ?? o.state) === 'Won');
 
-  // Gewonnene Projekte in NTS- oder IBN-Spalte auf dem PV-Installationsboard.
+  // Won projects in the NTS or commissioning column on the PV installation board.
   const won = wonAll.filter(isNetzRelevant);
 
-  // Aufräumen: wenn das Offer nicht mehr in einer relevanten Spalte steht,
-  // löschen — es sei denn der Netz-Status ist schon über "anfrage" hinaus.
+  // Cleanup: if the offer is no longer in a relevant column,
+  // delete — unless the grid status is already past "anfrage".
   const wonIds = new Set(won.map((o) => o.id));
   const toDelete = existingRegs
     .filter((r) => {
       if (wonIds.has(r.offerId)) return false; // still NTS-ready → keep
-      // Schon beim Netzbetreiber? → behalten (zusage, inbetriebnahme, mastr, abschluss)
+      // Already at the utility? → keep (zusage, inbetriebnahme, mastr, abschluss)
       if (r.status !== 'anfrage') return false;
-      return true; // nicht mehr NTS + noch in Anfrage-Phase → weg
+      return true; // no longer NTS + still in request phase → remove
     })
     .map((r) => r.offerId);
   if (toDelete.length > 0) {
@@ -213,7 +213,7 @@ export async function seedRegistrations(): Promise<SeedResult> {
   }
 
   const now = new Date();
-  // NTS + IBN Offers: neue anlegen oder bestehende aktualisieren
+  // NTS + commissioning offers: create new or update existing
   const rows = won.map((o) => {
     const existing = regMap.get(o.id);
     const name = customerName(o.customer, o.name ?? o.customerNumber);
@@ -231,7 +231,7 @@ export async function seedRegistrations(): Promise<SeedResult> {
         } satisfies Registration,
       };
     }
-    // Neue Registration — Status hängt von der Spalte ab
+    // New registration — status depends on the column
     const startStatus = colInfo?.startStatus ?? 'anfrage';
     return {
       externalId: o.id,
@@ -276,7 +276,7 @@ export async function setRegistrationStatus(offerId: string, status: StageId): P
 
   const reg = (data as { data: Registration }).data;
   reg.status = status;
-  // Entering "inbetriebnahme" starts the 1-month MaStR clock.
+  // Entering "inbetriebnahme" starts the 1-month registry clock.
   if (status === 'inbetriebnahme') {
     const due = new Date();
     due.setDate(due.getDate() + 30);
@@ -308,7 +308,7 @@ export async function recordDraft(
   if (!loaded) return false;
   const { tid, reg } = loaded;
   const docs = (reg.documents ?? []).filter((d) => d.form !== form);
-  docs.push({ form, at: new Date().toISOString(), source: opts.source ?? 'manuell', draftRef: opts.draftRef });
+  docs.push({ form, at: new Date().toISOString(), source: opts.source ?? 'manual', draftRef: opts.draftRef });
   reg.documents = docs;
   // Only advance forward — don't pull a freigegeben/eingereicht item back.
   if (!reg.docStatus || reg.docStatus === 'offen') reg.docStatus = 'pruefen';
@@ -352,7 +352,7 @@ export async function resetAllBackoff(): Promise<number> {
   return upsertEntities(tid, 'reonic', 'registration', batch);
 }
 
-/** Set the document/review status (Freigabe, Eingereicht …). */
+/** Set the document/review status (Approved, Submitted, etc.). */
 export async function setDocStatus(offerId: string, docStatus: DocStatus): Promise<boolean> {
   if (!DOC_STATUS_IDS.includes(docStatus)) return false;
   const loaded = await loadReg(offerId);
@@ -403,7 +403,7 @@ export async function recordSigned(
   return n > 0;
 }
 
-// ── VBN-Zuordnung ───────────────────────────────────────────────────────────
+// ── Distribution utility assignment ─────────────────────────────────────────
 
 export interface OfferAddress { zip?: string; city?: string; street?: string }
 
@@ -443,7 +443,7 @@ export interface VbnResult {
   details: { offerId: string; customer: string; nb: string; confidence: string }[];
 }
 
-/** Bulk-assign Verteilnetzbetreiber (VBN) to all registrations via PLZ→NB lookup.
+/** Bulk-assign distribution utility to all registrations via ZIP→utility lookup.
  *  Only updates registrations where netzbetreiber is still '—' or empty, unless force=true. */
 export async function assignNetzbetreiber(force = false): Promise<VbnResult> {
   const result: VbnResult = { updated: 0, skipped: 0, noPlz: 0, details: [] };
@@ -490,7 +490,7 @@ export async function assignNetzbetreiber(force = false): Promise<VbnResult> {
   return result;
 }
 
-/** Bulk-assign VBN via the vnbdigital.de bot (exact lookup per address). */
+/** Bulk-assign distribution utility via the vnbdigital.de bot (exact lookup per address). */
 export async function assignNetzbetreiberBot(force = false): Promise<VbnResult> {
   const { botVnbLookupBatch } = await import('./vnb-bot');
   const result: VbnResult = { updated: 0, skipped: 0, noPlz: 0, details: [] };
@@ -533,7 +533,7 @@ export async function assignNetzbetreiberBot(force = false): Promise<VbnResult> 
       toUpdate.push({ externalId: reg.offerId, data: reg });
       result.details.push({ offerId: reg.offerId, customer: reg.customer, nb: lookup.netzbetreiber, confidence: lookup.confidence });
     } else {
-      // Fallback auf PLZ-Heuristik
+      // Fallback to ZIP heuristic
       const nb = netzbetreiberForPlz(addr.zip);
       if (nb) {
         reg.netzbetreiber = nb.name;
@@ -551,7 +551,7 @@ export async function assignNetzbetreiberBot(force = false): Promise<VbnResult> 
   return result;
 }
 
-/** Manually set the Netzbetreiber (VBN) for a single registration. */
+/** Manually set the distribution utility for a single registration. */
 export async function setNetzbetreiber(offerId: string, nbName: string): Promise<boolean> {
   const loaded = await loadReg(offerId);
   if (!loaded) return false;

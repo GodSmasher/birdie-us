@@ -21,7 +21,7 @@ export function NetzSearch() {
   return (
     <input
       type="search"
-      placeholder="Name oder Adresse suchen…"
+      placeholder="Search by name or address..."
       defaultValue={sp.get('q') ?? ''}
       onChange={(e) => update(e.target.value)}
       className="px-3 py-1.5 rounded-lg border border-line bg-surface text-xs text-fg placeholder:text-fg4 w-[220px] focus:outline-none focus:border-accent transition-colors"

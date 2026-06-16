@@ -1,4 +1,4 @@
-// PLZ → Netzbetreiber (Verteilnetzbetreiber) lookup.
+// ZIP → Distribution utility lookup.
 //
 // There is no open API mapping a German postcode to its grid operator, and there
 // are 800+ operators — a perfect table is impossible without the official BNetzA
@@ -7,7 +7,7 @@
 // rather than nothing. Rules are matched in order; the first hit wins, so put more
 // specific rules (city ranges) before broad regional ones.
 
-export type Confidence = 'sicher' | 'wahrscheinlich' | 'pruefen';
+export type Confidence = 'confirmed' | 'likely' | 'please_verify';
 
 export interface Netzbetreiber {
   name: string;
@@ -25,75 +25,75 @@ const startsWith = (...prefixes: string[]) => (plz: string) => prefixes.some((p)
 
 // Ordered: city-level / high-confidence first, broad regional fallbacks last.
 const RULES: Rule[] = [
-  // --- Stadtnetze (eindeutig) ---
-  { match: startsWith('10', '12', '13'), nb: { name: 'Stromnetz Berlin', portalUrl: 'https://www.stromnetz.berlin/anschluss-und-einspeisung', confidence: 'sicher' } },
-  { match: (p) => p >= '20000' && p <= '22769', nb: { name: 'Stromnetz Hamburg', portalUrl: 'https://www.stromnetz-hamburg.de/einspeiser', confidence: 'sicher' } },
-  { match: startsWith('80', '81'), nb: { name: 'SWM Infrastruktur (München)', portalUrl: 'https://www.swm-infrastruktur.de/strom/netzanschluss', confidence: 'sicher' } },
+  // --- City grids (definite match) ---
+  { match: startsWith('10', '12', '13'), nb: { name: 'Stromnetz Berlin', portalUrl: 'https://www.stromnetz.berlin/anschluss-und-einspeisung', confidence: 'confirmed' } },
+  { match: (p) => p >= '20000' && p <= '22769', nb: { name: 'Stromnetz Hamburg', portalUrl: 'https://www.stromnetz-hamburg.de/einspeiser', confidence: 'confirmed' } },
+  { match: startsWith('80', '81'), nb: { name: 'SWM Infrastruktur (München)', portalUrl: 'https://www.swm-infrastruktur.de/strom/netzanschluss', confidence: 'confirmed' } },
 
-  // --- Kleine Stadtwerke / NB mit birdie-Formularen (VOR breiten Regeln) ---
-  // Sachsen Netze — Dresden Stadt
-  { match: startsWith('010', '011', '012', '013'), nb: { name: 'Sachsen Netze', confidence: 'wahrscheinlich' } },
-  // Netze Magdeburg — Magdeburg Stadt
-  { match: startsWith('391'), nb: { name: 'Netze Magdeburg', confidence: 'wahrscheinlich' } },
-  // EWP Potsdam — Potsdam Stadt
-  { match: startsWith('144', '145'), nb: { name: 'EWP Potsdam', confidence: 'wahrscheinlich' } },
-  // Werra Energie — Bad Salzungen / Wartburgkreis (Thüringen, PLZ 364xx)
-  { match: (p) => p >= '36400' && p <= '36469', nb: { name: 'Werra Energie', confidence: 'wahrscheinlich' } },
-  // ZEV Zwickau (Zwickauer Energieversorgung) — Zwickau Stadt
-  { match: startsWith('0805', '0806'), nb: { name: 'ZEV Zwickau', confidence: 'wahrscheinlich' } },
+  // --- Small municipal utilities with birdie forms (BEFORE broad rules) ---
+  // Sachsen Netze — Dresden city
+  { match: startsWith('010', '011', '012', '013'), nb: { name: 'Sachsen Netze', confidence: 'likely' } },
+  // Netze Magdeburg — Magdeburg city
+  { match: startsWith('391'), nb: { name: 'Netze Magdeburg', confidence: 'likely' } },
+  // EWP Potsdam — Potsdam city
+  { match: startsWith('144', '145'), nb: { name: 'EWP Potsdam', confidence: 'likely' } },
+  // Werra Energie — Bad Salzungen / Wartburg district (Thuringia, ZIP 364xx)
+  { match: (p) => p >= '36400' && p <= '36469', nb: { name: 'Werra Energie', confidence: 'likely' } },
+  // ZEV Zwickau (Zwickauer Energieversorgung) — Zwickau city
+  { match: startsWith('0805', '0806'), nb: { name: 'ZEV Zwickau', confidence: 'likely' } },
   // SW Eilenburg
-  { match: (p) => p === '04838', nb: { name: 'SW Eilenburg', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '04838', nb: { name: 'SW Eilenburg', confidence: 'likely' } },
   // SW Schkeuditz
-  { match: (p) => p === '04435', nb: { name: 'SW Schkeuditz', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '04435', nb: { name: 'SW Schkeuditz', confidence: 'likely' } },
   // SW Merseburg
-  { match: (p) => p === '06217', nb: { name: 'SW Merseburg', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '06217', nb: { name: 'SW Merseburg', confidence: 'likely' } },
   // SW Weißenfels
-  { match: (p) => p === '06667', nb: { name: 'SW Weißenfels', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '06667', nb: { name: 'SW Weißenfels', confidence: 'likely' } },
   // SW Quedlinburg
-  { match: (p) => p === '06484' || p === '06485', nb: { name: 'SW Quedlinburg', confidence: 'wahrscheinlich' } },
-  // Redinet Burgenland — Naumburg/Saale, Burgenlandkreis
-  { match: (p) => p >= '06618' && p <= '06632', nb: { name: 'Redinet Burgenland', confidence: 'pruefen' } },
-  // Greizer Energienetze — Greiz (Thüringen)
-  { match: (p) => p === '07973', nb: { name: 'Greizer Energienetze', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '06484' || p === '06485', nb: { name: 'SW Quedlinburg', confidence: 'likely' } },
+  // Redinet Burgenland — Naumburg/Saale, Burgenland district
+  { match: (p) => p >= '06618' && p <= '06632', nb: { name: 'Redinet Burgenland', confidence: 'please_verify' } },
+  // Greizer Energienetze — Greiz (Thuringia)
+  { match: (p) => p === '07973', nb: { name: 'Greizer Energienetze', confidence: 'likely' } },
   // SW Ilmenau
-  { match: (p) => p === '98693', nb: { name: 'SW Ilmenau', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '98693', nb: { name: 'SW Ilmenau', confidence: 'likely' } },
   // SWW Wunsiedel
-  { match: (p) => p === '95632', nb: { name: 'SWW Wunsiedel', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '95632', nb: { name: 'SWW Wunsiedel', confidence: 'likely' } },
   // SW Münchberg
-  { match: (p) => p === '95213', nb: { name: 'SW Münchberg', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '95213', nb: { name: 'SW Münchberg', confidence: 'likely' } },
   // SW Velten (Brandenburg)
-  { match: (p) => p === '16727', nb: { name: 'SW Velten', confidence: 'wahrscheinlich' } },
+  { match: (p) => p === '16727', nb: { name: 'SW Velten', confidence: 'likely' } },
 
-  // --- Große Flächennetzbetreiber ---
-  // MITNETZ STROM (envia) — Sachsen, Südbrandenburg, Teile Sachsen-Anhalt/Thüringen
-  { match: startsWith('01', '02', '03', '04', '08', '09'), nb: { name: 'MITNETZ STROM', portalUrl: 'https://www.mitnetz-strom.de/einspeisung', confidence: 'wahrscheinlich' } },
-  // Sachsen-Anhalt / südöstl. Niedersachsen
-  { match: startsWith('06', '38', '39'), nb: { name: 'Avacon', portalUrl: 'https://www.avacon-netz.de/de/einspeisung.html', confidence: 'wahrscheinlich' } },
-  // Thüringen
-  { match: startsWith('07', '98', '99'), nb: { name: 'TEN Thüringer Energienetze', portalUrl: 'https://www.thueringer-energienetze.com/einspeiser', confidence: 'wahrscheinlich' } },
-  // Mecklenburg-Vorpommern / Nordbrandenburg
-  { match: startsWith('15', '16', '17', '18', '19'), nb: { name: 'E.DIS', portalUrl: 'https://www.e-dis-netz.de/de/einspeiser.html', confidence: 'wahrscheinlich' } },
-  // Schleswig-Holstein / Nordniedersachsen
-  { match: startsWith('21', '22', '23', '24', '25'), nb: { name: 'Schleswig-Holstein Netz', portalUrl: 'https://www.sh-netz.com/de/einspeiser.html', confidence: 'wahrscheinlich' } },
-  // Niedersachsen / Bremen (EWE-Region) — grob
-  { match: startsWith('26', '27', '28', '49'), nb: { name: 'EWE Netz', portalUrl: 'https://www.ewe-netz.de/privatkunden/einspeiser', confidence: 'pruefen' } },
-  // Niedersachsen Mitte
-  { match: startsWith('29', '30', '31', '37'), nb: { name: 'Avacon', portalUrl: 'https://www.avacon-netz.de/de/einspeisung.html', confidence: 'pruefen' } },
-  // NRW / Rheinland / Ruhr (Westnetz – größter DSO)
-  { match: startsWith('32', '33', '34', '40', '41', '42', '44', '45', '46', '47', '48', '57', '58', '59'), nb: { name: 'Westnetz', portalUrl: 'https://www.westnetz.de/de/einspeiser.html', confidence: 'wahrscheinlich' } },
-  // Köln/Bonn
-  { match: startsWith('50', '51', '53'), nb: { name: 'Rheinische NETZGesellschaft', portalUrl: 'https://www.rheinnetz.com/einspeisung', confidence: 'pruefen' } },
-  // Hessen / Rheinland-Pfalz / Saarland (Syna / Westnetz gemischt)
-  { match: startsWith('35', '36', '60', '61', '63', '65'), nb: { name: 'Syna', portalUrl: 'https://www.syna.de/einspeisung', confidence: 'pruefen' } },
-  { match: startsWith('64', '67', '68', '69', '55', '56', '66'), nb: { name: 'Westnetz', portalUrl: 'https://www.westnetz.de/de/einspeiser.html', confidence: 'pruefen' } },
-  // Baden-Württemberg (Netze BW – größter im Südwesten)
-  { match: startsWith('70', '71', '72', '73', '74', '75', '76', '78', '79'), nb: { name: 'Netze BW', portalUrl: 'https://www.netze-bw.de/einspeiser', confidence: 'wahrscheinlich' } },
-  // Bayern (Bayernwerk – größter Flächen-DSO Bayern)
-  { match: startsWith('82', '83', '84', '85', '90', '91', '92', '93', '94', '95', '96'), nb: { name: 'Bayernwerk', portalUrl: 'https://www.bayernwerk-netz.de/de/energie-einspeisen.html', confidence: 'wahrscheinlich' } },
-  // Bayerisch-Schwaben (LEW)
-  { match: startsWith('86', '87', '88', '89'), nb: { name: 'LEW Verteilnetz', portalUrl: 'https://www.lew-verteilnetz.de/einspeiser', confidence: 'pruefen' } },
-  // Unterfranken
-  { match: startsWith('97'), nb: { name: 'Bayernwerk', portalUrl: 'https://www.bayernwerk-netz.de/de/energie-einspeisen.html', confidence: 'pruefen' } },
+  // --- Large regional grid operators ---
+  // MITNETZ STROM (envia) — Saxony, southern Brandenburg, parts of Saxony-Anhalt/Thuringia
+  { match: startsWith('01', '02', '03', '04', '08', '09'), nb: { name: 'MITNETZ STROM', portalUrl: 'https://www.mitnetz-strom.de/einspeisung', confidence: 'likely' } },
+  // Saxony-Anhalt / southeastern Lower Saxony
+  { match: startsWith('06', '38', '39'), nb: { name: 'Avacon', portalUrl: 'https://www.avacon-netz.de/de/einspeisung.html', confidence: 'likely' } },
+  // Thuringia
+  { match: startsWith('07', '98', '99'), nb: { name: 'TEN Thüringer Energienetze', portalUrl: 'https://www.thueringer-energienetze.com/einspeiser', confidence: 'likely' } },
+  // Mecklenburg-Western Pomerania / northern Brandenburg
+  { match: startsWith('15', '16', '17', '18', '19'), nb: { name: 'E.DIS', portalUrl: 'https://www.e-dis-netz.de/de/einspeiser.html', confidence: 'likely' } },
+  // Schleswig-Holstein / northern Lower Saxony
+  { match: startsWith('21', '22', '23', '24', '25'), nb: { name: 'Schleswig-Holstein Netz', portalUrl: 'https://www.sh-netz.com/de/einspeiser.html', confidence: 'likely' } },
+  // Lower Saxony / Bremen (EWE region) — rough
+  { match: startsWith('26', '27', '28', '49'), nb: { name: 'EWE Netz', portalUrl: 'https://www.ewe-netz.de/privatkunden/einspeiser', confidence: 'please_verify' } },
+  // Central Lower Saxony
+  { match: startsWith('29', '30', '31', '37'), nb: { name: 'Avacon', portalUrl: 'https://www.avacon-netz.de/de/einspeisung.html', confidence: 'please_verify' } },
+  // NRW / Rhineland / Ruhr (Westnetz — largest DSO)
+  { match: startsWith('32', '33', '34', '40', '41', '42', '44', '45', '46', '47', '48', '57', '58', '59'), nb: { name: 'Westnetz', portalUrl: 'https://www.westnetz.de/de/einspeiser.html', confidence: 'likely' } },
+  // Cologne/Bonn
+  { match: startsWith('50', '51', '53'), nb: { name: 'Rheinische NETZGesellschaft', portalUrl: 'https://www.rheinnetz.com/einspeisung', confidence: 'please_verify' } },
+  // Hesse / Rhineland-Palatinate / Saarland (Syna / Westnetz mixed)
+  { match: startsWith('35', '36', '60', '61', '63', '65'), nb: { name: 'Syna', portalUrl: 'https://www.syna.de/einspeisung', confidence: 'please_verify' } },
+  { match: startsWith('64', '67', '68', '69', '55', '56', '66'), nb: { name: 'Westnetz', portalUrl: 'https://www.westnetz.de/de/einspeiser.html', confidence: 'please_verify' } },
+  // Baden-Wuerttemberg (Netze BW — largest in the southwest)
+  { match: startsWith('70', '71', '72', '73', '74', '75', '76', '78', '79'), nb: { name: 'Netze BW', portalUrl: 'https://www.netze-bw.de/einspeiser', confidence: 'likely' } },
+  // Bavaria (Bayernwerk — largest regional DSO in Bavaria)
+  { match: startsWith('82', '83', '84', '85', '90', '91', '92', '93', '94', '95', '96'), nb: { name: 'Bayernwerk', portalUrl: 'https://www.bayernwerk-netz.de/de/energie-einspeisen.html', confidence: 'likely' } },
+  // Bavarian Swabia (LEW)
+  { match: startsWith('86', '87', '88', '89'), nb: { name: 'LEW Verteilnetz', portalUrl: 'https://www.lew-verteilnetz.de/einspeiser', confidence: 'please_verify' } },
+  // Lower Franconia
+  { match: startsWith('97'), nb: { name: 'Bayernwerk', portalUrl: 'https://www.bayernwerk-netz.de/de/energie-einspeisen.html', confidence: 'please_verify' } },
 ];
 
 /**
@@ -111,7 +111,7 @@ export function netzbetreiberForPlz(plz?: string): Netzbetreiber | null {
 }
 
 export const CONFIDENCE_LABEL: Record<Confidence, string> = {
-  sicher: 'sicher',
-  wahrscheinlich: 'wahrscheinlich',
-  pruefen: 'bitte prüfen',
+  confirmed: 'confirmed',
+  likely: 'likely',
+  please_verify: 'please verify',
 };

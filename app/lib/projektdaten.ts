@@ -15,21 +15,21 @@ export interface ProjectData {
   name: string;
   customerName: string;
   type?: string;
-  phone?: string;              // Telefon des Kunden (aus Reonic-Kontakt)
-  email?: string;              // E-Mail des Kunden (aus Reonic-Kontakt)
+  phone?: string;              // customer phone (from Reonic contact)
+  email?: string;              // customer email (from Reonic contact)
   address?: { line: string; zip?: string; city?: string };
   kwp: number;
   moduleCount: number;
   moduleType?: string;
   inverter?: string;
-  inverterKw?: number;        // Wechselrichter-Nennleistung in kW (aus Inverter-String)
-  inverterCount?: number;     // Anzahl Wechselrichter (default 1)
+  inverterKw?: number;        // inverter rated power in kW (from inverter string)
+  inverterCount?: number;     // number of inverters (default 1)
   battery?: string;
   batteryKwh?: number;
-  batteryModuleCount?: number; // Anzahl Batterie-Module (z.B. 2× 5kWh = 10kWh)
+  batteryModuleCount?: number; // number of battery modules (e.g. 2x 5kWh = 10kWh)
   annualKwh?: number;
-  inverterSpec?: InverterSpec;  // Datenblatt-Specs des Wechselrichters
-  batterySpec?: BatterySpec;    // Datenblatt-Specs des Batteriemoduls
+  inverterSpec?: InverterSpec;  // datasheet specs of the inverter
+  batterySpec?: BatterySpec;    // datasheet specs of the battery module
   missing: string[];
   ready: boolean;
 }
@@ -94,13 +94,13 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   kwp = Math.round(kwp * 100) / 100;
   const batteryKwh = totalBatteryKwh > 0 ? Math.round(totalBatteryKwh * 10) / 10 : undefined;
 
-  // Wechselrichter-Nennleistung (kW) und Anzahl aus Inverter-String extrahieren
+  // Extract inverter rated power (kW) and count from inverter string
   let inverterKw: number | undefined;
   let inverterCount = 1;
   if (inverter) {
     const kwMatch = /(\d+(?:[.,]\d+)?)\s*k[Ww]/.exec(inverter);
     if (kwMatch) inverterKw = Number(kwMatch[1].replace(',', '.'));
-    // Anzahl WR = Summe aller INV-Komponenten-Quantities (meist 1)
+    // Inverter count = sum of all INV component quantities (usually 1)
     inverterCount = comps
       .filter((c) => INV.test((c.name || '').trim()))
       .reduce((sum, c) => sum + (Number(c.quantity) || 1), 0) || 1;
@@ -145,7 +145,7 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
       }
     }
   }
-  // Fallback: derive a clean name from the offer title ("Max Müller 2 - PV" → "Max Müller")
+  // Fallback: derive a clean name from the offer title ("John Smith 2 - PV" → "John Smith")
   const offerName = (o.name as string) || '';
   const customerName = contactName || offerName.split(' - ')[0].replace(/\s+\d+\s*$/, '').trim() || offerName;
 
@@ -156,8 +156,8 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   const finalBatteryModuleCount = batteryModuleCount > 0 ? batteryModuleCount : (batSpec && batteryKwh ? Math.round(batteryKwh / batSpec.capacityKwh) || 1 : undefined);
 
   // ── Enrichment from documents ──────────────────────────────────────────────
-  // Dokumente (Auftragsbestätigung, Angebot) haben VORRANG vor Reonic-Komponenten,
-  // weil die Komponentenliste oft veraltet ist (anderer WR im Angebot als verbaut).
+  // Documents (order confirmation, quote) take PRECEDENCE over Reonic components,
+  // because the component list is often outdated (different inverter in quote vs installed).
   let enrichedKwp = kwp;
   let enrichedModuleCount = moduleCount;
   let enrichedModuleType = moduleType;
@@ -170,7 +170,7 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   try {
     let e = await loadEnrichment(offerId);
 
-    // Auto-enrich: IMMER wenn kein Cache vorhanden (nicht nur bei fehlenden Daten)
+    // Auto-enrich: ALWAYS when no cache exists (not just when data is missing)
     if (!e) {
       try {
         const { enrichFromDocuments } = await import('./reonic-files');
@@ -181,7 +181,7 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
       } catch { /* auto-enrich is best-effort — don't block page load */ }
     }
 
-    // Dokument-Daten überschreiben Reonic-Komponenten (Dokument = Wahrheit)
+    // Document data overrides Reonic components (document = source of truth)
     if (e) {
       if (e.kwp && typeof e.kwp === 'number') enrichedKwp = e.kwp;
       if (e.modulTyp) enrichedModuleType = String(e.modulTyp);
@@ -200,10 +200,10 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   } catch { /* enrichment is best-effort */ }
 
   const missing: string[] = [];
-  if (!enrichedAddress?.zip || !enrichedAddress?.city) missing.push('Adresse / PLZ');
-  if (enrichedKwp <= 0) missing.push('Anlagengröße (kWp)');
-  if (!enrichedInverter) missing.push('Wechselrichter');
-  if (enrichedModuleCount === 0 && !enrichedModuleType) missing.push('Module');
+  if (!enrichedAddress?.zip || !enrichedAddress?.city) missing.push('Address / ZIP');
+  if (enrichedKwp <= 0) missing.push('System size (kWp)');
+  if (!enrichedInverter) missing.push('Inverter');
+  if (enrichedModuleCount === 0 && !enrichedModuleType) missing.push('Modules');
 
   return {
     offerId,

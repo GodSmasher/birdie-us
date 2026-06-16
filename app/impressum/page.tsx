@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'Impressum | .birdie' };
+export const metadata = { title: 'Legal Notice | .birdie' };
 
-export default function Impressum() {
+export default function LegalNotice() {
   return (
     <div className="min-h-screen bg-[#fafaf9] text-[#1a1a1a]">
       <nav className="sticky top-0 z-50 bg-[#fafaf9]/90 backdrop-blur-2xl border-b border-black/[0.04]">
@@ -13,23 +13,19 @@ export default function Impressum() {
         </div>
       </nav>
       <main className="max-w-2xl mx-auto px-6 py-20">
-        <h1 className="text-3xl font-extrabold mb-8">Impressum</h1>
+        <h1 className="text-3xl font-extrabold mb-8">Legal Notice</h1>
         <div className="flex flex-col gap-6 text-[15px] text-[#1a1a1a]/60 leading-relaxed">
           <div>
-            <h2 className="font-bold text-[#1a1a1a] mb-2">Angaben gem&auml;&szlig; &sect; 5 TMG</h2>
+            <h2 className="font-bold text-[#1a1a1a] mb-2">Company Information</h2>
             <p>.birdie<br />Sarah Vogel<br />Am Schenkberg 12<br />04349 Leipzig</p>
           </div>
           <div>
-            <h2 className="font-bold text-[#1a1a1a] mb-2">Kontakt</h2>
-            <p>E-Mail: info@birdie.solar</p>
+            <h2 className="font-bold text-[#1a1a1a] mb-2">Contact</h2>
+            <p>Email: info@birdie.solar</p>
           </div>
           <div>
-            <h2 className="font-bold text-[#1a1a1a] mb-2">Verantwortlich f&uuml;r den Inhalt</h2>
+            <h2 className="font-bold text-[#1a1a1a] mb-2">Responsible for content</h2>
             <p>Sarah Vogel<br />Am Schenkberg 12<br />04349 Leipzig</p>
-          </div>
-          <div>
-            <h2 className="font-bold text-[#1a1a1a] mb-2">EU-Streitschlichtung</h2>
-            <p>Die Europ&auml;ische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" className="text-[#FACC15] underline" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr</a></p>
           </div>
         </div>
       </main>

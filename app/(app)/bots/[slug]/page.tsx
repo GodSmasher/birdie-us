@@ -51,10 +51,10 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
                 Git-Diff
               </button>
               <button className="px-3.5 py-2 bg-surface-2 border border-line rounded-lg font-medium text-xs text-fg hover:border-line-2 flex items-center gap-1.5">
-                <span className="text-success">▷</span> Test ausführen
+                <span className="text-success">▷</span> Run test
               </button>
               <button className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs">
-                {bot.pill === 'PAUSE' ? 'Bot aktivieren' : 'Bot pausieren'}
+                {bot.pill === 'PAUSE' ? 'Activate bot' : 'Pause bot'}
               </button>
             </div>
           </div>
@@ -63,18 +63,18 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
         <div className="flex-1 px-8 py-7 flex flex-col gap-6">
           {/* KPIs */}
           <div className="flex gap-4">
-            <KpiCard label="HEUTE AUSGEFÜHRT" value={bot.runs} sub="letzte 24h" />
-            <KpiCard label="ERFOLGSQUOTE" value={bot.successRate} sub="rolling 30d" valueColor={bot.state === 'success' ? 'text-success' : 'text-fg'} />
-            <KpiCard label="Ø DAUER" value={bot.avgDuration} sub="pro Ausführung" />
-            <KpiCard label="LETZTER LAUF" value={bot.lastRun} sub={bot.schedule} />
+            <KpiCard label="RUNS TODAY" value={bot.runs} sub="last 24h" />
+            <KpiCard label="SUCCESS RATE" value={bot.successRate} sub="rolling 30d" valueColor={bot.state === 'success' ? 'text-success' : 'text-fg'} />
+            <KpiCard label="AVG DURATION" value={bot.avgDuration} sub="per execution" />
+            <KpiCard label="LAST RUN" value={bot.lastRun} sub={bot.schedule} />
           </div>
 
           {/* Chart */}
           <Card className="p-5">
             <div className="flex items-center mb-4">
-              <h2 className="font-semibold text-sm text-fg">Aktivität · letzte 24 Stunden</h2>
+              <h2 className="font-semibold text-sm text-fg">Activity · last 24 hours</h2>
               <div className="ml-auto flex items-center gap-3">
-                <span className="text-[11px] text-fg3">Ausführungen pro Stunde</span>
+                <span className="text-[11px] text-fg3">Executions per hour</span>
                 <Pill label="LIVE" tone="success" />
               </div>
             </div>
@@ -87,17 +87,17 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
             {/* Runs table */}
             <Card className="flex-1 min-w-0 overflow-hidden">
               <CardHeader
-                title="Letzte Ausführungen"
-                right={<span className="text-[11px] text-fg3">{bot.recentRuns.length} sichtbar</span>}
+                title="Recent Runs"
+                right={<span className="text-[11px] text-fg3">{bot.recentRuns.length} visible</span>}
               />
               <div className="grid grid-cols-[100px_120px_130px_1fr] bg-surface-2 h-9 items-center px-5 text-[10px] font-semibold text-fg3 tracking-[0.18em]">
-                <span>ZEIT</span>
-                <span>DAUER</span>
+                <span>TIME</span>
+                <span>DURATION</span>
                 <span>STATUS</span>
                 <span>OUTPUT</span>
               </div>
               {bot.recentRuns.length === 0 ? (
-                <div className="px-5 py-10 text-center text-sm text-fg3">Noch keine Ausführungen</div>
+                <div className="px-5 py-10 text-center text-sm text-fg3">No executions yet</div>
               ) : (
                 bot.recentRuns.map((r, i) => (
                   <div
@@ -110,7 +110,7 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
                     <span className="text-xs text-fg2">{r.duration}</span>
                     <div>
                       <Pill
-                        label={r.state === 'success' ? 'OK' : r.state === 'warning' ? 'WARN' : 'FEHLER'}
+                        label={r.state === 'success' ? 'OK' : r.state === 'warning' ? 'WARN' : 'ERROR'}
                         tone={r.state}
                       />
                     </div>
@@ -123,7 +123,7 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
             {/* Config */}
             <div className="w-[392px] shrink-0 flex flex-col gap-4">
               <Card className="p-5 flex flex-col gap-3.5">
-                <h3 className="font-semibold text-[13px] text-fg">Konfiguration</h3>
+                <h3 className="font-semibold text-[13px] text-fg">Configuration</h3>
                 <div className="flex flex-col gap-2 text-xs">
                   <div className="flex items-center">
                     <span className="text-fg2">Trigger</span>
@@ -134,7 +134,7 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
                     <span className="ml-auto font-medium text-fg">{bot.schedule}</span>
                   </div>
                   <div className="flex items-center">
-                    <span className="text-fg2">Connectoren</span>
+                    <span className="text-fg2">Connectors</span>
                     <span className="ml-auto font-medium text-fg">{bot.conns}</span>
                   </div>
                   <div className="flex items-center">
@@ -159,10 +159,10 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
               <Card className="p-5 flex flex-col gap-2">
                 <h3 className="font-semibold text-[13px] text-fg">Danger Zone</h3>
                 <p className="text-[11px] text-fg3 leading-[16px]">
-                  Konfiguration ändern oder Bot löschen → schreib direkt an Sarah, geht nicht selber.
+                  To change configuration or delete a bot, contact the team directly.
                 </p>
                 <button className="mt-1 self-start px-3 py-1.5 bg-surface-2 border border-line rounded-md text-[11px] font-medium text-fg">
-                  Anfrage an .birdie Team
+                  Contact .birdie Team
                 </button>
               </Card>
             </div>
@@ -171,7 +171,7 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
           {/* Logs */}
           <Card className="overflow-hidden">
             <CardHeader
-              title="Live-Logs"
+              title="Live Logs"
               right={
                 <div className="flex items-center gap-2">
                   <Pill label="LIVE" tone="success" />
@@ -182,7 +182,7 @@ export default function BotDetailPage({ params }: { params: { slug: string } }) 
             />
             <div className="bg-bg/40 px-5 py-4 font-mono text-[11px] leading-[20px] max-h-[280px] overflow-y-auto">
               {bot.logs.length === 0 ? (
-                <div className="text-center text-fg3 py-10">Keine Logs</div>
+                <div className="text-center text-fg3 py-10">No logs</div>
               ) : (
                 bot.logs.map((l, i) => (
                   <div key={i} className="flex gap-3 hover:bg-surface-2/30 -mx-2 px-2 rounded">

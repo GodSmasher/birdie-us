@@ -3,10 +3,10 @@
 import { useState, type ReactNode } from 'react';
 
 const tabs = [
-  { key: 'rechnungen', label: 'Rechnungen' },
-  { key: 'liquiditaet', label: 'Liquidität' },
-  { key: 'mahnwesen', label: 'Mahnwesen' },
-  { key: 'intern', label: 'Intern' },
+  { key: 'rechnungen', label: 'Invoices' },
+  { key: 'liquiditaet', label: 'Cash Flow' },
+  { key: 'mahnwesen', label: 'Dunning' },
+  { key: 'intern', label: 'Internal' },
 ] as const;
 
 type TabKey = (typeof tabs)[number]['key'];

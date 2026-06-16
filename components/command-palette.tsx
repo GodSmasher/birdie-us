@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { searchIndex, type SearchItem } from '@/lib/data';
 
-const groupOrder = ['Seite', 'Angebot', 'Kontakt', 'Artikel', 'Datei', 'Bot', 'Kunde', 'Rechnung', 'Aktion'];
+const groupOrder = ['Page', 'Quote', 'Contact', 'Article', 'File', 'Bot', 'Customer', 'Invoice', 'Action'];
 
 function groupOf(item: SearchItem) {
   return item.category.split(' ')[0];
@@ -126,7 +126,7 @@ export function CommandPalette() {
               setSelected(0);
             }}
             onKeyDown={onItemKey}
-            placeholder="Suchen — Bots, Kunden, Rechnungen, Aktionen..."
+            placeholder="Search — Bots, Customers, Invoices, Actions..."
             className="flex-1 bg-transparent outline-none text-fg placeholder:text-fg3 text-sm"
             autoFocus
           />
@@ -135,7 +135,7 @@ export function CommandPalette() {
 
         <div className="max-h-[420px] overflow-y-auto py-1">
           {grouped.length === 0 && (
-            <div className="px-4 py-10 text-center text-sm text-fg3">Keine Treffer für „{query}"</div>
+            <div className="px-4 py-10 text-center text-sm text-fg3">No results for "{query}"</div>
           )}
           {grouped.map((g) => (
             <div key={g.group} className="py-1">
@@ -166,13 +166,13 @@ export function CommandPalette() {
 
         <div className="border-t border-line px-4 h-9 flex items-center gap-4 text-[10px] text-fg3">
           <span className="flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 rounded bg-surface-3 text-fg2">↑↓</kbd> navigieren
+            <kbd className="px-1 py-0.5 rounded bg-surface-3 text-fg2">↑↓</kbd> navigate
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 rounded bg-surface-3 text-fg2">⏎</kbd> öffnen
+            <kbd className="px-1 py-0.5 rounded bg-surface-3 text-fg2">⏎</kbd> open
           </span>
           <span className="ml-auto flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 rounded bg-surface-3 text-fg2">⌘K</kbd> umschalten
+            <kbd className="px-1 py-0.5 rounded bg-surface-3 text-fg2">⌘K</kbd> toggle
           </span>
         </div>
       </div>
