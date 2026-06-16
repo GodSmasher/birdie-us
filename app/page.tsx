@@ -106,10 +106,12 @@ function LiveTerminal() {
       if (e.isIntersecting && !started.current) {
         started.current = true;
         const add = () => {
-          if (idx.current < allLines.length) {
-            setLines(prev => [...prev, allLines[idx.current]]);
-            idx.current++;
-            setTimeout(add, idx.current % 2 === 0 ? 800 : 400);
+          const i = idx.current;
+          if (i < allLines.length) {
+            const line = allLines[i];
+            idx.current = i + 1;
+            setLines(prev => [...prev, line]);
+            setTimeout(add, (i + 1) % 2 === 0 ? 800 : 400);
           }
         };
         setTimeout(add, 600);
@@ -128,11 +130,14 @@ function LiveTerminal() {
         <span className="mx-auto text-[10px] text-white/20 font-mono">birdie — terminal</span>
       </div>
       <div className="p-5 font-mono text-[12px] leading-relaxed min-h-[280px]">
-        {lines.map((line, i) => (
-          <div key={i} className={`${line.startsWith('$') ? 'text-white/70' : line.startsWith('✓') ? 'text-[#4ADE80]/70' : 'text-white/30'} animate-fadeIn`}>
-            {line}
-          </div>
-        ))}
+        {lines.map((line, i) => {
+          if (!line) return null;
+          return (
+            <div key={i} className={`${line.startsWith('$') ? 'text-white/70' : line.startsWith('✓') ? 'text-[#4ADE80]/70' : 'text-white/30'} animate-fadeIn`}>
+              {line}
+            </div>
+          );
+        })}
         <span className="inline-block w-2 h-4 bg-[#FACC15] animate-pulse ml-0.5" />
       </div>
     </div>
