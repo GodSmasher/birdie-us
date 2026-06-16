@@ -30,8 +30,8 @@ export default async function KatalogPage() {
           title="Product Catalog"
           subtitle={
             catalog.configured && !catalog.error
-              ? `${catalog.total.toLocaleString('en-US')} components · ${source === 'DB-Cache' ? 'from DB cache' : 'live from Reonic'}`
-              : 'Reonic Connector · Component Master Data'
+              ? `${catalog.total.toLocaleString('en-US')} components · ${source === 'DB-Cache' ? 'from DB cache' : 'live from Aurora Solar'}`
+              : 'Aurora Solar Connector · Component Master Data'
           }
         />
 
@@ -40,11 +40,11 @@ export default async function KatalogPage() {
             <Card className="p-8 flex flex-col items-center text-center gap-4 max-w-[640px] mx-auto mt-8">
               <div className="w-12 h-12 rounded-xl bg-surface-2 flex items-center justify-center text-accent text-xl">▦</div>
               <div className="flex flex-col gap-1.5">
-                <h2 className="font-semibold text-lg text-fg tracking-tightest">Reonic connector not connected</h2>
+                <h2 className="font-semibold text-lg text-fg tracking-tightest">Aurora Solar connector not connected</h2>
                 <p className="text-[13px] text-fg2 leading-[20px] max-w-[460px]">
-                  Once the Reonic key is configured, the complete product catalog will appear here live —
+                  Once the Aurora Solar key is configured, the complete product catalog will appear here live —
                   inverters, storage, modules, wallboxes & more, automatically categorized, with retail/wholesale prices,
-                  and exportable via DATANORM.
+                  and exportable as CSV.
                 </p>
               </div>
               <div className="bg-bg border border-line rounded-lg p-4 text-left w-full max-w-[460px]">
@@ -62,7 +62,7 @@ export default async function KatalogPage() {
             <Card className="p-5 flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-error-bg flex items-center justify-center text-error font-bold">!</div>
               <div className="flex flex-col">
-                <span className="font-semibold text-[13px] text-fg">Reonic unreachable</span>
+                <span className="font-semibold text-[13px] text-fg">Aurora Solar unreachable</span>
                 <span className="text-xs text-fg2">{catalog.error}</span>
               </div>
             </Card>

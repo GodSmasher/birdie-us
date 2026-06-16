@@ -254,7 +254,7 @@ export function DocActions({
           setBusy(false);
           const signUrl = `${window.location.origin}/sign`;
           const msg = `New documents ready for signing: ${signUrl}`;
-          window.open(`https://wa.me/4917661714746?text=${encodeURIComponent(msg)}`, '_blank');
+          window.open(`https://wa.me/15125551234?text=${encodeURIComponent(msg)}`, '_blank');
           router.refresh();
         }} disabled={busy} className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs disabled:opacity-50">
           &#x2713; Approve &amp; send to electrician
@@ -263,7 +263,7 @@ export function DocActions({
       {docStatus === 'freigegeben' && (
         <div className="flex flex-col gap-1.5">
           <p className="text-[11px] text-fg3">Approved — waiting for electrician&apos;s signature.</p>
-          <a href="https://wa.me/4917661714746?text=Reminder%3A%20Documents%20waiting%20for%20your%20signature%20%F0%9F%91%89%20https%3A%2F%2Fbirdie-demo.vercel.app%2Fsign"
+          <a href="https://wa.me/15125551234?text=Reminder%3A%20Documents%20waiting%20for%20your%20signature%20%F0%9F%91%89%20https%3A%2F%2Fbirdie-demo.vercel.app%2Fsign"
             target="_blank" rel="noopener noreferrer"
             className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-center hover:border-accent/40">
             Send reminder (WhatsApp)

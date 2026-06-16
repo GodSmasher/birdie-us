@@ -39,7 +39,7 @@ const docStatusTone: Record<string, 'info' | 'success' | 'warning' | 'neutral' |
 
 const stageLabelMap: Record<string, string> = {
   anfrage: 'Interconnection Request', zusage: 'Approval', inbetriebnahme: 'Commissioning',
-  mastr: 'MaStR', abschluss: 'Completed',
+  mastr: 'Registry', abschluss: 'Completed',
 };
 const stageTone: Record<string, 'info' | 'success' | 'warning' | 'accent' | 'neutral'> = {
   anfrage: 'info', zusage: 'accent', inbetriebnahme: 'warning',
@@ -52,9 +52,9 @@ const emailCatLabel: Record<string, string> = {
 };
 
 const fileCatLabel: Record<string, string> = {
-  vollmacht_nb: 'Utility Auth', vollmacht_mastr: 'MaStR Auth', anschlusszusage: 'Connection Approval',
+  vollmacht_nb: 'Utility Auth', vollmacht_mastr: 'Registry Auth', anschlusszusage: 'Interconnection Approval',
   angebot: 'Quote', auftrag: 'Order', abnahmeprotokoll: 'Acceptance Report', lageplan: 'Site Plan',
-  mastr_registrierung: 'MaStR', netzanmeldung: 'Interconnection', messkonzept: 'Metering Concept',
+  mastr_registrierung: 'Registry', netzanmeldung: 'Interconnection', messkonzept: 'Metering Plan',
   rechnung: 'Invoice', sonstiges: 'Other',
 };
 

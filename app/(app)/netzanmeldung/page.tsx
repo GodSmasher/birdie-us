@@ -89,11 +89,11 @@ export default async function NetzanmeldungPage({
     <>
       <Sidebar active="netzanmeldung" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
-        <TopBar title="Interconnection" subtitle={`${regs.length}${regs.length !== allRegs.length ? ' / ' + allRegs.length : ''} Systems · Processing, Utility Status & MaStR`} />
+        <TopBar title="Interconnection" subtitle={`${regs.length}${regs.length !== allRegs.length ? ' / ' + allRegs.length : ''} Systems · Processing, Utility Status & AHJ Tracking`} />
         <div className="flex-1 px-4 py-5 lg:px-8 lg:py-7 flex flex-col gap-4 lg:gap-6">
           {regs.length === 0 ? (
             <Card className="p-8 text-center text-sm text-fg3 max-w-[620px] mx-auto mt-8">
-              No interconnection applications yet. They are created automatically from won Reonic projects
+              No interconnection applications yet. They are created automatically from won Aurora Solar projects
               (Sync · <code className="text-accent">/api/sync?resource=registrations</code>).
             </Card>
           ) : (
@@ -105,7 +105,7 @@ export default async function NetzanmeldungPage({
                     {([
                       { id: 'alle', label: 'All', count: allRegs.length },
                       { id: 'pv', label: 'PV', count: pvCount },
-                      { id: 'wp', label: 'WP', count: wpCount },
+                      { id: 'wp', label: 'HP', count: wpCount },
                     ] as const).map((t) => (
                       <a
                         key={t.id}
@@ -149,7 +149,7 @@ export default async function NetzanmeldungPage({
                 <KpiCard label="AT PCLOUD" value={String(atPCloud)} sub="Awaiting signature" valueColor={atPCloud > 0 ? 'text-accent' : 'text-fg'} />
                 <KpiCard label="SIGNED" value={String(signed)} sub="Ready to submit" valueColor={signed > 0 ? 'text-success' : 'text-fg'} />
                 <KpiCard label="IN PROGRESS" value={String(open)} sub="Active applications" />
-                <KpiCard label="MaStR OVERDUE" value={String(overdueCount)} sub="1-month deadline exceeded" valueColor={overdueCount > 0 ? 'text-error' : 'text-fg'} />
+                <KpiCard label="REGISTRY OVERDUE" value={String(overdueCount)} sub="utility deadline exceeded" valueColor={overdueCount > 0 ? 'text-error' : 'text-fg'} />
                 <KpiCard label="TOTAL" value={String(regs.length)} sub="From won projects" />
               </div>
 

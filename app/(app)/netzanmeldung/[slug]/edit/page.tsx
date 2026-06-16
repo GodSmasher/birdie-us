@@ -71,8 +71,8 @@ export default function EditDocPage({ params }: { params: { slug: string } }) {
     });
     setBusy(false);
     const signUrl = `${window.location.origin}/sign`;
-    const msg = `Hi Jan, new documents ready for signature: ${signUrl}`;
-    window.open(`https://wa.me/4917661714746?text=${encodeURIComponent(msg)}`, '_blank');
+    const msg = `Hi John, new documents ready for signature: ${signUrl}`;
+    window.open(`https://wa.me/15125551234?text=${encodeURIComponent(msg)}`, '_blank');
     router.push(`/netzanmeldung/${params.slug}`);
     router.refresh();
   }

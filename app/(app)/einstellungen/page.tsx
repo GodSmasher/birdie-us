@@ -26,7 +26,7 @@ export default async function EinstellungenPage() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <Row k="Company" v="Volta Solar Systems" />
               <Row k="Industry" v="Solar" />
-              <Row k="Region" v="Frankfurt (EU)" />
+              <Row k="Region" v="Austin, TX (US)" />
               <Row k="Language" v="English" />
             </div>
           </Card>
@@ -60,7 +60,7 @@ export default async function EinstellungenPage() {
             <div className="flex flex-col gap-2.5">
               <SecRow label="Password access (Gate)" status="active" tone="success" />
               <SecRow label="2FA for login" status="recommended" tone="warning" />
-              <SecRow label="Data hosting" status="EU / GDPR" tone="success" />
+              <SecRow label="Data hosting" status="US / SOC 2" tone="success" />
               <SecRow label="Connector secrets" status="encrypted (Vercel)" tone="success" />
             </div>
           </Card>

@@ -108,7 +108,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                     {vollmachtMastr && (
                       <a href={`/api/netzanmeldung/files?offerId=${params.slug}&fileId=${vollmachtMastr.id}&download=1`} target="_blank" rel="noopener noreferrer"
                         className="flex items-center justify-between px-3 py-2 bg-surface-2 border border-line-2 rounded-lg text-[11px] hover:border-accent/40">
-                        <span className="text-fg2">MaStR Authorization</span><span className="text-accent">&#x2913;</span>
+                        <span className="text-fg2">Registry Authorization</span><span className="text-accent">&#x2913;</span>
                       </a>
                     )}
                   </div>
@@ -255,7 +255,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
               <div className="flex items-center gap-2">
                 <span className="text-lg">🔥</span>
                 <h3 className="font-semibold text-[13px] text-fg">Heat Pump</h3>
-                <Pill label={wp.heatingFuel === 'gas' ? 'GAS → DEREGISTRATION' : wp.heatingFuel === 'oil' ? 'OIL' : 'HEATING UNKNOWN'} tone={wp.needsGasAbmeldung ? 'warning' : 'info'} dot={false} />
+                <Pill label={wp.heatingFuel === 'gas' ? 'GAS → DISCONNECT' : wp.heatingFuel === 'oil' ? 'OIL' : 'HEATING UNKNOWN'} tone={wp.needsGasAbmeldung ? 'warning' : 'info'} dot={false} />
               </div>
               {wp.waermepumpeType && <p className="text-xs text-fg2">{wp.waermepumpeType}</p>}
               {wp.needsGasAbmeldung && (
@@ -263,7 +263,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                   <p className="text-xs text-warning font-medium">Gas meter must be deregistered:</p>
                   <div className="flex flex-col gap-1.5 text-[11px] text-fg2 leading-[15px]">
                     <span>① Customer must deregister gas meter with the utility</span>
-                    <span>② Notify district chimney sweep about decommissioning</span>
+                    <span>② Notify building department about gas service disconnect</span>
                   </div>
                   <p className="text-[11px] text-fg3 mt-1">Email templates available at /api/netzanmeldung/waermepumpe?offerId={reg?.offerId ?? project?.offerId}</p>
                 </div>
@@ -275,12 +275,12 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
           {project && (
             <Card className="p-5 flex flex-col gap-4">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold text-[13px] text-fg">MaStR Data Sheet</h3>
+                <h3 className="font-semibold text-[13px] text-fg">Registry Data Sheet</h3>
                 <Pill label={mastrOpen === 0 ? 'COMPLETE' : `${mastrOpen} MANUAL`} tone={mastrOpen === 0 ? 'success' : 'warning'} dot={false} />
-                <span className="text-[11px] text-fg3">Preparation for the Market Master Data Register — deadline 1 month after commissioning</span>
+                <span className="text-[11px] text-fg3">Preparation for Permission to Operate (PTO) — timeline varies by utility/AHJ</span>
               </div>
               <p className="text-[11px] text-fg3 -mt-2 leading-[15px]">
-                There is no MaStR API — registration remains a portal step. These fields are pre-filled from Reonic
+                PTO application is submitted through the utility portal. These fields are pre-filled from Reonic
                 so the office only needs to type them in. <span className="text-warning">Yellow</span> = fill in manually.
               </p>
               <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">

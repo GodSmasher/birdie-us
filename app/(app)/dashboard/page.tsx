@@ -46,7 +46,7 @@ export default async function DashboardPage() {
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar
           title={`${greeting()}, Sarah`}
-          subtitle={data.configured ? `${today} · Volta · ${data.source === 'DB-Cache' ? 'from DB cache' : 'live from Reonic'}` : today}
+          subtitle={data.configured ? `${today} · Volta · ${data.source === 'DB-Cache' ? 'from DB cache' : 'live from Aurora Solar'}` : today}
         />
         {data.configured ? <RealDashboard data={data} netzStats={netzStats} insights={insights} /> : <MockDashboard />}
       </main>
@@ -107,7 +107,7 @@ function InsightsCard({ insights }: { insights: Insight[] }) {
   );
 }
 
-// ============ REAL — Reonic + Interconnection + Bots ============
+// ============ REAL — Aurora Solar + Interconnection + Bots ============
 function RealDashboard({ data, netzStats, insights }: { data: DashboardData; netzStats: { total: number; offen: number; pruefen: number; freigegeben: number; unterschrieben: number; eingereicht: number }; insights: Insight[] }) {
   const { pipeline: p, leads, events } = data;
   const closeRate = p.won + p.lost > 0 ? Math.round((p.won / (p.won + p.lost)) * 100) : 0;
@@ -266,9 +266,9 @@ function RealDashboard({ data, netzStats, insights }: { data: DashboardData; net
 // ============ MOCK — public demo fallback ============
 const activities = [
   ['10:42', 'Dunning Bot', "3 invoices flagged as 'overdue' — reminder emails sent", 'success'],
-  ['10:38', 'Lead Sync (Reonic)', '12 new leads imported, 2 flagged with missing phone number', 'info'],
+  ['10:38', 'Lead Sync (Aurora Solar)', '12 new leads imported, 2 flagged with missing phone number', 'info'],
   ['10:31', 'Appointment Bot', 'Consultation with Michael K. confirmed + Google Meet created', 'success'],
-  ['10:24', 'Accounting Sync', "Invoice #2026-0341 created for 'Huber Family' ($24,500)", 'info'],
+  ['10:24', 'Accounting Sync', "Invoice #2026-0341 created for 'Johnson Family' ($24,500)", 'info'],
   ['10:12', 'WhatsApp Bot', '5 customer inquiries auto-replied · 1 escalated to Sarah', 'warning'],
   ['09:58', 'Call Bot', '8 missed calls detected — callback appointments suggested', 'info'],
 ] as const;
@@ -312,7 +312,7 @@ function MockDashboard() {
             <h3 className="font-semibold text-[13px] text-fg">Demo Mode</h3>
           </div>
           <p className="text-xs text-fg2 leading-[18px]">
-            This view shows sample data. Once the Reonic connector is linked, the real pipeline,
+            This view shows sample data. Once the Aurora Solar connector is linked, the real pipeline,
             lead sources, and upcoming appointments will appear here.
           </p>
         </Card>

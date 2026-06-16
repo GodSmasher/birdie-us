@@ -28,10 +28,10 @@ export function AnlagendatenCard({ offerId, rows, hasDocs }: {
     'Annual Consumption': ['jahresverbrauch'],
     'Meter Number': ['zaehlerNummer'],
     'Utility Ref.': ['netzbetreiberRefNr'],
-    'IBAN': ['iban'],
+    'Bank Account': ['iban'],
     'Property Owner': ['grundstueckseigentuemer'],
-    'Feed-in Commitment': ['einspeiseZusage'],
-    'MaStR No.': ['mastrNummer'],
+    'Net Metering Agreement': ['einspeiseZusage'],
+    'Registry No.': ['mastrNummer'],
     'Parcel Number': ['flurstuck'],
   };
 
@@ -53,10 +53,10 @@ export function AnlagendatenCard({ offerId, rows, hasDocs }: {
         if (ext.modulTyp) mapped['Modules'] = { value: String(ext.modulTyp), source: findSource(sources, 'modulTyp') };
         if (ext.zaehlerNummer) mapped['Meter Number'] = { value: String(ext.zaehlerNummer), source: findSource(sources, 'zaehlerNummer') };
         if (ext.netzbetreiberRefNr) mapped['Utility Ref.'] = { value: String(ext.netzbetreiberRefNr), source: findSource(sources, 'netzbetreiberRefNr') };
-        if (ext.iban) mapped['IBAN'] = { value: String(ext.iban), source: findSource(sources, 'iban') };
+        if (ext.iban) mapped['Bank Account'] = { value: String(ext.iban), source: findSource(sources, 'iban') };
         if (ext.grundstueckseigentuemer) mapped['Property Owner'] = { value: String(ext.grundstueckseigentuemer), source: findSource(sources, 'grundstueckseigentuemer') };
-        if (ext.einspeiseZusage != null) mapped['Feed-in Commitment'] = { value: ext.einspeiseZusage ? '✅ Confirmed' : '❌ No', source: findSource(sources, 'einspeiseZusage') };
-        if (ext.mastrNummer) mapped['MaStR No.'] = { value: String(ext.mastrNummer), source: findSource(sources, 'mastrNummer') };
+        if (ext.einspeiseZusage != null) mapped['Net Metering Agreement'] = { value: ext.einspeiseZusage ? '✅ Confirmed' : '❌ No', source: findSource(sources, 'einspeiseZusage') };
+        if (ext.mastrNummer) mapped['Registry No.'] = { value: String(ext.mastrNummer), source: findSource(sources, 'mastrNummer') };
         if (ext.flurstuck) mapped['Parcel Number'] = { value: String(ext.flurstuck), source: findSource(sources, 'flurstuck') };
 
         setEnriched(mapped);
