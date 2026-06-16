@@ -1,4 +1,4 @@
-// Intelligenz-Feed: data-driven insights (no AI calls).
+// Intelligence feed: data-driven insights (no AI calls).
 // Analyses registrations, pipeline, and mailbox to surface actionable items.
 
 import { getRegistrations, type Registration } from './netzanmeldung';
@@ -36,8 +36,8 @@ function staleRegistrations(regs: Registration[]): Insight[] {
       severity: 'error',
       message:
         stale.length === 1
-          ? `${names}: Netzanmeldung seit >7 Tagen auf "Bitte pruefen" ohne Fortschritt`
-          : `${stale.length} Netzanmeldungen seit >7 Tagen auf "Bitte pruefen" (${names})`,
+          ? `${names}: Interconnection stuck on "Needs review" for >7 days without progress`
+          : `${stale.length} interconnections stuck on "Needs review" for >7 days (${names})`,
       link: '/netzanmeldung',
     },
   ];
@@ -51,7 +51,7 @@ function missingNetzbetreiber(regs: Registration[]): Insight[] {
       id: 'missing_nb',
       icon: '⚡',
       severity: 'warning',
-      message: `${missing.length} Projekt${missing.length > 1 ? 'e' : ''} ohne zugewiesenen Netzbetreiber`,
+      message: `${missing.length} project${missing.length > 1 ? 's' : ''} without an assigned utility`,
       link: '/netzanmeldung',
     },
   ];
@@ -75,8 +75,8 @@ function overdueSignings(regs: Registration[]): Insight[] {
       severity: 'warning',
       message:
         overdue.length === 1
-          ? `${names}: Freigegeben seit >3 Tagen, Elektriker hat noch nicht unterschrieben`
-          : `${overdue.length} Projekte warten seit >3 Tagen auf Elektriker-Unterschrift (${names})`,
+          ? `${names}: Approved for >3 days, electrician has not signed yet`
+          : `${overdue.length} projects waiting >3 days for electrician signature (${names})`,
       link: '/netzanmeldung',
     },
   ];
@@ -95,7 +95,7 @@ function noFiles(regs: Registration[]): Insight[] {
       id: 'no_files',
       icon: '📄',
       severity: 'warning',
-      message: `${affected.length} Projekt${affected.length > 1 ? 'e' : ''} ohne erzeugte Dokumente trotz aktivem Status`,
+      message: `${affected.length} project${affected.length > 1 ? 's' : ''} without generated documents despite active status`,
       link: '/netzanmeldung',
     },
   ];
@@ -108,7 +108,7 @@ function unreadEmails(unread: number): Insight[] {
       id: 'unread_emails',
       icon: '📬',
       severity: unread > 20 ? 'error' : 'warning',
-      message: `${unread} ungelesene E-Mails im Postfach`,
+      message: `${unread} unread emails in inbox`,
       link: '/email',
     },
   ];
@@ -127,7 +127,7 @@ function stalePipeline(data: DashboardData): Insight[] {
         id: 'stale_pipeline',
         icon: '📊',
         severity: 'warning',
-        message: `${p.open} offene Angebote in der Pipeline ohne bisherige Abschluesse`,
+        message: `${p.open} open quotes in the pipeline with no closed deals yet`,
         link: '/pipeline',
       },
     ];
@@ -145,7 +145,7 @@ function botErrors(regs: Registration[]): Insight[] {
       id: 'bot_errors',
       icon: '🤖',
       severity: 'error',
-      message: `${withErrors.length} Netzanmeldung${withErrors.length > 1 ? 'en' : ''} mit wiederholt fehlgeschlagenem Bot`,
+      message: `${withErrors.length} interconnection${withErrors.length > 1 ? 's' : ''} with repeatedly failing bot`,
       link: '/netzanmeldung',
     },
   ];
@@ -156,7 +156,7 @@ function successInsight(): Insight {
     id: 'success',
     icon: '✅',
     severity: 'success',
-    message: 'Alle Netzanmeldungen auf dem neuesten Stand — keine offenen Punkte',
+    message: 'All interconnections are up to date — no open issues',
     link: '/dashboard',
   };
 }

@@ -19,7 +19,7 @@ import { NetzEmailKanban } from '@/components/netz-email-kanban';
 
 export const dynamic = 'force-dynamic';
 
-const euro = (n: number) => (n > 0 ? '€ ' + Math.round(n).toLocaleString('de-DE') : '—');
+const dollar = (n: number) => (n > 0 ? '$' + Math.round(n).toLocaleString('en-US') : '—');
 const overdue = (r: { status: StageId; dueDate?: string }) =>
   r.status === 'mastr' && !!r.dueDate && Date.parse(r.dueDate) < Date.now();
 const docStatusOf = (r: Registration): DocStatus => {
@@ -79,6 +79,7 @@ export default async function NetzanmeldungPage({
   const signed = regs.filter((r) => docStatusOf(r) === 'unterschrieben').length;
   const overdueCount = regs.filter(overdue).length;
 
+
   const columns =
     view === 'grid'
       ? STAGES.map((s) => ({ id: s.id, label: s.label, desc: s.desc, items: regs.filter((r) => r.status === s.id) }))
@@ -88,11 +89,11 @@ export default async function NetzanmeldungPage({
     <>
       <Sidebar active="netzanmeldung" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
-        <TopBar title="Netzanmeldung" subtitle={`${regs.length}${regs.length !== allRegs.length ? ' / ' + allRegs.length : ''} Anlagen · Bearbeitung, Netz-Status & MaStR`} />
+        <TopBar title="Interconnection" subtitle={`${regs.length}${regs.length !== allRegs.length ? ' / ' + allRegs.length : ''} Systems · Processing, Utility Status & MaStR`} />
         <div className="flex-1 px-4 py-5 lg:px-8 lg:py-7 flex flex-col gap-4 lg:gap-6">
           {regs.length === 0 ? (
             <Card className="p-8 text-center text-sm text-fg3 max-w-[620px] mx-auto mt-8">
-              Noch keine Netzanmeldungen. Sie werden automatisch aus gewonnenen Reonic-Projekten angelegt
+              No interconnection applications yet. They are created automatically from won Reonic projects
               (Sync · <code className="text-accent">/api/sync?resource=registrations</code>).
             </Card>
           ) : (
@@ -102,7 +103,7 @@ export default async function NetzanmeldungPage({
                   {/* PV / WP / Alle type filter */}
                   <div className="inline-flex rounded-lg border border-line bg-surface p-0.5">
                     {([
-                      { id: 'alle', label: 'Alle', count: allRegs.length },
+                      { id: 'alle', label: 'All', count: allRegs.length },
                       { id: 'pv', label: 'PV', count: pvCount },
                       { id: 'wp', label: 'WP', count: wpCount },
                     ] as const).map((t) => (
@@ -116,19 +117,19 @@ export default async function NetzanmeldungPage({
                     ))}
                   </div>
 
-                  {/* Bearbeitung / Netz-Status view toggle */}
+                  {/* Processing / Utility Status view toggle */}
                   <div className="inline-flex rounded-lg border border-line bg-surface p-0.5">
                     <a
                       href={buildUrl({ view: undefined, type: typeFilter === 'alle' ? undefined : typeFilter, q: searchQuery || undefined })}
                       className={`px-3 py-1.5 rounded-md text-xs font-medium ${view === 'docs' ? 'bg-surface-3 text-fg' : 'text-fg3 hover:text-fg2'}`}
                     >
-                      Bearbeitung
+                      Processing
                     </a>
                     <a
                       href={buildUrl({ view: 'grid', type: typeFilter === 'alle' ? undefined : typeFilter, q: searchQuery || undefined })}
                       className={`px-3 py-1.5 rounded-md text-xs font-medium ${view === 'grid' ? 'bg-surface-3 text-fg' : 'text-fg3 hover:text-fg2'}`}
                     >
-                      Netz-Status
+                      Utility Status
                     </a>
                   </div>
 
@@ -139,17 +140,17 @@ export default async function NetzanmeldungPage({
                 </div>
 
                 <a href="/netzanmeldung/check" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium text-fg2 hover:text-fg hover:border-line-2 transition-colors">
-                  ✓ Datencheck
+                  ✓ Data Check
                 </a>
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 lg:gap-4">
-                <KpiCard label="BITTE PRÜFEN" value={String(review)} sub="Entwurf wartet auf Freigabe" valueColor={review > 0 ? 'text-warning' : 'text-fg'} />
-                <KpiCard label="BEI PCLOUD" value={String(atPCloud)} sub="wartet auf Unterschrift" valueColor={atPCloud > 0 ? 'text-accent' : 'text-fg'} />
-                <KpiCard label="UNTERSCHRIEBEN" value={String(signed)} sub="bereit zum Einreichen" valueColor={signed > 0 ? 'text-success' : 'text-fg'} />
-                <KpiCard label="IN BEARBEITUNG" value={String(open)} sub="laufende Anmeldungen" />
-                <KpiCard label="MaStR ÜBERFÄLLIG" value={String(overdueCount)} sub="Frist 1 Monat überschritten" valueColor={overdueCount > 0 ? 'text-error' : 'text-fg'} />
-                <KpiCard label="GESAMT" value={String(regs.length)} sub="aus gewonnenen Projekten" />
+                <KpiCard label="PLEASE REVIEW" value={String(review)} sub="Draft awaiting approval" valueColor={review > 0 ? 'text-warning' : 'text-fg'} />
+                <KpiCard label="AT PCLOUD" value={String(atPCloud)} sub="Awaiting signature" valueColor={atPCloud > 0 ? 'text-accent' : 'text-fg'} />
+                <KpiCard label="SIGNED" value={String(signed)} sub="Ready to submit" valueColor={signed > 0 ? 'text-success' : 'text-fg'} />
+                <KpiCard label="IN PROGRESS" value={String(open)} sub="Active applications" />
+                <KpiCard label="MaStR OVERDUE" value={String(overdueCount)} sub="1-month deadline exceeded" valueColor={overdueCount > 0 ? 'text-error' : 'text-fg'} />
+                <KpiCard label="TOTAL" value={String(regs.length)} sub="From won projects" />
               </div>
 
               <div className="flex gap-4 items-start overflow-x-auto pb-2">
@@ -165,7 +166,7 @@ export default async function NetzanmeldungPage({
                       <p className="text-[11px] text-fg3 -mt-2">{col.desc}</p>
                       <div className="flex flex-col gap-2">
                         {col.items.length === 0 && (
-                          <div className="border border-dashed border-line rounded-lg py-6 text-center text-[11px] text-fg4">leer</div>
+                          <div className="border border-dashed border-line rounded-lg py-6 text-center text-[11px] text-fg4">empty</div>
                         )}
                         {shown.map((r) => (
                           <Card key={r.offerId} className="p-3 flex flex-col gap-2">
@@ -173,27 +174,27 @@ export default async function NetzanmeldungPage({
                               <span className="text-[13px] font-medium text-fg leading-tight truncate flex-1">{r.customer}</span>
                               {wpIds.has(r.offerId) && <Pill label="WP" tone="info" dot={false} />}
                               {docStatusOf(r) === 'hochgeladen' && <Pill label="☁ pCloud" tone="info" dot={false} />}
-                              {docStatusOf(r) === 'unterschrieben' && <Pill label="✓ Signiert" tone="success" dot={false} />}
-                              {overdue(r) && <Pill label="FRIST" tone="error" dot={false} />}
+                              {docStatusOf(r) === 'unterschrieben' && <Pill label="✓ Signed" tone="success" dot={false} />}
+                              {overdue(r) && <Pill label="OVERDUE" tone="error" dot={false} />}
                             </div>
                             <div className="flex items-center justify-between text-[11px] text-fg3">
-                              <span>{euro(r.value)}</span>
-                              {r.dueDate && <span className={overdue(r) ? 'text-error' : ''}>bis {new Date(r.dueDate).toLocaleDateString('de-DE')}</span>}
+                              <span>{dollar(r.value)}</span>
+                              {r.dueDate && <span className={overdue(r) ? 'text-error' : ''}>due {new Date(r.dueDate).toLocaleDateString('en-US')}</span>}
                             </div>
                             {view === 'grid' ? (
                               <StageSelect offerId={r.offerId} status={r.status} />
                             ) : (
                               <div className="flex items-center gap-1.5">
                                 <Pill label={STAGES.find((s) => s.id === r.status)?.label ?? r.status} tone="info" dot={false} />
-                                {(r.documents?.length ?? 0) > 0 && <span className="text-[10px] text-fg4">{r.documents!.length} Dok.</span>}
+                                {(r.documents?.length ?? 0) > 0 && <span className="text-[10px] text-fg4">{r.documents!.length} docs</span>}
                               </div>
                             )}
-                            <a href={`/netzanmeldung/${r.offerId}`} className="text-[11px] font-medium text-accent self-end">Details & Check →</a>
+                            <a href={`/netzanmeldung/${r.offerId}`} className="text-[11px] font-medium text-accent self-end">Details & Review →</a>
                           </Card>
                         ))}
                         {rest > 0 && (
                           <a href={`/netzanmeldung/check`} className="border border-dashed border-line rounded-lg py-2 text-center text-[11px] text-fg3 hover:text-fg2">
-                            + {rest} weitere
+                            + {rest} more
                           </a>
                         )}
                       </div>
@@ -208,10 +209,10 @@ export default async function NetzanmeldungPage({
           {emailStats.total > 0 && (
             <section className="flex flex-col gap-3 pt-2">
               <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="font-semibold text-sm text-fg tracking-tightest">📧 Netz-Emails</h2>
-                <Pill label={`${emailStats.total} GESAMT`} tone="info" />
-                {emailStats.unread > 0 && <Pill label={`${emailStats.unread} NEU`} tone="warning" />}
-                {emailStats.matched > 0 && <Pill label={`${emailStats.matched} ZUGEORDNET`} tone="success" />}
+                <h2 className="font-semibold text-sm text-fg tracking-tightest">📧 Utility Emails</h2>
+                <Pill label={`${emailStats.total} TOTAL`} tone="info" />
+                {emailStats.unread > 0 && <Pill label={`${emailStats.unread} NEW`} tone="warning" />}
+                {emailStats.matched > 0 && <Pill label={`${emailStats.matched} MATCHED`} tone="success" />}
               </div>
               <NetzEmailKanban emails={unmatchedEmails} />
             </section>
@@ -220,9 +221,9 @@ export default async function NetzanmeldungPage({
           {portals.length > 0 && (
             <section className="flex flex-col gap-3 pt-2">
               <div className="flex items-center gap-3">
-                <h2 className="font-semibold text-sm text-fg tracking-tightest">Netzbetreiber-Portale</h2>
-                <Pill label={`${withAccess} ZUGÄNGE`} tone="success" />
-                <span className="text-[11px] text-fg3">{portals.length} Betreiber · Logins sicher hinterlegt</span>
+                <h2 className="font-semibold text-sm text-fg tracking-tightest">Utility Portals</h2>
+                <Pill label={`${withAccess} LOGINS`} tone="success" />
+                <span className="text-[11px] text-fg3">{portals.length} utilities · Credentials stored securely</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {portals.map((p) => (
@@ -230,10 +231,10 @@ export default async function NetzanmeldungPage({
                     <div className="w-9 h-9 rounded-lg bg-surface-3 flex items-center justify-center text-accent text-sm shrink-0">⚡</div>
                     <div className="flex flex-col min-w-0 flex-1">
                       <span className="text-[13px] font-medium text-fg truncate">{p.name}</span>
-                      <span className="text-[10px] text-fg3">{p.hasPassword ? 'Zugang hinterlegt' : 'kein Login'}</span>
+                      <span className="text-[10px] text-fg3">{p.hasPassword ? 'Credentials stored' : 'No login'}</span>
                     </div>
                     {p.portalUrl && (
-                      <a href={p.portalUrl} target="_blank" rel="noopener noreferrer" className="text-fg3 hover:text-accent text-sm shrink-0" title="Portal öffnen">↗</a>
+                      <a href={p.portalUrl} target="_blank" rel="noopener noreferrer" className="text-fg3 hover:text-accent text-sm shrink-0" title="Open portal">↗</a>
                     )}
                   </div>
                 ))}

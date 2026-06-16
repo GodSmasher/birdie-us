@@ -69,24 +69,24 @@ function Logo({ variant = 'dark', className = '' }: { variant?: 'dark' | 'light'
 }
 
 // ── Data ────────────────────────────────────────────────────────────────────
-const LOGOS = ['Reonic', 'sevDesk', 'EcoFlow', 'n8n', 'Gmail', 'lexoffice', 'HubSpot', 'Strato', 'Google Calendar', 'FastBill', 'Salesforce', 'IMAP'];
+const LOGOS = ['Aurora Solar', 'Enphase', 'SolarEdge', 'QuickBooks', 'Gmail', 'HubSpot', 'Salesforce', 'Google Calendar', 'Stripe', 'n8n', 'Zapier', 'IMAP'];
 
 const USE_CASES = [
-  { title: 'Netzanmeldung', desc: 'KI f&uuml;llt Formulare f&uuml;r 25+ Netzbetreiber. Du pr&uuml;fst, gibst frei, fertig.', href: '/case-studies/volta' },
-  { title: 'Anlagen-Monitoring', desc: 'Sieh was deine verbauten Anlagen machen. Produktion, Speicher, St&ouml;rungen &mdash; live.', href: '#' },
-  { title: 'Dokumenten-KI', desc: 'Liest Projektdaten aus PDFs, extrahiert WR, Speicher, Module &mdash; automatisch.', href: '#' },
-  { title: 'Email-Zuordnung', desc: 'KI klassifiziert Mails und ordnet sie dem richtigen Projekt zu. Kein manuelles Sortieren.', href: '#' },
-  { title: 'Zahlungserinnerungen', desc: 'sevDesk-Rechnungen &uuml;berf&auml;llig? Mahnbot verschickt h&ouml;fliche Erinnerungen.', href: '#' },
-  { title: '100+ weitere', desc: 'Jeder Workflow den du brauchst. Wir bauen ihn f&uuml;r dich &mdash; pers&ouml;nlich eingerichtet.', href: '/#contact' },
+  { title: 'Interconnection', desc: 'AI fills utility forms for 50+ utilities. You review, approve, done.', href: '#' },
+  { title: 'Fleet Monitoring', desc: 'See what your installed systems are doing. Production, storage, faults &mdash; live.', href: '#' },
+  { title: 'Document AI', desc: 'Reads project data from PDFs, extracts inverters, storage, modules &mdash; automatically.', href: '#' },
+  { title: 'Email Routing', desc: 'AI classifies emails and assigns them to the right project. No manual sorting.', href: '#' },
+  { title: 'Payment Reminders', desc: 'Overdue invoices? The reminder bot sends polite follow-ups automatically.', href: '#' },
+  { title: '100+ more', desc: 'Any workflow you need. We build it for you &mdash; personally configured.', href: '/#contact' },
 ];
 
 const FAQS = [
-  { q: 'Was genau ist birdie?', a: 'birdie ist die Transparenz-Schicht f&uuml;r Solarinstallateure. Es verbindet deine bestehenden Tools (CRM, Buchhaltung, Wechselrichter) und gibt dir ein klares Bild &uuml;ber deinen Betrieb. Dazu automatisiert es Papierkram wie Netzanmeldungen per KI.' },
-  { q: 'Muss ich meine bestehenden Tools ersetzen?', a: 'Nein. birdie ersetzt nichts &mdash; es verbindet alles. Dein Reonic, sevDesk, Gmail, EcoFlow bleibt. birdie dockt an und zeigt dir alles an einem Ort.' },
-  { q: 'Werden die Daten in der EU gespeichert?', a: 'Ja. Alle Daten liegen auf EU-Servern (Frankfurt). DSGVO-konform, verschl&uuml;sselt, kein Transfer in die USA.' },
-  { q: 'Wie schnell bin ich einsatzbereit?', a: 'Ein 30-Minuten-Call. Wir verbinden deine Tools, richten die Bots ein, und du kannst loslegen. Kein monatelanges Setup.' },
-  { q: 'Was kostet birdie?', a: 'Wir richten alles pers&ouml;nlich f&uuml;r dich ein. Preis h&auml;ngt davon ab welche Integrationen und Bots du brauchst. Demo ist kostenlos &mdash; einfach anfragen.' },
-  { q: 'Was wenn mir ein Feature fehlt?', a: 'Sag uns was du brauchst &mdash; wir bauen es. Kein Ticketsystem, kein "kommt auf die Roadmap". Dein Wunsch-Feature wird umgesetzt.' },
+  { q: 'What exactly is birdie?', a: 'birdie is the transparency layer for solar installers. It connects your existing tools (CRM, accounting, inverters) and gives you a clear picture of your operations. Plus, it automates paperwork like utility interconnection applications with AI.' },
+  { q: 'Do I have to replace my existing tools?', a: 'No. birdie replaces nothing &mdash; it connects everything. Your Aurora Solar, QuickBooks, Gmail, Enphase stays. birdie plugs in and shows you everything in one place.' },
+  { q: 'Is my data secure?', a: 'Yes. All data is encrypted at rest and in transit. SOC 2 compliant infrastructure. Your data is never shared with third parties or used for AI training.' },
+  { q: 'How fast can I get started?', a: 'One 30-minute call. We connect your tools, set up the bots, and you&apos;re good to go. No months-long implementation.' },
+  { q: 'How much does birdie cost?', a: 'We set everything up personally for you. Pricing depends on which integrations and bots you need. Demo is free &mdash; just reach out.' },
+  { q: 'What if I need a feature that doesn&apos;t exist?', a: 'Tell us what you need &mdash; we build it. No ticket system, no &ldquo;added to the roadmap.&rdquo; Your feature request gets built.' },
 ];
 
 export default function LandingPage() {
@@ -105,13 +105,13 @@ export default function LandingPage() {
           <Link href="/"><Logo variant="dark" className="h-6" /></Link>
           <div className="hidden md:flex items-center gap-7 text-[13px] text-[#1a1a1a]/40 font-medium">
             <a href="#use-cases" className="hover:text-[#1a1a1a] transition">Use Cases</a>
-            <a href="#integrationen" className="hover:text-[#1a1a1a] transition">Integrationen</a>
-            <Link href="/case-studies/volta" className="hover:text-[#1a1a1a] transition">Kundengeschichten</Link>
-            <Link href="/partner" className="hover:text-[#1a1a1a] transition">Partner werden</Link>
+            <a href="#integrations" className="hover:text-[#1a1a1a] transition">Integrations</a>
+            <a href="#" className="hover:text-[#1a1a1a] transition">Customer Stories</a>
+            <Link href="/partner" className="hover:text-[#1a1a1a] transition">Become a Partner</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/gate" className="hidden sm:inline text-[13px] text-[#1a1a1a]/40 font-medium hover:text-[#1a1a1a]">Login</Link>
-            <a href="#contact" className="px-5 py-2 bg-[#1a1a1a] text-white rounded-full text-[13px] font-semibold hover:bg-black/80 active:scale-95 transition-all">Demo anfragen</a>
+            <a href="#contact" className="px-5 py-2 bg-[#1a1a1a] text-white rounded-full text-[13px] font-semibold hover:bg-black/80 active:scale-95 transition-all">Book a Demo</a>
           </div>
         </div>
       </nav>
@@ -119,19 +119,19 @@ export default function LandingPage() {
       {/* ━━━ 1. HERO ━━━ */}
       <section className="pt-20 pb-16 md:pt-32 md:pb-24 text-center px-6">
         <R>
-          <p className="text-[13px] font-semibold text-[#1a1a1a]/30 tracking-[0.2em] uppercase mb-6">F&uuml;r Solarinstallateure</p>
+          <p className="text-[13px] font-semibold text-[#1a1a1a]/30 tracking-[0.2em] uppercase mb-6">For Solar Installers</p>
           <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold tracking-[-0.04em] leading-[1.05] mb-6 max-w-4xl mx-auto">
-            Die Transparenz-Schicht<br />f&uuml;r deinen Solarbetrieb.
+            The transparency layer<br />for your solar business.
           </h1>
           <p className="text-[clamp(1rem,2vw,1.2rem)] text-[#1a1a1a]/40 max-w-2xl mx-auto mb-10 leading-relaxed">
-            birdie verbindet deine bestehenden Tools, automatisiert den Papierkram per KI und zeigt dir was in deinem Betrieb wirklich passiert. Pers&ouml;nlich eingerichtet, nicht self-service.
+            birdie connects your existing tools, automates paperwork with AI, and shows you what&apos;s really happening in your business. Personally set up, not self-service.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="#contact" className="px-8 py-4 bg-[#1a1a1a] text-white font-semibold rounded-full text-[15px] hover:bg-black/80 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-black/10">
-              Kostenlose Demo &rarr;
+              Free Demo &rarr;
             </a>
             <a href="#use-cases" className="px-8 py-4 text-[#1a1a1a]/50 font-medium rounded-full text-[15px] hover:text-[#1a1a1a] transition">
-              Use Cases ansehen
+              See Use Cases
             </a>
           </div>
         </R>
@@ -140,19 +140,19 @@ export default function LandingPage() {
       {/* ━━━ 2. SOCIAL PROOF ━━━ */}
       <section className="py-6 border-y border-black/[0.04] bg-white">
         <div className="max-w-4xl mx-auto px-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[13px] text-[#1a1a1a]/30">
-          <span className="flex items-center gap-1.5"><span className="text-[#FACC15]">&#9733;&#9733;&#9733;&#9733;&#9733;</span> Pilotprogramm live</span>
+          <span className="flex items-center gap-1.5"><span className="text-[#FACC15]">&#9733;&#9733;&#9733;&#9733;&#9733;</span> Pilot program live</span>
           <span>&middot;</span>
-          <span>DSGVO-konform</span>
+          <span>SOC 2 compliant</span>
           <span>&middot;</span>
-          <span>EU-Server (Frankfurt)</span>
+          <span>US-hosted infrastructure</span>
           <span>&middot;</span>
-          <span>Pers&ouml;nliches Onboarding</span>
+          <span>White-glove onboarding</span>
         </div>
       </section>
 
-      {/* ━━━ 3. LOGO-KARUSSELL ━━━ */}
+      {/* ━━━ 3. LOGO CAROUSEL ━━━ */}
       <section className="py-10 overflow-hidden bg-white border-b border-black/[0.04]">
-        <p className="text-center text-[11px] text-[#1a1a1a]/20 uppercase tracking-[0.2em] font-medium mb-6">Verbindet sich mit</p>
+        <p className="text-center text-[11px] text-[#1a1a1a]/20 uppercase tracking-[0.2em] font-medium mb-6">Connects with</p>
         <div className="relative">
           <div className="flex gap-12 logo-scroll" style={{ width: 'max-content' }}>
             {[...LOGOS, ...LOGOS].map((name, i) => (
@@ -162,32 +162,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 4. KUNDENGESCHICHTEN (fullwidth, fonio-style) ━━━ */}
+      {/* ━━━ 4. CUSTOMER STORIES ━━━ */}
       <section className="py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-6">
           <R className="text-center mb-16">
-            <p className="text-[10px] font-bold text-[#1a1a1a]/25 tracking-[0.25em] uppercase mb-4">Kundengeschichten</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">So arbeiten Installateure mit birdie.</h2>
+            <p className="text-[10px] font-bold text-[#1a1a1a]/25 tracking-[0.25em] uppercase mb-4">Customer Stories</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">How installers work with birdie.</h2>
           </R>
 
-          {/* Story 1: Volta */}
+          {/* Story 1: SunPeak Solar (fictional US example) */}
           <R className="mb-8">
-            <Link href="/case-studies/volta" className="block group">
+            <div className="block">
               <div className="bg-white rounded-3xl border border-black/[0.04] overflow-hidden hover:shadow-xl hover:border-black/[0.08] transition-all duration-500">
                 <div className="grid md:grid-cols-2 min-h-[420px]">
-                  {/* Left: Image area */}
                   <div className="bg-gradient-to-br from-[#f5f0e8] to-[#ebe6db] p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
                     <div>
-                      <span className="text-[9px] font-bold text-[#FACC15] tracking-[0.2em] uppercase bg-[#FACC15]/10 px-3 py-1.5 rounded-full">PV-INSTALLATEUR &middot; LEIPZIG</span>
+                      <span className="text-[9px] font-bold text-[#FACC15] tracking-[0.2em] uppercase bg-[#FACC15]/10 px-3 py-1.5 rounded-full">SOLAR INSTALLER &middot; TEXAS</span>
                     </div>
-                    {/* App mockup as "screenshot" */}
-                    <div className="mt-6 bg-[#0f1117] rounded-xl shadow-2xl shadow-black/20 overflow-hidden border border-white/10 transform group-hover:scale-[1.02] transition-transform duration-500">
+                    <div className="mt-6 bg-[#0f1117] rounded-xl shadow-2xl shadow-black/20 overflow-hidden border border-white/10">
                       <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/[0.06]">
                         <div className="w-2 h-2 rounded-full bg-white/10" /><div className="w-2 h-2 rounded-full bg-white/10" /><div className="w-2 h-2 rounded-full bg-white/10" />
-                        <span className="mx-auto text-[8px] text-white/20 font-mono">birdie &middot; netzanmeldung</span>
+                        <span className="mx-auto text-[8px] text-white/20 font-mono">birdie &middot; interconnection</span>
                       </div>
                       <div className="p-3 flex flex-col gap-1.5">
-                        {['Nickel &mdash; TEN &mdash; Freigegeben', 'Baetge &mdash; TEN &mdash; Bitte pr&uuml;fen', 'M&uuml;ller &mdash; SN &mdash; KI generiert'].map((r, i) => (
+                        {['Johnson &mdash; Oncor &mdash; Approved', 'Martinez &mdash; AEP &mdash; Under Review', 'Williams &mdash; CenterPoint &mdash; AI Generated'].map((r, i) => (
                           <div key={i} className="flex items-center justify-between px-2.5 py-1.5 bg-white/[0.03] rounded-lg">
                             <span className="text-[9px] text-white/50" dangerouslySetInnerHTML={{ __html: r.split(' &mdash; ').slice(0, 2).join(' &middot; ') }} />
                             <span className="text-[7px] px-1.5 py-0.5 rounded bg-[#FACC15]/10 text-[#FACC15] font-bold" dangerouslySetInnerHTML={{ __html: r.split(' &mdash; ')[2] }} />
@@ -196,7 +194,7 @@ export default function LandingPage() {
                       </div>
                     </div>
                     <div className="mt-4 flex gap-3">
-                      {[{ v: '50+', l: 'Projekte' }, { v: '5 Min', l: 'pro Anmeldung' }, { v: '5', l: 'Bots aktiv' }].map(m => (
+                      {[{ v: '200+', l: 'Projects' }, { v: '5 min', l: 'per application' }, { v: '8', l: 'Bots active' }].map(m => (
                         <div key={m.l} className="bg-white/60 backdrop-blur rounded-xl px-3 py-2">
                           <div className="text-[15px] font-extrabold text-[#1a1a1a]">{m.v}</div>
                           <div className="text-[9px] text-[#1a1a1a]/40">{m.l}</div>
@@ -204,75 +202,71 @@ export default function LandingPage() {
                       ))}
                     </div>
                   </div>
-                  {/* Right: Content */}
                   <div className="p-8 md:p-12 flex flex-col justify-center">
                     <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight mb-4">
-                      Volta Energietechnik
+                      SunPeak Solar
                     </h3>
                     <p className="text-[15px] font-semibold text-[#1a1a1a]/60 mb-6">
-                      Von 45 Minuten pro Netzanmeldung auf 5 &mdash; mit KI-Dokumenten und automatischer Einreichung.
+                      From 45 minutes per interconnection application to 5 &mdash; with AI-generated documents and automatic submission.
                     </p>
                     <p className="text-[14px] text-[#1a1a1a]/35 leading-relaxed mb-8">
-                      Volta installiert PV-Anlagen in Sachsen und Th&uuml;ringen. Mit birdie werden Netzanmeldungen f&uuml;r 25+ Netzbetreiber
-                      per KI ausgef&uuml;llt, von Katrin im B&uuml;ro gepr&uuml;ft, und vom Elektriker per Link unterschrieben.
+                      SunPeak installs residential solar across Texas. With birdie, interconnection applications for 15+ utilities
+                      are AI-filled, reviewed by the office team, and signed by the electrician via link.
                     </p>
                     <div className="bg-[#f0efe9] rounded-2xl p-5 mb-8">
                       <p className="text-[15px] italic text-[#1a1a1a]/50 leading-relaxed">
-                        &ldquo;Jetzt pr&uuml;fe ich nur noch was die KI ausf&uuml;llt &mdash; 5 Minuten, fertig. Die Bots machen den Rest.&rdquo;
+                        &ldquo;I just review what the AI fills in &mdash; 5 minutes, done. The bots handle the rest.&rdquo;
                       </p>
-                      <p className="text-[12px] font-semibold text-[#1a1a1a]/40 mt-3">Katrin &middot; B&uuml;roleitung</p>
+                      <p className="text-[12px] font-semibold text-[#1a1a1a]/40 mt-3">Office Manager &middot; SunPeak Solar</p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <a href="https://volta-solaranlagen.de" target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#1a1a1a]/25 hover:text-[#1a1a1a]/50 transition">volta-solaranlagen.de &nearr;</a>
-                      <span className="text-[14px] font-semibold text-[#1a1a1a] group-hover:text-[#FACC15] transition">Weiterlesen &rarr;</span>
+                      <span className="text-[12px] text-[#1a1a1a]/25">Austin, TX</span>
+                      <span className="text-[14px] font-semibold text-[#1a1a1a]">Read more &rarr;</span>
                     </div>
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           </R>
 
-          {/* Story 2: Alpen Energie */}
+          {/* Story 2: Mountain West Energy */}
           <R d={150}>
-            <Link href="/case-studies/alpen-energie" className="block group">
+            <div className="block">
               <div className="bg-white rounded-3xl border border-black/[0.04] overflow-hidden hover:shadow-xl hover:border-black/[0.08] transition-all duration-500">
                 <div className="grid md:grid-cols-2 min-h-[420px]">
-                  {/* Left: Content */}
                   <div className="p-8 md:p-12 flex flex-col justify-center order-2 md:order-1">
                     <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight mb-4">
-                      Alpen Energie
+                      Mountain West Energy
                     </h3>
                     <p className="text-[15px] font-semibold text-[#1a1a1a]/60 mb-6">
-                      Wie ein Schweizer Installateur mit birdie Buchhaltung, Mahnwesen und Kundenkommunikation automatisiert hat.
+                      How a Colorado installer automated invoicing, payment reminders, and customer communications with birdie.
                     </p>
                     <p className="text-[14px] text-[#1a1a1a]/35 leading-relaxed mb-8">
-                      Alpen Energie aus Chur betreut &uuml;ber 80 PV-Anlagen in Graub&uuml;nden. Mit birdie laufen Mahnungen automatisch &uuml;ber sevDesk,
-                      E-Mails werden per KI dem richtigen Projekt zugeordnet, und das Team sieht alles auf einem Dashboard.
+                      Mountain West Energy manages 120+ residential systems across the Front Range. With birdie, payment reminders run automatically,
+                      emails are AI-routed to the right project, and the team sees everything on one dashboard.
                     </p>
                     <div className="bg-[#f0efe9] rounded-2xl p-5 mb-8">
                       <p className="text-[15px] italic text-[#1a1a1a]/50 leading-relaxed">
-                        &ldquo;Wir hatten 8 verschiedene Tools und keinen &Uuml;berblick. Jetzt &ouml;ffne ich morgens birdie und sehe sofort was ansteht.&rdquo;
+                        &ldquo;We had 8 different tools and no overview. Now I open birdie in the morning and immediately see what needs attention.&rdquo;
                       </p>
-                      <p className="text-[12px] font-semibold text-[#1a1a1a]/40 mt-3">Gesch&auml;ftsf&uuml;hrung &middot; Alpen Energie</p>
+                      <p className="text-[12px] font-semibold text-[#1a1a1a]/40 mt-3">Operations Lead &middot; Mountain West Energy</p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[12px] text-[#1a1a1a]/25">Graub&uuml;nden, Schweiz</span>
-                      <span className="text-[14px] font-semibold text-[#1a1a1a] group-hover:text-[#FACC15] transition">Weiterlesen &rarr;</span>
+                      <span className="text-[12px] text-[#1a1a1a]/25">Denver, CO</span>
+                      <span className="text-[14px] font-semibold text-[#1a1a1a]">Read more &rarr;</span>
                     </div>
                   </div>
-                  {/* Right: Image area */}
                   <div className="bg-gradient-to-br from-[#e8f0f5] to-[#d5e3ed] p-8 md:p-12 flex flex-col justify-between order-1 md:order-2 relative overflow-hidden">
                     <div>
-                      <span className="text-[9px] font-bold text-blue-500 tracking-[0.2em] uppercase bg-blue-500/10 px-3 py-1.5 rounded-full">SOLAR &middot; SCHWEIZ</span>
+                      <span className="text-[9px] font-bold text-blue-500 tracking-[0.2em] uppercase bg-blue-500/10 px-3 py-1.5 rounded-full">SOLAR &middot; COLORADO</span>
                     </div>
-                    {/* Dashboard mockup */}
-                    <div className="mt-6 bg-[#0f1117] rounded-xl shadow-2xl shadow-black/20 overflow-hidden border border-white/10 transform group-hover:scale-[1.02] transition-transform duration-500">
+                    <div className="mt-6 bg-[#0f1117] rounded-xl shadow-2xl shadow-black/20 overflow-hidden border border-white/10">
                       <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/[0.06]">
                         <div className="w-2 h-2 rounded-full bg-white/10" /><div className="w-2 h-2 rounded-full bg-white/10" /><div className="w-2 h-2 rounded-full bg-white/10" />
                         <span className="mx-auto text-[8px] text-white/20 font-mono">birdie &middot; dashboard</span>
                       </div>
                       <div className="p-3 grid grid-cols-3 gap-2">
-                        {[{ v: 'CHF 1.2M', l: 'Pipeline', c: '#FACC15' }, { v: '94%', l: 'Online', c: '#4ADE80' }, { v: '12', l: 'Bots', c: '#60A5FA' }].map(k => (
+                        {[{ v: '$2.4M', l: 'Pipeline', c: '#FACC15' }, { v: '97%', l: 'Online', c: '#4ADE80' }, { v: '12', l: 'Bots', c: '#60A5FA' }].map(k => (
                           <div key={k.l} className="bg-white/[0.04] rounded-lg p-2 text-center">
                             <div className="text-[13px] font-bold" style={{ color: k.c }}>{k.v}</div>
                             <div className="text-[7px] text-white/30 uppercase">{k.l}</div>
@@ -281,7 +275,7 @@ export default function LandingPage() {
                       </div>
                     </div>
                     <div className="mt-4 flex gap-3">
-                      {[{ v: '80+', l: 'Anlagen' }, { v: '12', l: 'Bots aktiv' }, { v: '0', l: 'Tools ersetzt' }].map(m => (
+                      {[{ v: '120+', l: 'Systems' }, { v: '12', l: 'Bots active' }, { v: '0', l: 'Tools replaced' }].map(m => (
                         <div key={m.l} className="bg-white/60 backdrop-blur rounded-xl px-3 py-2">
                           <div className="text-[15px] font-extrabold text-[#1a1a1a]">{m.v}</div>
                           <div className="text-[9px] text-[#1a1a1a]/40">{m.l}</div>
@@ -291,32 +285,32 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           </R>
         </div>
       </section>
 
-      {/* ━━━ 5. 3-SCHRITT SETUP ━━━ */}
+      {/* ━━━ 5. 3-STEP SETUP ━━━ */}
       <section className="py-20 md:py-28 bg-white border-y border-black/[0.04]">
         <div className="max-w-5xl mx-auto px-6">
           <R className="text-center mb-16">
-            <p className="text-[10px] font-bold text-[#1a1a1a]/25 tracking-[0.25em] uppercase mb-4">So funktioniert&apos;s</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">In unter 30 Minuten einsatzbereit.</h2>
-            <p className="text-[#1a1a1a]/35 mt-3">Keine technischen Kenntnisse n&ouml;tig. Wir machen das f&uuml;r dich.</p>
+            <p className="text-[10px] font-bold text-[#1a1a1a]/25 tracking-[0.25em] uppercase mb-4">How it works</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Up and running in under 30 minutes.</h2>
+            <p className="text-[#1a1a1a]/35 mt-3">No technical skills needed. We do it for you.</p>
           </R>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { num: '01', title: 'Connectoren anschlie&szlig;en', desc: 'Wir verbinden dein CRM, deine Buchhaltung und deine Wechselrichter. Ein Call, 30 Minuten.' },
-              { num: '02', title: 'Alles auf einen Blick', desc: 'Ab Tag 1 siehst du Pipeline, Projekte, offene Posten, Anlagenstatus &mdash; an einem Ort.' },
-              { num: '03', title: 'Bots &uuml;bernehmen', desc: 'Netzanmeldung, Mahnungen, E-Mails &mdash; Bots erledigen das. Du gibst nur noch frei.' },
+              { num: '01', title: 'Connect your tools', desc: 'We connect your CRM, accounting, and inverter platforms. One call, 30 minutes.' },
+              { num: '02', title: 'See everything at a glance', desc: 'From day one you see pipeline, projects, outstanding invoices, system status &mdash; in one place.' },
+              { num: '03', title: 'Bots take over', desc: 'Interconnection apps, payment reminders, email routing &mdash; bots handle it. You just approve.' },
             ].map((s, i) => (
               <R key={s.num} d={i * 120}>
                 <div className="bg-[#fafaf9] rounded-2xl border border-black/[0.04] p-7 h-full">
                   <div className="w-10 h-10 rounded-xl bg-[#1a1a1a] flex items-center justify-center mb-5">
                     <span className="text-[#FACC15] font-bold text-[13px]">{s.num}</span>
                   </div>
-                  <h3 className="text-[17px] font-bold mb-2" dangerouslySetInnerHTML={{ __html: s.title }} />
-                  <p className="text-[14px] text-[#1a1a1a]/35 leading-relaxed" dangerouslySetInnerHTML={{ __html: s.desc }} />
+                  <h3 className="text-[17px] font-bold mb-2">{s.title}</h3>
+                  <p className="text-[14px] text-[#1a1a1a]/35 leading-relaxed">{s.desc}</p>
                 </div>
               </R>
             ))}
@@ -329,49 +323,47 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6">
           <R className="text-center mb-16">
             <p className="text-[10px] font-bold text-[#FACC15] tracking-[0.25em] uppercase mb-4">Use Cases</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Was birdie f&uuml;r dich tun kann.</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">What birdie can do for you.</h2>
           </R>
-          {/* Feature 1: Netzanmeldung — mit App-Mockup */}
+          {/* Feature 1: Interconnection */}
           <R className="mb-16">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <span className="text-[9px] font-bold text-[#FACC15] tracking-[0.2em] uppercase mb-4 inline-block">NETZANMELDUNG</span>
-                <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-4">25 Netzbetreiber. 100+ Formulare. 30 Sekunden.</h3>
+                <span className="text-[9px] font-bold text-[#FACC15] tracking-[0.2em] uppercase mb-4 inline-block">INTERCONNECTION</span>
+                <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-4">50 utilities. 200+ forms. 30 seconds.</h3>
                 <p className="text-[15px] text-[#1a1a1a]/40 leading-relaxed mb-6">
-                  birdie liest die Projektdaten aus deinem CRM, erkennt den Netzbetreiber anhand der PLZ, und f&uuml;llt alle Formulare per KI aus.
-                  Fachregeln sind eingebaut &mdash; NA-Schutz, Drosselung, Symmetrie. Du pr&uuml;fst direkt in birdie, gibst frei, der Elektriker unterschreibt per Link.
+                  birdie reads project data from your CRM, identifies the utility by zip code, and fills all forms with AI.
+                  NEC 690 compliance, IEEE 1547 standards, rapid shutdown &mdash; all built in.
+                  You review in birdie, approve, the electrician signs via link.
                 </p>
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {['TEN', 'Sachsen Netze', 'Bayernwerk', 'MITNETZ', 'Werra Energie'].map(nb => (
+                  {['Oncor', 'PG&E', 'Duke Energy', 'AEP', 'CenterPoint'].map(nb => (
                     <span key={nb} className="px-2.5 py-1 bg-[#1a1a1a]/[0.04] rounded-full text-[11px] text-[#1a1a1a]/40">{nb}</span>
                   ))}
-                  <span className="px-2.5 py-1 bg-[#FACC15]/10 rounded-full text-[11px] text-[#FACC15] font-medium">+20 weitere</span>
+                  <span className="px-2.5 py-1 bg-[#FACC15]/10 rounded-full text-[11px] text-[#FACC15] font-medium">+45 more</span>
                 </div>
-                <Link href="/case-studies/volta" className="text-[14px] font-semibold text-[#1a1a1a]/50 hover:text-[#1a1a1a] transition">Use Case: Volta &rarr;</Link>
               </div>
               <div className="bg-[#0f1117] rounded-2xl shadow-2xl shadow-black/20 overflow-hidden border border-white/10">
                 <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/[0.06]">
                   <div className="w-2 h-2 rounded-full bg-[#F87171]" /><div className="w-2 h-2 rounded-full bg-[#FBBF24]" /><div className="w-2 h-2 rounded-full bg-[#4ADE80]" />
-                  <span className="mx-auto text-[9px] text-white/20 font-mono">netzanmeldung/nickel</span>
+                  <span className="mx-auto text-[9px] text-white/20 font-mono">interconnection/johnson</span>
                 </div>
                 <div className="p-4 flex gap-3">
-                  {/* Left: data */}
                   <div className="flex-1 flex flex-col gap-2">
-                    <div className="text-[10px] text-white/30 uppercase tracking-wider">Projektdaten</div>
-                    {[['Anlage', '6,3 kWp'], ['WR', 'EcoFlow PowerOcean 8kW'], ['Speicher', '7,68 kWh'], ['Adresse', 'Kraker 6, 07356 Bad Lobenstein']].map(([k, v]) => (
+                    <div className="text-[10px] text-white/30 uppercase tracking-wider">Project Data</div>
+                    {[['System', '8.4 kW DC'], ['Inverter', 'Enphase IQ8+'], ['Storage', 'Tesla Powerwall 3'], ['Address', '1234 Oak St, Austin TX']].map(([k, v]) => (
                       <div key={k} className="flex justify-between px-2.5 py-1.5 bg-white/[0.03] rounded-lg">
                         <span className="text-[9px] text-white/30">{k}</span>
                         <span className="text-[9px] text-white/60 font-medium">{v}</span>
                       </div>
                     ))}
                   </div>
-                  {/* Right: docs */}
                   <div className="w-40 flex flex-col gap-2">
-                    <div className="text-[10px] text-white/30 uppercase tracking-wider">Dokumente</div>
-                    {['AN005 Antragstellung', 'ANS Anmeldung', 'AN002 IBN-Protokoll'].map(d => (
+                    <div className="text-[10px] text-white/30 uppercase tracking-wider">Documents</div>
+                    {['Interconnection App', 'Single-Line Diagram', 'Electrical Permit'].map(d => (
                       <div key={d} className="px-2.5 py-2 bg-white/[0.03] rounded-lg">
                         <span className="text-[9px] text-white/50">{d}</span>
-                        <div className="text-[8px] text-[#4ADE80] font-bold mt-0.5">&#x2713; KI ausgef&uuml;llt</div>
+                        <div className="text-[8px] text-[#4ADE80] font-bold mt-0.5">&#x2713; AI filled</div>
                       </div>
                     ))}
                   </div>
@@ -386,11 +378,11 @@ export default function LandingPage() {
               <div className="order-2 md:order-1 bg-[#0f1117] rounded-2xl shadow-2xl shadow-black/20 overflow-hidden border border-white/10">
                 <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/[0.06]">
                   <div className="w-2 h-2 rounded-full bg-[#F87171]" /><div className="w-2 h-2 rounded-full bg-[#FBBF24]" /><div className="w-2 h-2 rounded-full bg-[#4ADE80]" />
-                  <span className="mx-auto text-[9px] text-white/20 font-mono">anlagen / monitoring</span>
+                  <span className="mx-auto text-[9px] text-white/20 font-mono">fleet / monitoring</span>
                 </div>
                 <div className="p-4">
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    {[{ v: '847 kWp', l: 'Installiert', c: '#FACC15' }, { v: '94%', l: 'Online', c: '#4ADE80' }, { v: '73%', l: 'Eigenverbr.', c: '#60A5FA' }].map(k => (
+                    {[{ v: '1.2 MW', l: 'Installed', c: '#FACC15' }, { v: '97%', l: 'Online', c: '#4ADE80' }, { v: '82%', l: 'Self-cons.', c: '#60A5FA' }].map(k => (
                       <div key={k.l} className="bg-white/[0.04] rounded-lg p-2.5 text-center">
                         <div className="text-[14px] font-bold" style={{ color: k.c }}>{k.v}</div>
                         <div className="text-[8px] text-white/25 uppercase">{k.l}</div>
@@ -398,7 +390,7 @@ export default function LandingPage() {
                     ))}
                   </div>
                   <div className="bg-white/[0.03] rounded-lg p-3">
-                    <div className="text-[8px] text-white/25 uppercase mb-2">Tagesproduktion</div>
+                    <div className="text-[8px] text-white/25 uppercase mb-2">Daily Production</div>
                     <div className="flex items-end gap-[2px] h-16">
                       {[12, 22, 38, 55, 72, 88, 95, 100, 92, 78, 58, 35, 18, 8].map((h, i) => (
                         <div key={i} className="flex-1 rounded-t-sm" style={{ height: `${h}%`, background: 'linear-gradient(to top, rgba(250,204,21,0.5), rgba(250,204,21,0.15))' }} />
@@ -409,14 +401,16 @@ export default function LandingPage() {
               </div>
               <div className="order-1 md:order-2">
                 <span className="text-[9px] font-bold text-[#4ADE80] tracking-[0.2em] uppercase mb-4 inline-block">MONITORING</span>
-                <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-4">Jede Anlage. Jederzeit. Bevor der Kunde anruft.</h3>
+                <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-4">Every system. Anytime. Before the customer calls.</h3>
                 <p className="text-[15px] text-[#1a1a1a]/40 leading-relaxed mb-6">
-                  Verbinde die EcoFlow-Anlagen deiner Kunden und sieh Produktion, Speicher-SoC und St&ouml;rungen in Echtzeit.
-                  Mehr Kundenkontakt, mehr Vertrauen, weniger Support-Tickets.
+                  Connect your customers&apos; Enphase, SolarEdge, or Tesla systems and see production, battery SoC, and faults in real time.
+                  More customer touchpoints, more trust, fewer support tickets.
                 </p>
                 <div className="flex gap-2">
-                  <span className="px-3 py-1.5 bg-[#1a1a1a]/[0.04] rounded-full text-[11px] text-[#1a1a1a]/40">EcoFlow PowerOcean</span>
-                  <span className="px-3 py-1.5 bg-[#1a1a1a]/[0.04] rounded-full text-[11px] text-[#1a1a1a]/25">Weitere bald</span>
+                  <span className="px-3 py-1.5 bg-[#1a1a1a]/[0.04] rounded-full text-[11px] text-[#1a1a1a]/40">Enphase</span>
+                  <span className="px-3 py-1.5 bg-[#1a1a1a]/[0.04] rounded-full text-[11px] text-[#1a1a1a]/40">SolarEdge</span>
+                  <span className="px-3 py-1.5 bg-[#1a1a1a]/[0.04] rounded-full text-[11px] text-[#1a1a1a]/40">Tesla</span>
+                  <span className="px-3 py-1.5 bg-[#1a1a1a]/[0.04] rounded-full text-[11px] text-[#1a1a1a]/25">More soon</span>
                 </div>
               </div>
             </div>
@@ -426,14 +420,14 @@ export default function LandingPage() {
           <R>
             <div className="grid md:grid-cols-3 gap-5">
               {[
-                { title: 'Email-Zuordnung', desc: 'KI klassifiziert eingehende Mails und ordnet sie dem richtigen Projekt zu. Einspeisezusagen, Z&auml;hlertermine, R&uuml;ckfragen &mdash; alles am richtigen Ort.', tag: 'KI' },
-                { title: 'Zahlungserinnerungen', desc: 'sevDesk-Rechnungen &uuml;berf&auml;llig? Mahnbot verschickt h&ouml;fliche Erinnerungen. Konfigurierbare Stufen, automatisch aber menschlich.', tag: 'BOT' },
-                { title: '+ Dein Workflow', desc: 'Dir fehlt was? Wir bauen jeden Workflow den du brauchst. Pers&ouml;nlich eingerichtet, nicht self-service. Dein Wunsch-Feature wird gebaut.', tag: 'CUSTOM' },
+                { title: 'Email Routing', desc: 'AI classifies incoming emails and assigns them to the right project. Utility approvals, inspection dates, customer questions &mdash; all in the right place.', tag: 'AI' },
+                { title: 'Payment Reminders', desc: 'Overdue invoices in QuickBooks? The reminder bot sends polite follow-ups. Configurable escalation, automatic but human.', tag: 'BOT' },
+                { title: '+ Your Workflow', desc: 'Missing something? We build any workflow you need. Personally configured, not self-service. Your feature request gets built.', tag: 'CUSTOM' },
               ].map((f, i) => (
                 <a key={f.title} href="#contact" className="block bg-white rounded-2xl border border-black/[0.04] p-7 hover:shadow-lg hover:border-black/[0.08] transition-all group">
                   <span className="text-[9px] font-bold text-[#FACC15] tracking-[0.15em] uppercase">{f.tag}</span>
                   <h3 className="text-[16px] font-bold mt-3 mb-2 group-hover:text-[#FACC15] transition">{f.title}</h3>
-                  <p className="text-[13px] text-[#1a1a1a]/35 leading-relaxed" dangerouslySetInnerHTML={{ __html: f.desc }} />
+                  <p className="text-[13px] text-[#1a1a1a]/35 leading-relaxed">{f.desc}</p>
                 </a>
               ))}
             </div>
@@ -441,19 +435,45 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 7. INTEGRATIONEN ━━━ */}
-      <section id="integrationen" className="py-20 md:py-28 bg-[#1a1a1a] text-white">
+      {/* ━━━ 7. INTEGRATIONS ━━━ */}
+      <section id="integrations" className="py-20 md:py-28 bg-[#1a1a1a] text-white">
         <div className="max-w-5xl mx-auto px-6">
           <R className="text-center mb-16">
-            <p className="text-[10px] font-bold text-[#FACC15] tracking-[0.25em] uppercase mb-4">Integrationen</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Dein System. Unsere Verbindung.</h2>
-            <p className="text-white/30 mt-3 max-w-xl mx-auto">Reonic, sevDesk, EcoFlow &mdash; oder dein eigenes CRM/ERP. Wir bauen die Anbindung.</p>
+            <p className="text-[10px] font-bold text-[#FACC15] tracking-[0.25em] uppercase mb-4">Integrations</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Your system. Our connection.</h2>
+            <p className="text-white/30 mt-3 max-w-xl mx-auto">Aurora Solar, Enphase, QuickBooks &mdash; or your own CRM/ERP. We build the integration.</p>
           </R>
           <div className="flex flex-wrap justify-center gap-3">
             {LOGOS.map(name => (
               <span key={name} className="px-5 py-2.5 bg-white/[0.05] border border-white/[0.08] rounded-full text-[13px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.1] transition cursor-default">{name}</span>
             ))}
-            <span className="px-5 py-2.5 bg-[#FACC15]/10 border border-[#FACC15]/20 rounded-full text-[13px] font-medium text-[#FACC15]">+ Dein System</span>
+            <span className="px-5 py-2.5 bg-[#FACC15]/10 border border-[#FACC15]/20 rounded-full text-[13px] font-medium text-[#FACC15]">+ Your System</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ━━━ IRA / INCENTIVES SECTION ━━━ */}
+      <section className="py-20 md:py-28 bg-white border-y border-black/[0.04]">
+        <div className="max-w-5xl mx-auto px-6">
+          <R className="text-center mb-16">
+            <p className="text-[10px] font-bold text-[#4ADE80] tracking-[0.25em] uppercase mb-4">Built for the US Market</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">IRA-ready. NEC-compliant. State-aware.</h2>
+            <p className="text-[#1a1a1a]/35 mt-3 max-w-xl mx-auto">birdie understands US solar regulations so you don&apos;t have to look them up.</p>
+          </R>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: '⚡', title: 'NEC 690 & IEEE 1547', desc: 'Interconnection forms are filled with the correct rapid shutdown, anti-islanding, and voltage ride-through specs. No manual lookups.' },
+              { icon: '🏛', title: 'IRA Tax Credit Tracking', desc: 'Track 30% ITC eligibility, domestic content bonus, and low-income adders across your project portfolio.' },
+              { icon: '📋', title: 'AHJ & Utility Rules', desc: 'Every Authority Having Jurisdiction has different rules. birdie knows the requirements for each utility territory and state.' },
+            ].map((item, i) => (
+              <R key={item.title} d={i * 100}>
+                <div className="bg-[#fafaf9] rounded-2xl border border-black/[0.04] p-7 h-full">
+                  <div className="text-2xl mb-4">{item.icon}</div>
+                  <h3 className="text-[16px] font-bold mb-2">{item.title}</h3>
+                  <p className="text-[13px] text-[#1a1a1a]/35 leading-relaxed">{item.desc}</p>
+                </div>
+              </R>
+            ))}
           </div>
         </div>
       </section>
@@ -466,19 +486,19 @@ export default function LandingPage() {
               <span className="text-[#FACC15] font-black text-2xl">SV</span>
             </div>
             <p className="text-[20px] md:text-[24px] font-medium leading-relaxed text-[#1a1a1a]/60 max-w-2xl mx-auto mb-6">
-              &ldquo;Ich hab als Entwicklerin bei einem Solarbetrieb angefangen und schnell gemerkt was eigentlich fehlt. Netzanmeldungen per Hand, 10 Tools, keine &Uuml;bersicht. birdie ist die L&ouml;sung die ich mir gew&uuml;nscht habe.&rdquo;
+              &ldquo;I started as a developer at a solar company and quickly realized what was missing. Interconnection apps by hand, 10 tools, no overview. birdie is the solution I wished existed.&rdquo;
             </p>
             <p className="text-[15px] font-bold">Sarah Vogel</p>
-            <p className="text-[13px] text-[#1a1a1a]/35">Gr&uuml;nderin .birdie</p>
+            <p className="text-[13px] text-[#1a1a1a]/35">Founder, .birdie</p>
           </R>
         </div>
       </section>
 
-      {/* ━━━ 10. FAQ ━━━ */}
+      {/* ━━━ FAQ ━━━ */}
       <section className="py-20 md:py-28">
         <div className="max-w-3xl mx-auto px-6">
           <R className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">H&auml;ufige Fragen</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Frequently Asked Questions</h2>
           </R>
           <R>
             <div className="border-t border-black/[0.06]">
@@ -488,70 +508,65 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 11. FINAL CTA ━━━ */}
+      {/* ━━━ FINAL CTA ━━━ */}
       <section id="contact" className="py-20 md:py-28 bg-[#1a1a1a] text-white">
         <R className="max-w-2xl mx-auto px-6 text-center">
           <Logo variant="light" className="h-8 mx-auto mb-8" />
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">Bereit f&uuml;r Transparenz?</h2>
-          <p className="text-white/35 mb-10 text-lg">20 Minuten. Wir zeigen dir was birdie f&uuml;r deinen Betrieb tun kann. Pers&ouml;nlich, kein Sales-Pitch.</p>
+          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">Ready for transparency?</h2>
+          <p className="text-white/35 mb-10 text-lg">20 minutes. We&apos;ll show you what birdie can do for your business. Personal, no sales pitch.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:info@birdie.solar?subject=Demo%20Anfrage" className="px-8 py-4 bg-white text-[#1a1a1a] font-bold rounded-full text-[15px] hover:bg-white/90 hover:scale-[1.02] active:scale-[0.97] transition-all shadow-lg shadow-white/10">
-              Demo per E-Mail &rarr;
+            <a href="mailto:hello@birdie.solar?subject=Demo%20Request" className="px-8 py-4 bg-white text-[#1a1a1a] font-bold rounded-full text-[15px] hover:bg-white/90 hover:scale-[1.02] active:scale-[0.97] transition-all shadow-lg shadow-white/10">
+              Book a Demo &rarr;
             </a>
-            <a href="https://wa.me/message" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-white/[0.06] border border-white/[0.1] text-white font-medium rounded-full text-[15px] hover:bg-white/[0.1] transition">
-              WhatsApp schreiben
+            <a href="https://calendly.com" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-white/[0.06] border border-white/[0.1] text-white font-medium rounded-full text-[15px] hover:bg-white/[0.1] transition">
+              Schedule a Call
             </a>
           </div>
         </R>
       </section>
 
-      {/* ━━━ 12. FOOTER ━━━ */}
+      {/* ━━━ FOOTER ━━━ */}
       <footer className="bg-[#1a1a1a] border-t border-white/[0.06] py-12">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            {/* Col 1: Brand */}
             <div className="col-span-2 md:col-span-1">
               <Logo variant="light" className="h-5 mb-4" />
-              <p className="text-[12px] text-white/20 leading-relaxed">Die Transparenz-Schicht f&uuml;r Solarinstallateure.</p>
-              <p className="text-[12px] text-white/20 mt-3">info@birdie.solar</p>
+              <p className="text-[12px] text-white/20 leading-relaxed">The transparency layer for solar installers.</p>
+              <p className="text-[12px] text-white/20 mt-3">hello@birdie.solar</p>
             </div>
-            {/* Col 2: Produkt */}
             <div>
-              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">Produkt</p>
+              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">Product</p>
               <div className="flex flex-col gap-2.5 text-[13px] text-white/25">
                 <a href="#use-cases" className="hover:text-white/50 transition">Use Cases</a>
-                <a href="#integrationen" className="hover:text-white/50 transition">Integrationen</a>
-                <Link href="/case-studies/volta" className="hover:text-white/50 transition">Kundengeschichten</Link>
-                <a href="#contact" className="hover:text-white/50 transition">Demo anfragen</a>
+                <a href="#integrations" className="hover:text-white/50 transition">Integrations</a>
+                <a href="#" className="hover:text-white/50 transition">Customer Stories</a>
+                <a href="#contact" className="hover:text-white/50 transition">Book a Demo</a>
               </div>
             </div>
-            {/* Col 3: Unternehmen */}
             <div>
-              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">Unternehmen</p>
+              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">Company</p>
               <div className="flex flex-col gap-2.5 text-[13px] text-white/25">
-                <Link href="/partner" className="hover:text-white/50 transition">Partner werden</Link>
-                <Link href="/impressum" className="hover:text-white/50 transition">Impressum</Link>
-                <a href="#" className="hover:text-white/50 transition">Datenschutz</a>
-                <a href="#" className="hover:text-white/50 transition">Kontakt</a>
+                <Link href="/partner" className="hover:text-white/50 transition">Become a Partner</Link>
+                <a href="#" className="hover:text-white/50 transition">Privacy Policy</a>
+                <a href="#" className="hover:text-white/50 transition">Terms of Service</a>
+                <a href="#" className="hover:text-white/50 transition">Contact</a>
               </div>
             </div>
-            {/* Col 4: Ressourcen */}
             <div>
-              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">Ressourcen</p>
+              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">Resources</p>
               <div className="flex flex-col gap-2.5 text-[13px] text-white/25">
-                <a href="#" className="hover:text-white/50 transition">Blog (bald)</a>
-                <a href="#" className="hover:text-white/50 transition">Hilfe</a>
+                <a href="#" className="hover:text-white/50 transition">Blog (coming soon)</a>
+                <a href="#" className="hover:text-white/50 transition">Help Center</a>
                 <Link href="/gate" className="hover:text-white/50 transition">Login</Link>
               </div>
             </div>
           </div>
-          {/* Bottom */}
           <div className="border-t border-white/[0.06] pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
             <p className="text-[11px] text-white/15">&copy; 2026 .birdie</p>
             <div className="flex items-center gap-4 text-[11px] text-white/15">
-              <span>EU-gehostet</span>
-              <span>DSGVO-konform</span>
-              <span>Made in Germany</span>
+              <span>US-hosted</span>
+              <span>SOC 2 compliant</span>
+              <span>Made with &hearts; for solar</span>
             </div>
           </div>
         </div>
@@ -560,7 +575,7 @@ export default function LandingPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
         '@context': 'https://schema.org', '@type': 'SoftwareApplication',
         name: '.birdie', applicationCategory: 'BusinessApplication', operatingSystem: 'Web',
-        description: 'Die Transparenz-Schicht für Solarinstallateure.',
+        description: 'The transparency layer for solar installers.',
       })}} />
     </div>
   );

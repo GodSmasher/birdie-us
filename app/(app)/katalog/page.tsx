@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic';
 
 const MAX_ROWS = 150;
 
-const euro = (n: number) =>
-  n === 0 ? '—' : '€ ' + n.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const dollar = (n: number) =>
+  n === 0 ? '—' : '$ ' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 const typeTone: Record<string, 'success' | 'warning' | 'info' | 'accent' | 'purple' | 'neutral'> = {
   inverter: 'info',
@@ -27,11 +27,11 @@ export default async function KatalogPage() {
       <Sidebar active="katalog" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar
-          title="Produktkatalog"
+          title="Product Catalog"
           subtitle={
             catalog.configured && !catalog.error
-              ? `${catalog.total.toLocaleString('de-DE')} Komponenten · ${source === 'DB-Cache' ? 'aus DB-Cache' : 'live aus Reonic'}`
-              : 'Reonic-Connector · Komponentenstamm'
+              ? `${catalog.total.toLocaleString('en-US')} components · ${source === 'DB-Cache' ? 'from DB cache' : 'live from Reonic'}`
+              : 'Reonic Connector · Component Master Data'
           }
         />
 
@@ -40,20 +40,20 @@ export default async function KatalogPage() {
             <Card className="p-8 flex flex-col items-center text-center gap-4 max-w-[640px] mx-auto mt-8">
               <div className="w-12 h-12 rounded-xl bg-surface-2 flex items-center justify-center text-accent text-xl">▦</div>
               <div className="flex flex-col gap-1.5">
-                <h2 className="font-semibold text-lg text-fg tracking-tightest">Reonic-Connector nicht verbunden</h2>
+                <h2 className="font-semibold text-lg text-fg tracking-tightest">Reonic connector not connected</h2>
                 <p className="text-[13px] text-fg2 leading-[20px] max-w-[460px]">
-                  Sobald der Reonic-Key hinterlegt ist, erscheint hier der komplette Produktkatalog live —
-                  Wechselrichter, Speicher, Module, Wallboxen & mehr, automatisch kategorisiert, mit VK/EK-Preisen,
-                  und per DATANORM exportierbar.
+                  Once the Reonic key is configured, the complete product catalog will appear here live —
+                  inverters, storage, modules, wallboxes & more, automatically categorized, with retail/wholesale prices,
+                  and exportable via DATANORM.
                 </p>
               </div>
               <div className="bg-bg border border-line rounded-lg p-4 text-left w-full max-w-[460px]">
-                <p className="text-[11px] font-semibold text-fg3 tracking-[0.18em] mb-2">SO AKTIVIEREN</p>
+                <p className="text-[11px] font-semibold text-fg3 tracking-[0.18em] mb-2">HOW TO ACTIVATE</p>
                 <code className="text-[11px] text-fg2 font-mono block leading-[18px]">
                   REONIC_API_KEY=&lt;Basic-Token&gt;<br />
-                  REONIC_CLIENT_ID=&lt;Mandanten-ID&gt;
+                  REONIC_CLIENT_ID=&lt;Tenant-ID&gt;
                 </code>
-                <p className="text-[11px] text-fg3 mt-2">als Environment-Variablen (Vercel / lokal) setzen.</p>
+                <p className="text-[11px] text-fg3 mt-2">Set as environment variables (Vercel / local).</p>
               </div>
             </Card>
           )}
@@ -62,7 +62,7 @@ export default async function KatalogPage() {
             <Card className="p-5 flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-error-bg flex items-center justify-center text-error font-bold">!</div>
               <div className="flex flex-col">
-                <span className="font-semibold text-[13px] text-fg">Reonic nicht erreichbar</span>
+                <span className="font-semibold text-[13px] text-fg">Reonic unreachable</span>
                 <span className="text-xs text-fg2">{catalog.error}</span>
               </div>
             </Card>
@@ -73,8 +73,8 @@ export default async function KatalogPage() {
               {/* Type breakdown */}
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-semibold text-sm text-fg tracking-tightest">Kategorien</h2>
-                  <span className="text-[11px] text-fg3">automatisch aus Artikeltext klassifiziert</span>
+                  <h2 className="font-semibold text-sm text-fg tracking-tightest">Categories</h2>
+                  <span className="text-[11px] text-fg3">automatically classified from article text</span>
                   <Pill label="LIVE" tone="success" />
                 </div>
                 <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
@@ -90,17 +90,17 @@ export default async function KatalogPage() {
               {/* Table */}
               <Card className="overflow-hidden">
                 <div className="h-13 px-5 border-b border-line flex items-center" style={{ height: 52 }}>
-                  <h3 className="font-semibold text-sm text-fg">Komponenten</h3>
+                  <h3 className="font-semibold text-sm text-fg">Components</h3>
                   <span className="ml-auto text-[11px] text-fg3">
-                    zeigt {Math.min(MAX_ROWS, catalog.total)} von {catalog.total.toLocaleString('de-DE')}
+                    showing {Math.min(MAX_ROWS, catalog.total)} of {catalog.total.toLocaleString('en-US')}
                   </span>
                 </div>
                 <div className="grid grid-cols-[1fr_140px_160px_120px_120px] bg-surface-2 h-9 items-center px-5 text-[10px] font-semibold text-fg3 tracking-[0.18em]">
-                  <span>ARTIKEL</span>
-                  <span>MARKE</span>
-                  <span>TYP</span>
-                  <span>VK NETTO</span>
-                  <span>EK NETTO</span>
+                  <span>ARTICLE</span>
+                  <span>BRAND</span>
+                  <span>TYPE</span>
+                  <span>RETAIL NET</span>
+                  <span>WHOLESALE NET</span>
                 </div>
                 {catalog.components.slice(0, MAX_ROWS).map((c, i) => (
                   <div
@@ -117,8 +117,8 @@ export default async function KatalogPage() {
                     <div>
                       <Tag label={c.typeLabel} tone={typeTone[c.type] ?? 'neutral'} />
                     </div>
-                    <span className="text-[13px] font-medium text-fg">{euro(c.price)}</span>
-                    <span className="text-[13px] text-fg2">{c.purchasePrice != null ? euro(c.purchasePrice) : '—'}</span>
+                    <span className="text-[13px] font-medium text-fg">{dollar(c.price)}</span>
+                    <span className="text-[13px] text-fg2">{c.purchasePrice != null ? dollar(c.purchasePrice) : '—'}</span>
                   </div>
                 ))}
               </Card>

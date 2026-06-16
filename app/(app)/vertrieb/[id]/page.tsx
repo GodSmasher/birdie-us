@@ -11,26 +11,26 @@ import type { RawOffer } from '@/app/lib/reonic-server';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
-const euro = (n: number) => (n === 0 ? '--' : n.toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' EUR');
+const usd = (n: number) => (n === 0 ? '--' : '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 }));
 const fmtDate = (d: string | undefined) => {
   if (!d) return '--';
   try {
-    return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return new Date(d).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' });
   } catch { return '--'; }
 };
 const fmtDateTime = (d: string | undefined) => {
   if (!d) return '--';
   try {
-    return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(d).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   } catch { return '--'; }
 };
 
-const stateLabel: Record<string, string> = { Open: 'OFFEN', Won: 'GEWONNEN', Lost: 'VERLOREN' };
+const stateLabel: Record<string, string> = { Open: 'OPEN', Won: 'WON', Lost: 'LOST' };
 const stateTone: Record<string, 'info' | 'success' | 'error' | 'neutral'> = { Open: 'info', Won: 'success', Lost: 'error' };
 
 const docStatusLabel: Record<string, string> = {
-  offen: 'Offen', pruefen: 'Bitte pruefen', hochgeladen: 'Bei pCloud',
-  unterschrieben: 'Unterschrieben', eingereicht: 'Eingereicht', freigegeben: 'Freigegeben',
+  offen: 'Open', pruefen: 'Needs Review', hochgeladen: 'Uploaded',
+  unterschrieben: 'Signed', eingereicht: 'Submitted', freigegeben: 'Approved',
 };
 const docStatusTone: Record<string, 'info' | 'success' | 'warning' | 'neutral' | 'accent'> = {
   offen: 'neutral', pruefen: 'warning', hochgeladen: 'info',
@@ -38,8 +38,8 @@ const docStatusTone: Record<string, 'info' | 'success' | 'warning' | 'neutral' |
 };
 
 const stageLabelMap: Record<string, string> = {
-  anfrage: 'Netzanfrage', zusage: 'Zusage', inbetriebnahme: 'Inbetriebnahme',
-  mastr: 'MaStR', abschluss: 'Abgeschlossen',
+  anfrage: 'Interconnection Request', zusage: 'Approval', inbetriebnahme: 'Commissioning',
+  mastr: 'MaStR', abschluss: 'Completed',
 };
 const stageTone: Record<string, 'info' | 'success' | 'warning' | 'accent' | 'neutral'> = {
   anfrage: 'info', zusage: 'accent', inbetriebnahme: 'warning',
@@ -47,15 +47,15 @@ const stageTone: Record<string, 'info' | 'success' | 'warning' | 'accent' | 'neu
 };
 
 const emailCatLabel: Record<string, string> = {
-  netz_status: 'NB Status', netz_document: 'NB Dokument', customer_update: 'Kundenanfrage',
-  customer_doc: 'Kunden-Dok', customer_correction: 'Korrektur', bounce: 'Bounce', general: 'Allgemein',
+  netz_status: 'Utility Status', netz_document: 'Utility Document', customer_update: 'Customer Inquiry',
+  customer_doc: 'Customer Doc', customer_correction: 'Correction', bounce: 'Bounce', general: 'General',
 };
 
 const fileCatLabel: Record<string, string> = {
-  vollmacht_nb: 'Vollmacht NB', vollmacht_mastr: 'Vollmacht MaStR', anschlusszusage: 'Anschlusszusage',
-  angebot: 'Angebot', auftrag: 'Auftrag', abnahmeprotokoll: 'Abnahmeprotokoll', lageplan: 'Lageplan',
-  mastr_registrierung: 'MaStR', netzanmeldung: 'Netzanmeldung', messkonzept: 'Messkonzept',
-  rechnung: 'Rechnung', sonstiges: 'Sonstiges',
+  vollmacht_nb: 'Utility Auth', vollmacht_mastr: 'MaStR Auth', anschlusszusage: 'Connection Approval',
+  angebot: 'Quote', auftrag: 'Order', abnahmeprotokoll: 'Acceptance Report', lageplan: 'Site Plan',
+  mastr_registrierung: 'MaStR', netzanmeldung: 'Interconnection', messkonzept: 'Metering Concept',
+  rechnung: 'Invoice', sonstiges: 'Other',
 };
 
 // ── Timeline builder ──────────────────────────────────────────────────
@@ -76,24 +76,24 @@ function buildTimeline(
 ): TimelineEvent[] {
   const events: TimelineEvent[] = [];
 
-  // Angebot erstellt
+  // Project created
   if (offer?.createdAt) {
-    events.push({ date: offer.createdAt, icon: '↗', label: 'Projekt erstellt', detail: offer.name || undefined, source: 'Reonic' });
+    events.push({ date: offer.createdAt, icon: '↗', label: 'Project created', detail: offer.name || undefined, source: 'Reonic' });
   }
 
-  // Netzanmeldung gestartet
+  // Interconnection started
   if (reg?.startedAt) {
-    events.push({ date: reg.startedAt, icon: '⚡', label: 'Netzanmeldung gestartet', detail: `Status: ${stageLabelMap[reg.status] ?? reg.status}`, source: 'birdie' });
+    events.push({ date: reg.startedAt, icon: '⚡', label: 'Interconnection started', detail: `Status: ${stageLabelMap[reg.status] ?? reg.status}`, source: 'birdie' });
   }
 
-  // Dokumente generiert
+  // Documents generated
   if (reg?.documents) {
     for (const doc of reg.documents) {
-      events.push({ date: doc.at, icon: '📄', label: `Dokument: ${doc.form}`, detail: undefined, source: 'birdie' });
+      events.push({ date: doc.at, icon: '📄', label: `Document: ${doc.form}`, detail: undefined, source: 'birdie' });
     }
   }
 
-  // Portal-Updates
+  // Portal updates
   if (reg?.portalUpdates) {
     for (const pu of reg.portalUpdates) {
       events.push({ date: pu.at, icon: '🔔', label: `Portal: ${pu.type}`, detail: pu.content, source: 'Portal-Bot' });
@@ -106,18 +106,18 @@ function buildTimeline(
       date: em.received_at,
       icon: '✉',
       label: `${emailCatLabel[em.category] ?? em.category}: ${em.subject}`,
-      detail: em.summary || `Von: ${em.from_name || em.from_email}`,
-      source: 'E-Mail',
+      detail: em.summary || `From: ${em.from_name || em.from_email}`,
+      source: 'Email',
     });
   }
 
-  // Dateien aus Reonic (nur PDFs mit Datum)
+  // Files from Reonic (PDFs with dates only)
   for (const f of files) {
     if (f.createdAt) {
       events.push({
         date: f.createdAt,
         icon: '📎',
-        label: `Datei: ${f.name}`,
+        label: `File: ${f.name}`,
         detail: fileCatLabel[f.docCategory ?? 'sonstiges'] ?? f.docCategory,
         source: 'Reonic',
       });
@@ -131,7 +131,7 @@ function buildTimeline(
 
 // ── Page ──────────────────────────────────────────────────────────────
 
-export default async function KundenaktePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CustomerFilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const offerId = decodeURIComponent(id);
 
@@ -171,7 +171,7 @@ export default async function KundenaktePage({ params }: { params: Promise<{ id:
         {/* Header with breadcrumb */}
         <header className="min-h-[72px] lg:min-h-[96px] shrink-0 bg-bg border-b border-line flex flex-col justify-center px-4 pl-16 lg:pl-8 lg:px-8 gap-2 py-3 lg:py-4 sticky top-0 z-10">
           <div className="flex items-center gap-1.5 text-[11px]">
-            <Link href="/vertrieb" className="text-fg3 hover:text-fg2">Vertrieb</Link>
+            <Link href="/vertrieb" className="text-fg3 hover:text-fg2">Sales</Link>
             <span className="text-fg4">/</span>
             <span className="text-fg2 font-medium truncate max-w-[300px]">{customerName}</span>
           </div>
@@ -181,35 +181,35 @@ export default async function KundenaktePage({ params }: { params: Promise<{ id:
           </div>
           <p className="text-[12px] text-fg3">
             {addressLine}
-            {project?.phone && <span className="ml-4">Tel: {project.phone}</span>}
+            {project?.phone && <span className="ml-4">Phone: {project.phone}</span>}
             {project?.email && <span className="ml-4">{project.email}</span>}
           </p>
         </header>
 
         <div className="flex-1 px-4 py-5 lg:px-8 lg:py-7 flex flex-col gap-5 lg:gap-6 overflow-y-auto">
 
-          {/* ── Bereich 1: Uebersicht (3 Spalten) ── */}
+          {/* ── Section 1: Overview (3 columns) ── */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-            {/* Card: Anlage */}
+            {/* Card: System */}
             <Card className="p-5 flex flex-col gap-3">
               <h3 className="font-semibold text-[13px] text-fg flex items-center gap-2">
                 <span className="w-6 h-6 rounded-lg bg-accent-bg flex items-center justify-center text-accent text-xs">&#9728;</span>
-                Anlage
+                System
               </h3>
               <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-[12px]">
-                <span className="text-fg3">kWp</span>
+                <span className="text-fg3">kW DC</span>
                 <span className="text-fg font-medium">{project?.kwp ?? '--'}</span>
-                <span className="text-fg3">Module</span>
+                <span className="text-fg3">Modules</span>
                 <span className="text-fg font-medium">{project?.moduleCount ?? '--'}{project?.moduleType ? ` (${project.moduleType.slice(0, 40)})` : ''}</span>
-                <span className="text-fg3">Wechselrichter</span>
+                <span className="text-fg3">Inverter</span>
                 <span className="text-fg font-medium truncate" title={project?.inverter}>{project?.inverter ?? '--'}</span>
-                <span className="text-fg3">WR Leistung</span>
+                <span className="text-fg3">Inverter Power</span>
                 <span className="text-fg font-medium">{project?.inverterKw ? `${project.inverterKw} kW` : '--'}</span>
-                <span className="text-fg3">Speicher</span>
+                <span className="text-fg3">Battery</span>
                 <span className="text-fg font-medium">{project?.batteryKwh ? `${project.batteryKwh} kWh` : '--'}{project?.battery ? ` (${project.battery.slice(0, 30)})` : ''}</span>
-                <span className="text-fg3">Jahresverbrauch</span>
-                <span className="text-fg font-medium">{project?.annualKwh ? `${project.annualKwh.toLocaleString('de-DE')} kWh` : '--'}</span>
+                <span className="text-fg3">Annual Usage</span>
+                <span className="text-fg font-medium">{project?.annualKwh ? `${project.annualKwh.toLocaleString('en-US')} kWh` : '--'}</span>
               </div>
               {project && project.missing.length > 0 && (
                 <div className="mt-1 flex flex-wrap gap-1">
@@ -220,62 +220,62 @@ export default async function KundenaktePage({ params }: { params: Promise<{ id:
               )}
             </Card>
 
-            {/* Card: Vertrieb */}
+            {/* Card: Sales */}
             <Card className="p-5 flex flex-col gap-3">
               <h3 className="font-semibold text-[13px] text-fg flex items-center gap-2">
                 <span className="w-6 h-6 rounded-lg bg-success-bg flex items-center justify-center text-success text-xs">&#8599;</span>
-                Vertrieb
+                Sales
               </h3>
               <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-[12px]">
-                <span className="text-fg3">Angebotswert</span>
-                <span className="text-fg font-semibold">{euro(price)}</span>
+                <span className="text-fg3">Quote Value</span>
+                <span className="text-fg font-semibold">{usd(price)}</span>
                 <span className="text-fg3">Status</span>
                 <span><Pill label={stateLabel[dealState] ?? dealState} tone={stateTone[dealState] ?? 'neutral'} /></span>
-                <span className="text-fg3">Erstellt</span>
+                <span className="text-fg3">Created</span>
                 <span className="text-fg font-medium">{fmtDate(offer?.createdAt)}</span>
-                <span className="text-fg3">Stufe</span>
+                <span className="text-fg3">Stage</span>
                 <span className="text-fg font-medium">{offer?.stage ?? '--'}</span>
-                <span className="text-fg3">Projekt</span>
+                <span className="text-fg3">Project</span>
                 <span className="text-fg font-medium truncate" title={offer?.name}>{offer?.name ?? '--'}</span>
               </div>
             </Card>
 
-            {/* Card: Netzanmeldung */}
+            {/* Card: Interconnection */}
             <Card className="p-5 flex flex-col gap-3">
               <h3 className="font-semibold text-[13px] text-fg flex items-center gap-2">
                 <span className="w-6 h-6 rounded-lg bg-info-bg flex items-center justify-center text-info text-xs">&#9889;</span>
-                Netzanmeldung
+                Interconnection
               </h3>
               {reg ? (
                 <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-[12px]">
                   <span className="text-fg3">Status</span>
                   <span><Pill label={stageLabelMap[reg.status] ?? reg.status} tone={stageTone[reg.status] ?? 'neutral'} /></span>
-                  <span className="text-fg3">Netzbetreiber</span>
+                  <span className="text-fg3">Utility</span>
                   <span className="text-fg font-medium">{reg.netzbetreiber}</span>
-                  <span className="text-fg3">Dokumente</span>
+                  <span className="text-fg3">Documents</span>
                   <span><Pill label={docStatusLabel[reg.docStatus ?? 'offen'] ?? reg.docStatus ?? 'offen'} tone={docStatusTone[reg.docStatus ?? 'offen'] ?? 'neutral'} /></span>
-                  <span className="text-fg3">Gestartet</span>
+                  <span className="text-fg3">Started</span>
                   <span className="text-fg font-medium">{fmtDate(reg.startedAt)}</span>
                   {reg.dueDate && (
                     <>
-                      <span className="text-fg3">Frist</span>
+                      <span className="text-fg3">Deadline</span>
                       <span className="text-fg font-medium">{fmtDate(reg.dueDate)}</span>
                     </>
                   )}
-                  <span className="text-fg3">Dokumente</span>
-                  <span className="text-fg font-medium">{reg.documents?.length ?? 0} generiert</span>
+                  <span className="text-fg3">Documents</span>
+                  <span className="text-fg font-medium">{reg.documents?.length ?? 0} generated</span>
                 </div>
               ) : (
-                <p className="text-[12px] text-fg3">Keine Netzanmeldung vorhanden</p>
+                <p className="text-[12px] text-fg3">No interconnection application on file</p>
               )}
             </Card>
           </div>
 
-          {/* ── Bereich 2: Timeline ── */}
+          {/* ── Section 2: Timeline ── */}
           <Card className="overflow-hidden">
-            <CardHeader title="Timeline" right={<span className="text-[11px] text-fg3">{timeline.length} Ereignisse</span>} />
+            <CardHeader title="Timeline" right={<span className="text-[11px] text-fg3">{timeline.length} Events</span>} />
             {timeline.length === 0 ? (
-              <div className="px-5 py-10 text-center text-sm text-fg3">Keine Ereignisse vorhanden</div>
+              <div className="px-5 py-10 text-center text-sm text-fg3">No events found</div>
             ) : (
               <div className="divide-y divide-line">
                 {timeline.slice(0, 50).map((ev, i) => (
@@ -297,11 +297,11 @@ export default async function KundenaktePage({ params }: { params: Promise<{ id:
             )}
           </Card>
 
-          {/* ── Bereich 3: Dateien ── */}
+          {/* ── Section 3: Files ── */}
           <Card className="overflow-hidden">
-            <CardHeader title="Dateien" right={<span className="text-[11px] text-fg3">{files.length} Dateien</span>} />
+            <CardHeader title="Files" right={<span className="text-[11px] text-fg3">{files.length} Files</span>} />
             {files.length === 0 ? (
-              <div className="px-5 py-10 text-center text-sm text-fg3">Keine Dateien vorhanden</div>
+              <div className="px-5 py-10 text-center text-sm text-fg3">No files found</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 p-5">
                 {files.map((f) => (
@@ -318,7 +318,7 @@ export default async function KundenaktePage({ params }: { params: Promise<{ id:
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] font-medium text-fg truncate group-hover:text-accent transition-colors">{f.name}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Pill label={fileCatLabel[f.docCategory ?? 'sonstiges'] ?? 'Sonstiges'} tone="neutral" dot={false} />
+                        <Pill label={fileCatLabel[f.docCategory ?? 'sonstiges'] ?? 'Other'} tone="neutral" dot={false} />
                         {f.createdAt && <span className="text-[10px] text-fg4">{fmtDate(f.createdAt)}</span>}
                       </div>
                     </div>
@@ -328,10 +328,10 @@ export default async function KundenaktePage({ params }: { params: Promise<{ id:
             )}
           </Card>
 
-          {/* ── E-Mails Detail ── */}
+          {/* ── Emails Detail ── */}
           {emails.length > 0 && (
             <Card className="overflow-hidden">
-              <CardHeader title="E-Mails" right={<span className="text-[11px] text-fg3">{emails.length} E-Mails</span>} />
+              <CardHeader title="Emails" right={<span className="text-[11px] text-fg3">{emails.length} Emails</span>} />
               <div className="divide-y divide-line">
                 {emails.map((em) => (
                   <div key={em.message_id} className="flex items-start gap-4 px-5 py-3 hover:bg-surface-2/40 transition-colors">

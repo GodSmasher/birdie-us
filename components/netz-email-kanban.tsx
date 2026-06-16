@@ -23,19 +23,19 @@ interface NetzEmailCard {
 }
 
 const COLUMNS = [
-  { id: 'neu', label: 'Posteingang', icon: '📥', tone: 'warning' as const },
-  { id: 'bearbeitung', label: 'In Bearbeitung', icon: '🔄', tone: 'info' as const },
-  { id: 'erledigt', label: 'Erledigt', icon: '✅', tone: 'success' as const },
+  { id: 'neu', label: 'Inbox', icon: '📥', tone: 'warning' as const },
+  { id: 'bearbeitung', label: 'In Progress', icon: '🔄', tone: 'info' as const },
+  { id: 'erledigt', label: 'Done', icon: '✅', tone: 'success' as const },
 ];
 
 const catLabel: Record<string, string> = {
-  netz_status: 'NB-Status',
-  netz_document: 'NB-Dokument',
-  customer_update: 'Kunde',
-  customer_doc: 'Dokument',
-  customer_correction: 'Klärung',
+  netz_status: 'Utility Status',
+  netz_document: 'Utility Document',
+  customer_update: 'Customer',
+  customer_doc: 'Document',
+  customer_correction: 'Clarification',
   bounce: 'Bounce',
-  general: 'Allgemein',
+  general: 'General',
 };
 
 const catTone: Record<string, string> = {
@@ -60,7 +60,7 @@ function EmailCard({ email, onMove, onOpen }: { email: NetzEmailCard & { _col: s
           {email.matched_customer && <Pill label={email.matched_customer} tone="info" dot={false} />}
         </div>
         <span className="text-[10px] text-fg4 shrink-0 whitespace-nowrap">
-          {new Date(email.received_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+          {new Date(email.received_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
 
@@ -74,24 +74,24 @@ function EmailCard({ email, onMove, onOpen }: { email: NetzEmailCard & { _col: s
       )}
 
       {!email.matched_registration_id && email.category !== 'general' && (
-        <span className="text-[10px] text-warning font-medium">⚠ Nicht zugeordnet</span>
+        <span className="text-[10px] text-warning font-medium">⚠ Unmatched</span>
       )}
 
       <div className="flex items-center gap-2 pt-1 border-t border-line mt-1" onClick={(e) => e.stopPropagation()}>
         {email.summary && (
           <button onClick={() => setExpanded(!expanded)} className="text-[10px] text-fg3 hover:text-fg2">
-            {expanded ? 'Weniger' : 'Details'}
+            {expanded ? 'Less' : 'Details'}
           </button>
         )}
         <div className="flex-1" />
         {prevCol && (
           <button onClick={() => onMove((email.id || email.message_id), prevCol)} className="text-[10px] text-fg3 hover:text-fg2">
-            ← Zurück
+            ← Back
           </button>
         )}
         {nextCol && (
           <button onClick={() => onMove((email.id || email.message_id), nextCol)} className="text-[10px] font-medium text-accent hover:text-accent/80">
-            {nextCol === 'bearbeitung' ? 'Bearbeiten →' : 'Erledigt ✓'}
+            {nextCol === 'bearbeitung' ? 'Process →' : 'Done ✓'}
           </button>
         )}
       </div>
@@ -131,7 +131,7 @@ export function NetzEmailKanban({ emails }: { emails: NetzEmailCard[] }) {
     .map((e) => ({ ...e, _col: colMap[e.id || e.message_id] ?? 'neu' }));
 
   if (emailsWithCol.length === 0) {
-    return <p className="text-[11px] text-fg4">Keine netz-relevanten Emails.</p>;
+    return <p className="text-[11px] text-fg4">No interconnection-related emails.</p>;
   }
 
   return (
@@ -147,7 +147,7 @@ export function NetzEmailKanban({ emails }: { emails: NetzEmailCard[] }) {
             </div>
             <div className="flex flex-col gap-2 min-h-[100px] bg-surface rounded-xl p-2 border border-line">
               {cards.length === 0 ? (
-                <p className="text-[10px] text-fg4 text-center py-4">Leer</p>
+                <p className="text-[10px] text-fg4 text-center py-4">Empty</p>
               ) : (
                 cards.map((e) => <EmailCard key={e.id || e.message_id} email={e} onMove={handleMove} onOpen={() => setSelectedEmail(e)} />)
               )}

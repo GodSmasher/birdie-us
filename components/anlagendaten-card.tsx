@@ -19,20 +19,20 @@ export function AnlagendatenCard({ offerId, rows, hasDocs }: {
   const [done, setDone] = useState(false);
 
   const FIELD_MAP: Record<string, string[]> = {
-    'Anlagengröße': ['kwp'],
-    'Module': ['modulTyp', 'moduleCount'],
-    'Wechselrichter': ['wechselrichterTyp'],
-    'WR Nennleistung': ['anschlussLeistungKw'],
-    'Speicher': ['speicherKwh'],
-    'Adresse': ['adresse'],
-    'Jahresverbrauch': ['jahresverbrauch'],
-    'Zählernummer': ['zaehlerNummer'],
-    'NB-Referenz': ['netzbetreiberRefNr'],
+    'System Size': ['kwp'],
+    'Modules': ['modulTyp', 'moduleCount'],
+    'Inverter': ['wechselrichterTyp'],
+    'Inverter Rated Power': ['anschlussLeistungKw'],
+    'Battery': ['speicherKwh'],
+    'Address': ['adresse'],
+    'Annual Consumption': ['jahresverbrauch'],
+    'Meter Number': ['zaehlerNummer'],
+    'Utility Ref.': ['netzbetreiberRefNr'],
     'IBAN': ['iban'],
-    'Eigentümer': ['grundstueckseigentuemer'],
-    'Einspeisezusage': ['einspeiseZusage'],
-    'MaStR-Nr.': ['mastrNummer'],
-    'Flurstück': ['flurstuck'],
+    'Property Owner': ['grundstueckseigentuemer'],
+    'Feed-in Commitment': ['einspeiseZusage'],
+    'MaStR No.': ['mastrNummer'],
+    'Parcel Number': ['flurstuck'],
   };
 
   const enrich = async () => {
@@ -46,22 +46,22 @@ export function AnlagendatenCard({ offerId, rows, hasDocs }: {
         const sources = (json.sources || []) as string[];
 
         // Map extracted fields to display labels
-        if (ext.kwp) mapped['Anlagengröße'] = { value: `${ext.kwp} kWp`, source: findSource(sources, 'kwp') };
-        if (ext.speicherKwh) mapped['Speicher'] = { value: `${ext.speicherKwh} kWh`, source: findSource(sources, 'speicherKwh') };
-        if (ext.wechselrichterTyp) mapped['Wechselrichter'] = { value: String(ext.wechselrichterTyp), source: findSource(sources, 'wechselrichterTyp') };
-        if (ext.anschlussLeistungKw) mapped['WR Nennleistung'] = { value: `${ext.anschlussLeistungKw} kW`, source: findSource(sources, 'anschlussLeistungKw') };
-        if (ext.modulTyp) mapped['Module'] = { value: String(ext.modulTyp), source: findSource(sources, 'modulTyp') };
-        if (ext.zaehlerNummer) mapped['Zählernummer'] = { value: String(ext.zaehlerNummer), source: findSource(sources, 'zaehlerNummer') };
-        if (ext.netzbetreiberRefNr) mapped['NB-Referenz'] = { value: String(ext.netzbetreiberRefNr), source: findSource(sources, 'netzbetreiberRefNr') };
+        if (ext.kwp) mapped['System Size'] = { value: `${ext.kwp} kW DC`, source: findSource(sources, 'kwp') };
+        if (ext.speicherKwh) mapped['Battery'] = { value: `${ext.speicherKwh} kWh`, source: findSource(sources, 'speicherKwh') };
+        if (ext.wechselrichterTyp) mapped['Inverter'] = { value: String(ext.wechselrichterTyp), source: findSource(sources, 'wechselrichterTyp') };
+        if (ext.anschlussLeistungKw) mapped['Inverter Rated Power'] = { value: `${ext.anschlussLeistungKw} kW`, source: findSource(sources, 'anschlussLeistungKw') };
+        if (ext.modulTyp) mapped['Modules'] = { value: String(ext.modulTyp), source: findSource(sources, 'modulTyp') };
+        if (ext.zaehlerNummer) mapped['Meter Number'] = { value: String(ext.zaehlerNummer), source: findSource(sources, 'zaehlerNummer') };
+        if (ext.netzbetreiberRefNr) mapped['Utility Ref.'] = { value: String(ext.netzbetreiberRefNr), source: findSource(sources, 'netzbetreiberRefNr') };
         if (ext.iban) mapped['IBAN'] = { value: String(ext.iban), source: findSource(sources, 'iban') };
-        if (ext.grundstueckseigentuemer) mapped['Eigentümer'] = { value: String(ext.grundstueckseigentuemer), source: findSource(sources, 'grundstueckseigentuemer') };
-        if (ext.einspeiseZusage != null) mapped['Einspeisezusage'] = { value: ext.einspeiseZusage ? '✅ Bestätigt' : '❌ Nein', source: findSource(sources, 'einspeiseZusage') };
-        if (ext.mastrNummer) mapped['MaStR-Nr.'] = { value: String(ext.mastrNummer), source: findSource(sources, 'mastrNummer') };
-        if (ext.flurstuck) mapped['Flurstück'] = { value: String(ext.flurstuck), source: findSource(sources, 'flurstuck') };
+        if (ext.grundstueckseigentuemer) mapped['Property Owner'] = { value: String(ext.grundstueckseigentuemer), source: findSource(sources, 'grundstueckseigentuemer') };
+        if (ext.einspeiseZusage != null) mapped['Feed-in Commitment'] = { value: ext.einspeiseZusage ? '✅ Confirmed' : '❌ No', source: findSource(sources, 'einspeiseZusage') };
+        if (ext.mastrNummer) mapped['MaStR No.'] = { value: String(ext.mastrNummer), source: findSource(sources, 'mastrNummer') };
+        if (ext.flurstuck) mapped['Parcel Number'] = { value: String(ext.flurstuck), source: findSource(sources, 'flurstuck') };
 
         setEnriched(mapped);
         setDone(true);
-        // Reload page after 1s so Vollständigkeits-Check and forms update
+        // Reload page after 1s so completeness check and forms update
         setTimeout(() => window.location.reload(), 1500);
       }
     } catch { /* best effort */ }
@@ -80,7 +80,7 @@ export function AnlagendatenCard({ offerId, rows, hasDocs }: {
   // Add enriched values to existing rows
   const mergedRows = displayRows.map((r) => {
     const e = enriched[r.label];
-    if (e && (r.value === '—' || r.value === 'keiner')) {
+    if (e && (r.value === '—' || r.value === 'none')) {
       return { ...r, value: e.value, source: e.source };
     }
     return r;
@@ -97,7 +97,7 @@ export function AnlagendatenCard({ offerId, rows, hasDocs }: {
   return (
     <div className="flex-1 min-w-0 p-4 lg:p-5 flex flex-col gap-3 bg-surface border border-line rounded-2xl">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-[13px] text-fg">Anlagendaten</h3>
+        <h3 className="font-semibold text-[13px] text-fg">System Data</h3>
         {hasDocs && !done && (
           <button
             onClick={enrich}
@@ -105,13 +105,13 @@ export function AnlagendatenCard({ offerId, rows, hasDocs }: {
             className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-accent text-bg rounded-lg text-[10px] font-medium hover:bg-accent/90 disabled:opacity-50"
           >
             {loading ? (
-              <><div className="w-2.5 h-2.5 border-[1.5px] border-bg border-t-transparent rounded-full animate-spin" /> Analysiere...</>
+              <><div className="w-2.5 h-2.5 border-[1.5px] border-bg border-t-transparent rounded-full animate-spin" /> Analyzing...</>
             ) : (
-              <>✨ Aus Dokumenten ergänzen</>
+              <>✨ Enrich from documents</>
             )}
           </button>
         )}
-        {done && <span className="text-[10px] text-success font-medium">✓ Ergänzt</span>}
+        {done && <span className="text-[10px] text-success font-medium">✓ Enriched</span>}
       </div>
       <div className="flex flex-col gap-2 text-xs">
         {mergedRows.map((r) => (

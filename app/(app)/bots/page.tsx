@@ -6,11 +6,11 @@ import { Sparkline } from '@/components/sparkline';
 import { voltaBots as bots } from '@/lib/volta-bots';
 
 const tabs = [
-  ['Alle', true, '8'],
+  ['All', true, '8'],
   ['CRM', false, ''],
-  ['Projekte', false, ''],
-  ['Finanzen', false, ''],
-  ['Kommunikation', false, ''],
+  ['Projects', false, ''],
+  ['Finance', false, ''],
+  ['Communication', false, ''],
   ['IoT', false, ''],
 ] as const;
 
@@ -19,7 +19,7 @@ export default function BotsPage() {
     <>
       <Sidebar active="bots" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
-        <TopBar title="Bots" subtitle={`${bots.length} Bots · ${bots.filter(b => b.state === 'success').length} aktiv · Volta Energietechnik`} />
+        <TopBar title="Bots" subtitle={`${bots.length} Bots · ${bots.filter(b => b.state === 'success').length} active · Fleet Overview`} />
         <div className="flex-1 px-8 py-7 flex flex-col gap-5">
           <div className="flex gap-2">
             {tabs.map(([n, active, cnt]) => (
@@ -66,7 +66,7 @@ export default function BotsPage() {
 
                   <div className="border-t border-line pt-3 flex items-end gap-3">
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] text-fg3 tracking-[0.18em] font-semibold">HEUTE</span>
+                      <span className="text-[10px] text-fg3 tracking-[0.18em] font-semibold">TODAY</span>
                       <span className="text-base font-semibold text-fg leading-none">{b.runs}</span>
                     </div>
                     <div className="ml-auto opacity-80">
@@ -75,7 +75,7 @@ export default function BotsPage() {
                   </div>
 
                   <div className="flex items-center text-[11px]">
-                    <span className="text-fg3">Erfolg {b.successRate} · Ø {b.avgDuration}</span>
+                    <span className="text-fg3">Success {b.successRate} · Avg {b.avgDuration}</span>
                     <span className="ml-auto font-medium text-accent">Details →</span>
                   </div>
                 </Link>

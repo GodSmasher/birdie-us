@@ -13,10 +13,10 @@ interface OfferRow {
   value: number;
 }
 
-const euro = (n: number) => (n === 0 ? '—' : '€ ' + n.toLocaleString('de-DE', { maximumFractionDigits: 0 }));
+const usd = (n: number) => (n === 0 ? '—' : '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 }));
 
 const stateTone: Record<string, 'info' | 'success' | 'error' | 'neutral'> = { Open: 'info', Won: 'success', Lost: 'error' };
-const stateLabel: Record<string, string> = { Open: 'OFFEN', Won: 'GEWONNEN', Lost: 'VERLOREN' };
+const stateLabel: Record<string, string> = { Open: 'OPEN', Won: 'WON', Lost: 'LOST' };
 
 type SortKey = 'name' | 'customer' | 'status' | 'state' | 'value';
 type SortDir = 'asc' | 'desc';
@@ -27,17 +27,17 @@ function sortOffers(offers: OfferRow[], key: SortKey, dir: SortDir): OfferRow[] 
     if (key === 'value') {
       cmp = a.value - b.value;
     } else {
-      cmp = (a[key] || '').localeCompare(b[key] || '', 'de');
+      cmp = (a[key] || '').localeCompare(b[key] || '', 'en');
     }
     return dir === 'asc' ? cmp : -cmp;
   });
 }
 
 const COLUMNS: { key: SortKey; label: string; className: string }[] = [
-  { key: 'name', label: 'ANGEBOT / KUNDE', className: 'col-span-1' },
-  { key: 'status', label: 'STUFE', className: '' },
+  { key: 'name', label: 'OFFER / CUSTOMER', className: 'col-span-1' },
+  { key: 'status', label: 'STAGE', className: '' },
   { key: 'state', label: 'STATE', className: '' },
-  { key: 'value', label: 'WERT', className: '' },
+  { key: 'value', label: 'VALUE', className: '' },
 ];
 
 export function OffersTable({ offers, total }: { offers: OfferRow[]; total: number }) {
@@ -63,14 +63,14 @@ export function OffersTable({ offers, total }: { offers: OfferRow[]; total: numb
     <div className="bg-surface border border-line rounded-xl overflow-hidden">
       {/* Header */}
       <div className="h-13 px-5 border-b border-line flex items-center gap-3" style={{ height: 52 }}>
-        <h3 className="font-semibold text-sm text-fg">Angebote</h3>
-        <span className="text-[11px] text-fg3">{sorted.length} von {total}</span>
+        <h3 className="font-semibold text-sm text-fg">Offers</h3>
+        <span className="text-[11px] text-fg3">{sorted.length} of {total}</span>
         <div className="ml-auto flex items-center gap-1 bg-surface-2 border border-line rounded-lg p-0.5">
           {[
-            { key: 'all', label: 'Alle' },
-            { key: 'Open', label: 'Offen' },
-            { key: 'Won', label: 'Gewonnen' },
-            { key: 'Lost', label: 'Verloren' },
+            { key: 'all', label: 'All' },
+            { key: 'Open', label: 'Open' },
+            { key: 'Won', label: 'Won' },
+            { key: 'Lost', label: 'Lost' },
           ].map((f) => (
             <button
               key={f.key}
@@ -100,7 +100,7 @@ export function OffersTable({ offers, total }: { offers: OfferRow[]; total: numb
 
       {/* Rows */}
       {sorted.length === 0 ? (
-        <div className="px-5 py-10 text-center text-sm text-fg3">Keine Angebote in diesem Filter</div>
+        <div className="px-5 py-10 text-center text-sm text-fg3">No offers match this filter</div>
       ) : (
         sorted.map((o, i) => (
           <a
@@ -118,7 +118,7 @@ export function OffersTable({ offers, total }: { offers: OfferRow[]; total: numb
             <div>
               <Pill label={stateLabel[o.state] ?? o.state} tone={stateTone[o.state] ?? 'neutral'} />
             </div>
-            <span className="text-[13px] font-medium text-fg">{euro(o.value)}</span>
+            <span className="text-[13px] font-medium text-fg">{usd(o.value)}</span>
           </a>
         ))
       )}

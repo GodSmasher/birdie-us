@@ -9,7 +9,7 @@ interface User { id: string; name: string; email?: string; role?: string }
 interface Team { id: string; name: string }
 
 const roleLabel: Record<string, string> = {
-  admin: 'Admin', owner: 'Inhaber', member: 'Mitarbeiter', user: 'Mitarbeiter',
+  admin: 'Admin', owner: 'Owner', member: 'Member', user: 'Member',
 };
 
 export default async function TeamPage() {
@@ -21,26 +21,26 @@ export default async function TeamPage() {
     <>
       <Sidebar active="team" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
-        <TopBar title="Team" subtitle={configured ? `${users.length} Mitarbeiter · ${teams.length} Teams · aus Reonic` : 'Team & Rollen'} />
+        <TopBar title="Team" subtitle={configured ? `${users.length} members · ${teams.length} teams · from Reonic` : 'Team & Roles'} />
         <div className="flex-1 px-8 py-7 flex flex-col gap-6">
           {!configured ? (
             <Card className="p-8 text-center text-sm text-fg3 max-w-[560px] mx-auto mt-8">
-              Sobald Reonic verbunden + synchronisiert ist, erscheinen hier alle Mitarbeiter und Teams.
+              Once Reonic is connected and synced, all members and teams will appear here.
             </Card>
           ) : (
             <>
               <div className="flex flex-wrap gap-4">
-                <KpiCard label="MITARBEITER" value={users.length.toLocaleString('de-DE')} sub="im CRM" />
-                <KpiCard label="TEAMS" value={teams.length.toLocaleString('de-DE')} sub="Vertrieb & Backoffice" />
-                <KpiCard label="QUELLE" value="Reonic" sub="live synchronisiert" />
-                <KpiCard label="ZUGRIFF" value="read-only" sub="verwaltet durch .birdie" />
+                <KpiCard label="MEMBERS" value={users.length.toLocaleString('en-US')} sub="in CRM" />
+                <KpiCard label="TEAMS" value={teams.length.toLocaleString('en-US')} sub="Sales & Back Office" />
+                <KpiCard label="SOURCE" value="Reonic" sub="live synced" />
+                <KpiCard label="ACCESS" value="read-only" sub="managed by .birdie" />
               </div>
 
               <div className="flex gap-4 items-start">
                 <Card className="flex-1 min-w-0 overflow-hidden">
-                  <CardHeader title="Mitarbeiter" right={<Pill label="LIVE" tone="success" />} />
+                  <CardHeader title="Members" right={<Pill label="LIVE" tone="success" />} />
                   <div className="grid grid-cols-[1fr_240px_140px] bg-surface-2 h-9 items-center px-5 text-[10px] font-semibold text-fg3 tracking-[0.18em]">
-                    <span>NAME</span><span>E-MAIL</span><span>ROLLE</span>
+                    <span>NAME</span><span>EMAIL</span><span>ROLE</span>
                   </div>
                   <div className="max-h-[560px] overflow-y-auto">
                     {sorted.map((u, i) => (

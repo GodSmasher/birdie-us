@@ -18,18 +18,18 @@ interface EnrichedData {
 }
 
 const FIELD_LABELS: Record<string, string> = {
-  zaehlerNummer: 'Zählernummer',
-  mastrNummer: 'MaStR-Nummer',
-  anschlussLeistungKw: 'Anschlussleistung (kW)',
-  einspeiseZusage: 'Einspeisezusage',
-  netzbetreiberRefNr: 'NB-Referenznummer',
-  grundstueckseigentuemer: 'Grundstückseigentümer',
+  zaehlerNummer: 'Meter Number',
+  mastrNummer: 'MaStR Number',
+  anschlussLeistungKw: 'Connection Capacity (kW)',
+  einspeiseZusage: 'Feed-in Commitment',
+  netzbetreiberRefNr: 'Utility Ref. Number',
+  grundstueckseigentuemer: 'Property Owner',
   iban: 'IBAN',
-  kwp: 'Anlagengröße (kWp)',
-  speicherKwh: 'Speicher (kWh)',
-  wechselrichterTyp: 'Wechselrichter',
-  modulTyp: 'Modultyp',
-  flurstuck: 'Flurstück',
+  kwp: 'System Size (kW DC)',
+  speicherKwh: 'Battery (kWh)',
+  wechselrichterTyp: 'Inverter',
+  modulTyp: 'Module Type',
+  flurstuck: 'Parcel Number',
 };
 
 export function EnrichButton({ offerId, hasMissing }: { offerId: string; hasMissing: boolean }) {
@@ -48,7 +48,7 @@ export function EnrichButton({ offerId, hasMissing }: { offerId: string; hasMiss
         setData(json.extracted);
         setSources(json.sources || []);
       } else {
-        setError('Keine Daten extrahiert');
+        setError('No data extracted');
       }
     } catch (e) {
       setError((e as Error).message);
@@ -59,9 +59,9 @@ export function EnrichButton({ offerId, hasMissing }: { offerId: string; hasMiss
 
   if (data) {
     const entries = Object.entries(data).filter(([, v]) => v != null && v !== '');
-    if (entries.length === 0) return <p className="text-[11px] text-fg3">Keine zusätzlichen Daten in Dokumenten gefunden.</p>;
+    if (entries.length === 0) return <p className="text-[11px] text-fg3">No additional data found in documents.</p>;
 
-    // Group into "Anlagendaten" (technical) and "Zusatzdaten" (admin)
+    // Group into "System Data" (technical) and "Additional Data" (admin)
     const techFields = ['kwp', 'speicherKwh', 'wechselrichterTyp', 'modulTyp', 'anschlussLeistungKw'];
     const techEntries = entries.filter(([k]) => techFields.includes(k));
     const adminEntries = entries.filter(([k]) => !techFields.includes(k));
@@ -73,13 +73,13 @@ export function EnrichButton({ offerId, hasMissing }: { offerId: string; hasMiss
           <div className="p-3 bg-success-bg/30 rounded-lg border border-success/20">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm">📋</span>
-              <span className="text-[11px] font-semibold text-success">Anlagendaten aus Dokumenten ergänzt</span>
+              <span className="text-[11px] font-semibold text-success">System data enriched from documents</span>
             </div>
             <div className="flex flex-col gap-2">
               {techEntries.map(([key, val]) => (
                 <div key={key} className="flex items-center justify-between">
                   <span className="text-[12px] text-fg2">{FIELD_LABELS[key] ?? key}</span>
-                  <span className="text-[13px] font-semibold text-fg">{String(val)}{key === 'kwp' ? ' kWp' : key === 'speicherKwh' ? ' kWh' : key === 'anschlussLeistungKw' ? ' kW' : ''}</span>
+                  <span className="text-[13px] font-semibold text-fg">{String(val)}{key === 'kwp' ? ' kW DC' : key === 'speicherKwh' ? ' kWh' : key === 'anschlussLeistungKw' ? ' kW' : ''}</span>
                 </div>
               ))}
             </div>
@@ -91,14 +91,14 @@ export function EnrichButton({ offerId, hasMissing }: { offerId: string; hasMiss
           <div className="p-3 bg-accent-bg/30 rounded-lg border border-accent/20">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm">✨</span>
-              <span className="text-[11px] font-semibold text-accent">Zusatzdaten aus Dokumenten</span>
+              <span className="text-[11px] font-semibold text-accent">Additional data from documents</span>
             </div>
             <div className="flex flex-col gap-1.5">
               {adminEntries.map(([key, val]) => (
                 <div key={key} className="flex items-center gap-2">
                   <span className="text-[11px] text-fg3 w-[160px] shrink-0">{FIELD_LABELS[key] ?? key}</span>
                   <span className="text-[12px] font-medium text-fg">
-                    {typeof val === 'boolean' ? (val ? '✅ Ja' : '❌ Nein') : String(val)}
+                    {typeof val === 'boolean' ? (val ? '✅ Yes' : '❌ No') : String(val)}
                   </span>
                 </div>
               ))}
@@ -107,7 +107,7 @@ export function EnrichButton({ offerId, hasMissing }: { offerId: string; hasMiss
         )}
 
         {sources.length > 0 && (
-          <span className="text-[10px] text-fg4">Quellen: {sources.map((s) => s.split('←')[1]?.trim()).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(', ')}</span>
+          <span className="text-[10px] text-fg4">Sources: {sources.map((s) => s.split('←')[1]?.trim()).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(', ')}</span>
         )}
       </div>
     );
@@ -124,11 +124,11 @@ export function EnrichButton({ offerId, hasMissing }: { offerId: string; hasMiss
         {loading ? (
           <>
             <div className="w-3 h-3 border-2 border-bg border-t-transparent rounded-full animate-spin" />
-            KI analysiert Dokumente...
+            AI analyzing documents...
           </>
         ) : (
           <>
-            ✨ {hasMissing ? 'Fehlende Daten aus Dokumenten ergänzen' : 'Zusatzdaten aus Dokumenten laden'}
+            ✨ {hasMissing ? 'Fill missing data from documents' : 'Load additional data from documents'}
           </>
         )}
       </button>

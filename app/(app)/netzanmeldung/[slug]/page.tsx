@@ -19,7 +19,7 @@ import { AnlagendatenCard } from '@/components/anlagendaten-card';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Auto-enrichment from Reonic docs can be slow on first load
 
-const euro = (n: number) => (n > 0 ? '€ ' + Math.round(n).toLocaleString('de-DE') : '—');
+const dollar = (n: number) => (n > 0 ? '$' + Math.round(n).toLocaleString('en-US') : '—');
 
 export default async function RegistrationDetail({ params }: { params: { slug: string } }) {
   const [regs, project, wp, emails, reonicFiles] = await Promise.all([
@@ -43,7 +43,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <header className="min-h-[72px] lg:min-h-[96px] shrink-0 bg-bg border-b border-line flex flex-col justify-center px-4 pl-16 lg:pl-8 lg:px-8 gap-2 py-3 lg:py-4 sticky top-0 z-10">
           <div className="flex items-center gap-1.5 text-[11px]">
-            <Link href="/netzanmeldung" className="text-fg3 hover:text-fg2">Netzanmeldung</Link>
+            <Link href="/netzanmeldung" className="text-fg3 hover:text-fg2">Interconnection</Link>
             <span className="text-fg4">/</span>
             <span className="text-fg2 font-medium">{reg?.customer ?? project?.name}</span>
           </div>
@@ -51,7 +51,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
             <span className="text-accent text-lg">⚡</span>
             <h1 className="font-semibold text-xl text-fg tracking-tightest">{reg?.customer ?? project?.name}</h1>
             <Pill label={stageLabel} tone="info" />
-            {project && (project.ready ? <Pill label="DATEN VOLLSTÄNDIG" tone="success" /> : <Pill label={`${project.missing.length} FEHLT`} tone="warning" />)}
+            {project && (project.ready ? <Pill label="DATA COMPLETE" tone="success" /> : <Pill label={`${project.missing.length} MISSING`} tone="warning" />)}
           </div>
         </header>
 
@@ -61,7 +61,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
           {project && !project.ready && (
             <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-[12px] ${reonicFiles.length === 0 ? 'bg-error-bg/40 border border-error/20 text-error' : 'bg-warning-bg/40 border border-warning/20 text-warning'}`}>
               <span className="font-bold shrink-0">{reonicFiles.length === 0 ? '⚠' : '!'}</span>
-              <span>{reonicFiles.length === 0 ? 'Keine Dateien in Reonic — ' : ''}Fehlend: {project.missing.join(', ')}</span>
+              <span>{reonicFiles.length === 0 ? 'No files in Reonic — ' : ''}Missing: {project.missing.join(', ')}</span>
             </div>
           )}
 
@@ -76,24 +76,24 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
               )}
             </Card>
 
-            {/* Netzbetreiber */}
+            {/* Utility */}
             <Card className="p-5 flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-[13px] text-fg">Netzbetreiber</h3>
+                <h3 className="font-semibold text-[13px] text-fg">Utility</h3>
                 {nb && <Pill label={CONFIDENCE_LABEL[nb.confidence].toUpperCase()} tone={nbTone} dot={false} />}
               </div>
               <VbnSelect offerId={reg?.offerId ?? project?.offerId ?? params.slug} current={reg?.netzbetreiber ?? nb?.name ?? '—'} />
               <span className="text-[10px] text-fg3 leading-tight">
-                {nb ? `PLZ ${project?.address?.zip}` : 'Manuell wählen'}
+                {nb ? `ZIP ${project?.address?.zip}` : 'Select manually'}
               </span>
               {nb?.portalUrl && (
                 <a href={nb.portalUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-accent">Portal &nearr;</a>
               )}
             </Card>
 
-            {/* Vollmacht */}
+            {/* Authorization */}
             <Card className="p-5 flex flex-col gap-3">
-              <h3 className="font-semibold text-[13px] text-fg">Vollmachten</h3>
+              <h3 className="font-semibold text-[13px] text-fg">Authorizations</h3>
               {(() => {
                 const vollmachtNb = reonicFiles.find(f => f.docCategory === 'vollmacht_nb');
                 const vollmachtMastr = reonicFiles.find(f => f.docCategory === 'vollmacht_mastr');
@@ -102,19 +102,19 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                     {vollmachtNb && (
                       <a href={`/api/netzanmeldung/files?offerId=${params.slug}&fileId=${vollmachtNb.id}&download=1`} target="_blank" rel="noopener noreferrer"
                         className="flex items-center justify-between px-3 py-2 bg-surface-2 border border-line-2 rounded-lg text-[11px] hover:border-accent/40">
-                        <span className="text-fg2">NB-Vollmacht</span><span className="text-accent">&#x2913;</span>
+                        <span className="text-fg2">Utility Authorization</span><span className="text-accent">&#x2913;</span>
                       </a>
                     )}
                     {vollmachtMastr && (
                       <a href={`/api/netzanmeldung/files?offerId=${params.slug}&fileId=${vollmachtMastr.id}&download=1`} target="_blank" rel="noopener noreferrer"
                         className="flex items-center justify-between px-3 py-2 bg-surface-2 border border-line-2 rounded-lg text-[11px] hover:border-accent/40">
-                        <span className="text-fg2">MaStR-Vollmacht</span><span className="text-accent">&#x2913;</span>
+                        <span className="text-fg2">MaStR Authorization</span><span className="text-accent">&#x2913;</span>
                       </a>
                     )}
                   </div>
                 ) : (
                   <div className="bg-warning-bg/60 border border-warning/30 rounded-lg px-3 py-2 text-[11px] text-warning">
-                    Keine Vollmacht in Reonic gefunden.
+                    No authorization document found in Reonic.
                   </div>
                 );
               })()}
@@ -128,13 +128,13 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
               offerId={params.slug}
               hasDocs={reonicFiles.length > 0}
               rows={[
-                { label: 'Anlagengröße', value: project?.kwp ? `${project.kwp} kWp` : '—' },
-                { label: 'Module', value: project?.moduleCount ? `${project.moduleCount}× ${project.moduleType ?? ''}` : '—' },
-                { label: 'Wechselrichter', value: project?.inverter ?? '—' },
-                { label: 'WR Nennleistung', value: project?.inverterKw ? `${project.inverterKw} kW` : project?.inverterSpec ? `${project.inverterSpec.ratedPowerKw} kW` : '—' },
-                { label: 'Speicher', value: project?.battery ? `${project.battery}${project.batteryKwh ? ` (${project.batteryKwh} kWh)` : ''}` : 'keiner' },
-                { label: 'Adresse', value: project?.address?.zip ? `${project.address.line}, ${project.address.zip} ${project.address.city}` : '—' },
-                { label: 'Auftragswert', value: euro(reg?.value ?? 0) },
+                { label: 'System Size', value: project?.kwp ? `${project.kwp} kW DC` : '—' },
+                { label: 'Modules', value: project?.moduleCount ? `${project.moduleCount}× ${project.moduleType ?? ''}` : '—' },
+                { label: 'Inverter', value: project?.inverter ?? '—' },
+                { label: 'Inverter Rated Power', value: project?.inverterKw ? `${project.inverterKw} kW` : project?.inverterSpec ? `${project.inverterSpec.ratedPowerKw} kW` : '—' },
+                { label: 'Battery', value: project?.battery ? `${project.battery}${project.batteryKwh ? ` (${project.batteryKwh} kWh)` : ''}` : 'none' },
+                { label: 'Address', value: project?.address?.zip ? `${project.address.line}, ${project.address.city}, ${project.address.zip}` : '—' },
+                { label: 'Contract Value', value: dollar(reg?.value ?? 0) },
               ]}
             />
 
@@ -155,7 +155,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
           {/* Timeline */}
           {reg && (
             <Card className="p-4 lg:p-5 flex flex-col gap-3">
-              <h3 className="font-semibold text-[13px] text-fg">Verlauf</h3>
+              <h3 className="font-semibold text-[13px] text-fg">Timeline</h3>
               <Timeline
                 startedAt={reg.startedAt}
                 documents={reg.documents}
@@ -172,7 +172,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
             <Card className="p-4 lg:p-5 flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📁</span>
-                <h3 className="font-semibold text-[13px] text-fg">Dokumente aus Reonic</h3>
+                <h3 className="font-semibold text-[13px] text-fg">Documents from Reonic</h3>
                 <Pill label={`${reonicFiles.length}`} tone="info" dot={false} />
                 <a
                   href={`/api/netzanmeldung/files?offerId=${params.slug}&enrich=1`}
@@ -180,7 +180,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                   rel="noopener noreferrer"
                   className="ml-auto text-[11px] font-medium text-accent hover:underline"
                 >
-                  ✨ KI-Extraktion starten
+                  ✨ Start AI Extraction
                 </a>
               </div>
               <div className="grid sm:grid-cols-2 gap-2">
@@ -225,19 +225,19 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[11px] font-medium text-fg">{e.from_name || e.from_email}</span>
-                        <span className="text-[10px] text-fg4">{new Date(e.received_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-[10px] text-fg4">{new Date(e.received_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                         {e.auto_replied && <Pill label="Auto-Reply" tone="success" dot={false} />}
                       </div>
                       <p className="text-xs text-fg2 mt-0.5">{e.subject}</p>
                       {e.summary && <p className="text-[11px] text-fg3 mt-1 leading-[15px]">{e.summary}</p>}
                     </div>
                     <Pill label={
-                      e.category === 'netz_status' ? 'NB-Status' :
-                      e.category === 'customer_update' ? 'Kunde' :
-                      e.category === 'customer_doc' ? 'Dokument' :
-                      e.category === 'customer_correction' ? 'Klärung' :
-                      e.category === 'netz_document' ? 'NB-Dokument' :
-                      'Allgemein'
+                      e.category === 'netz_status' ? 'Utility Status' :
+                      e.category === 'customer_update' ? 'Customer' :
+                      e.category === 'customer_doc' ? 'Document' :
+                      e.category === 'customer_correction' ? 'Clarification' :
+                      e.category === 'netz_document' ? 'Utility Doc' :
+                      'General'
                     } tone={
                       e.category === 'netz_status' ? 'success' :
                       e.category.startsWith('customer') ? 'accent' :
@@ -254,18 +254,18 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
             <Card className={`p-5 flex flex-col gap-3 ${wp.needsGasAbmeldung ? 'border-warning/40' : ''}`}>
               <div className="flex items-center gap-2">
                 <span className="text-lg">🔥</span>
-                <h3 className="font-semibold text-[13px] text-fg">Wärmepumpe</h3>
-                <Pill label={wp.heatingFuel === 'gas' ? 'GAS → ABMELDUNG' : wp.heatingFuel === 'oil' ? 'ÖL' : 'HEIZUNG UNBEKANNT'} tone={wp.needsGasAbmeldung ? 'warning' : 'info'} dot={false} />
+                <h3 className="font-semibold text-[13px] text-fg">Heat Pump</h3>
+                <Pill label={wp.heatingFuel === 'gas' ? 'GAS → DEREGISTRATION' : wp.heatingFuel === 'oil' ? 'OIL' : 'HEATING UNKNOWN'} tone={wp.needsGasAbmeldung ? 'warning' : 'info'} dot={false} />
               </div>
               {wp.waermepumpeType && <p className="text-xs text-fg2">{wp.waermepumpeType}</p>}
               {wp.needsGasAbmeldung && (
                 <div className="flex flex-col gap-2 mt-1">
-                  <p className="text-xs text-warning font-medium">Gaszähler muss abgemeldet werden:</p>
+                  <p className="text-xs text-warning font-medium">Gas meter must be deregistered:</p>
                   <div className="flex flex-col gap-1.5 text-[11px] text-fg2 leading-[15px]">
-                    <span>① Kunde muss Gaszähler beim Versorger abmelden</span>
-                    <span>② Bezirksschornsteinfeger über Stilllegung informieren</span>
+                    <span>① Customer must deregister gas meter with the utility</span>
+                    <span>② Notify district chimney sweep about decommissioning</span>
                   </div>
-                  <p className="text-[11px] text-fg3 mt-1">Mail-Vorlagen verfügbar unter /api/netzanmeldung/waermepumpe?offerId={reg?.offerId ?? project?.offerId}</p>
+                  <p className="text-[11px] text-fg3 mt-1">Email templates available at /api/netzanmeldung/waermepumpe?offerId={reg?.offerId ?? project?.offerId}</p>
                 </div>
               )}
             </Card>
@@ -275,13 +275,13 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
           {project && (
             <Card className="p-5 flex flex-col gap-4">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold text-[13px] text-fg">MaStR-Datenblatt</h3>
-                <Pill label={mastrOpen === 0 ? 'KOMPLETT' : `${mastrOpen} MANUELL`} tone={mastrOpen === 0 ? 'success' : 'warning'} dot={false} />
-                <span className="text-[11px] text-fg3">Vorbereitung fürs Marktstammdatenregister — Frist 1 Monat nach Inbetriebnahme</span>
+                <h3 className="font-semibold text-[13px] text-fg">MaStR Data Sheet</h3>
+                <Pill label={mastrOpen === 0 ? 'COMPLETE' : `${mastrOpen} MANUAL`} tone={mastrOpen === 0 ? 'success' : 'warning'} dot={false} />
+                <span className="text-[11px] text-fg3">Preparation for the Market Master Data Register — deadline 1 month after commissioning</span>
               </div>
               <p className="text-[11px] text-fg3 -mt-2 leading-[15px]">
-                Es gibt keine MaStR-Schnittstelle — die Eintragung bleibt ein Portal-Schritt. Diese Felder sind aus Reonic
-                vorbereitet, damit das Büro nur noch abtippt. <span className="text-warning">Gelb</span> = manuell ergänzen.
+                There is no MaStR API — registration remains a portal step. These fields are pre-filled from Reonic
+                so the office only needs to type them in. <span className="text-warning">Yellow</span> = fill in manually.
               </p>
               <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
                 {mastr.map((section) => (
@@ -314,9 +314,9 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
 
 function SourceBadge({ source }: { source: FieldSource }) {
   const map: Record<FieldSource, { label: string; cls: string }> = {
-    reonic: { label: 'aus Reonic', cls: 'bg-success-bg text-success' },
-    auto: { label: 'automatisch', cls: 'bg-info-bg text-info' },
-    manuell: { label: 'manuell', cls: 'bg-warning-bg text-warning' },
+    reonic: { label: 'from Reonic', cls: 'bg-success-bg text-success' },
+    auto: { label: 'automatic', cls: 'bg-info-bg text-info' },
+    manuell: { label: 'manual', cls: 'bg-warning-bg text-warning' },
   };
   const m = map[source];
   return <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${m.cls}`}>{m.label}</span>;

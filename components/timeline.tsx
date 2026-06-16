@@ -27,15 +27,15 @@ function buildTimeline({
   const events: TimelineEvent[] = [];
 
   if (startedAt) {
-    events.push({ at: startedAt, icon: '＋', label: 'Anmeldung angelegt', tone: 'neutral' });
+    events.push({ at: startedAt, icon: '＋', label: 'Registration created', tone: 'neutral' });
   }
 
   for (const d of documents ?? []) {
     events.push({
       at: d.at,
       icon: '📄',
-      label: `${d.form.toUpperCase()} Entwurf erzeugt`,
-      detail: d.source === 'bot' ? 'vom Bot' : undefined,
+      label: `${d.form.toUpperCase()} draft generated`,
+      detail: d.source === 'bot' ? 'by bot' : undefined,
       tone: 'info',
     });
   }
@@ -44,15 +44,15 @@ function buildTimeline({
     events.push({
       at: u.uploadedAt,
       icon: '☁',
-      label: `${u.filename} hochgeladen`,
-      detail: 'bei pCloud',
+      label: `${u.filename} uploaded`,
+      detail: 'to pCloud',
       tone: 'info',
     });
     if (u.signedAt) {
       events.push({
         at: u.signedAt,
         icon: '✓',
-        label: `${u.filename} unterschrieben`,
+        label: `${u.filename} signed`,
         tone: 'success',
       });
     }
@@ -62,13 +62,13 @@ function buildTimeline({
     events.push({
       at: e.at,
       icon: '✗',
-      label: `Bot-Fehler: ${e.step}`,
+      label: `Bot error: ${e.step}`,
       detail: e.error,
       tone: 'error',
     });
   }
 
-  // Portal-Updates vom Bot
+  // Portal updates from bot
   for (const u of portalUpdates ?? []) {
     const icon = u.type === 'status' ? '🌐' : u.type === 'document' ? '📋' : u.type === 'error' ? '⚠' : '💬';
     const tone = u.type === 'error' ? 'error' as const : u.type === 'status' ? 'success' as const : 'info' as const;
@@ -83,11 +83,11 @@ function buildTimeline({
 
   // Emails
   for (const e of emails ?? []) {
-    const catLabel = e.category === 'netz_status' ? 'NB-Status'
-      : e.category === 'customer_update' ? 'Kunde-Anfrage'
-      : e.category === 'customer_doc' ? 'Dokument'
-      : e.category === 'customer_correction' ? 'Klärungsbedarf'
-      : e.category === 'netz_document' ? 'NB-Dokument'
+    const catLabel = e.category === 'netz_status' ? 'Utility Status'
+      : e.category === 'customer_update' ? 'Customer Inquiry'
+      : e.category === 'customer_doc' ? 'Document'
+      : e.category === 'customer_correction' ? 'Clarification Needed'
+      : e.category === 'netz_document' ? 'Utility Document'
       : 'Email';
     const tone = e.category === 'netz_status' ? 'success' as const
       : e.category.startsWith('customer') ? 'info' as const
@@ -99,7 +99,7 @@ function buildTimeline({
       detail: [
         e.from_name || e.from_email,
         e.summary,
-        e.auto_replied ? '→ Auto-Antwort gesendet' : undefined,
+        e.auto_replied ? '→ Auto-reply sent' : undefined,
       ].filter(Boolean).join(' · '),
       tone,
     });
@@ -119,7 +119,7 @@ const toneColors: Record<TimelineEvent['tone'], string> = {
 
 const fmt = (iso: string) => {
   const d = new Date(iso);
-  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 };
 
 export function Timeline({
@@ -140,7 +140,7 @@ export function Timeline({
   const events = buildTimeline({ startedAt, documents, pcloudUploads, botErrors, emails, portalUpdates });
 
   if (events.length === 0) {
-    return <p className="text-[11px] text-fg4">Noch keine Ereignisse.</p>;
+    return <p className="text-[11px] text-fg4">No events yet.</p>;
   }
 
   return (

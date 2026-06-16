@@ -13,6 +13,15 @@ const docTone: Record<DocStatus, string> = {
   eingereicht: 'bg-success-bg text-success',
 };
 
+const statusLabel: Record<DocStatus, string> = {
+  offen: 'Open',
+  pruefen: 'In Review',
+  freigegeben: 'Approved',
+  hochgeladen: 'Uploaded',
+  unterschrieben: 'Signed',
+  eingereicht: 'Submitted',
+};
+
 async function post(body: Record<string, unknown>) {
   await fetch('/api/netzanmeldung', {
     method: 'POST',
@@ -27,7 +36,11 @@ interface TemplateInfo {
   phase: 'ANA' | 'FM' | 'WP';
 }
 
-// Alles läuft über KI — keine hardcoded Filler mehr.
+const phaseLabel: Record<string, string> = {
+  ANA: 'Application',
+  FM: 'Completion Notice',
+  WP: 'Heat Pump',
+};
 
 export function DocActions({
   offerId,
@@ -50,9 +63,8 @@ export function DocActions({
   const [busy, setBusy] = useState(false);
   const [aiTemplates, setAiTemplates] = useState<TemplateInfo[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
-  const label = DOC_STAGES.find((s) => s.id === docStatus)?.label ?? 'Offen';
+  const label = statusLabel[docStatus] ?? 'Open';
 
-  // Load AI templates from nb-templates/ folder
   useEffect(() => {
     if (!netzbetreiber) return;
     setLoadingTemplates(true);
@@ -65,16 +77,13 @@ export function DocActions({
       .finally(() => setLoadingTemplates(false));
   }, [netzbetreiber]);
 
-  // Phase-Filter: WP-Dokumente bei PV-Projekten NICHT anzeigen
   const showPhase = (p: 'ANA' | 'FM' | 'WP') => {
-    if (p === 'WP') return false; // WP-Dokumente nur über separaten WP-Workflow
+    if (p === 'WP') return false;
     return phase === 'all' || p === phase;
   };
 
-  // Filter AI templates by phase (exclude WP for PV projects)
   const filteredAiTemplates = aiTemplates.filter(t => showPhase(t.phase));
 
-  // Group AI templates by phase
   const aiByPhase = {
     ANA: filteredAiTemplates.filter(t => t.phase === 'ANA'),
     FM: filteredAiTemplates.filter(t => t.phase === 'FM'),
@@ -94,7 +103,6 @@ export function DocActions({
     try {
       await post({ offerId, docStatus: 'freigegeben' });
 
-      // AI templates first — covers all NB. Exclude WP documents.
       const forms: string[] = [];
       const relevantAi = aiTemplates.filter(t => {
         if (t.phase === 'WP') return false;
@@ -112,12 +120,12 @@ export function DocActions({
       });
       const data = await res.json();
       if (data.ok) {
-        alert(data.message || `${data.generated?.length ?? 0} Dokument(e) erzeugt`);
+        alert(data.message || `${data.generated?.length ?? 0} document(s) generated`);
       } else {
-        alert(`Fehler: ${data.error}`);
+        alert(`Error: ${data.error}`);
       }
     } catch (err) {
-      alert(`Upload-Fehler: ${err}`);
+      alert(`Upload error: ${err}`);
     }
     setBusy(false);
     router.refresh();
@@ -129,12 +137,12 @@ export function DocActions({
       const res = await fetch(`/api/netzanmeldung/pcloud?offerId=${offerId}`);
       const data = await res.json();
       if (data.matched?.length > 0) {
-        alert(`Unterschriebene Dokumente gefunden! (${data.matched[0].signedFiles.join(', ')})`);
+        alert(`Signed documents found! (${data.matched[0].signedFiles.join(', ')})`);
       } else {
-        alert('Noch keine unterschriebenen Dokumente gefunden.');
+        alert('No signed documents found yet.');
       }
     } catch {
-      alert('Fehler beim Prüfen.');
+      alert('Error checking signatures.');
     }
     setBusy(false);
     router.refresh();
@@ -147,39 +155,37 @@ export function DocActions({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="font-semibold text-[13px] text-fg">Dokumente</h3>
+        <h3 className="font-semibold text-[13px] text-fg">Documents</h3>
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium tracking-[0.12em] ${docTone[docStatus]}`}>
           {label.toUpperCase()}
         </span>
       </div>
       <p className="text-[11px] text-fg3 leading-[16px]">
         {hasTemplates
-          ? 'KI-ausgefüllte Formulare aus den Projektdaten + Reonic-Dokumenten. Vor dem Einreichen prüfen — Felder bleiben editierbar.'
-          : 'Bitte Netzbetreiber zuweisen damit die passenden Formulare erscheinen.'}
+          ? 'AI-filled forms from project data + CRM documents. Review before submitting — fields remain editable.'
+          : 'Please assign a utility so the correct forms appear.'}
       </p>
 
-      {/* ── Kein NB / keine Templates → Hinweis ── */}
       {!hasTemplates && !loadingTemplates && (
         <div className="bg-warning-bg/60 border border-warning/30 rounded-lg px-3 py-2 text-[11px] text-warning">
-          Kein Netzbetreiber zugewiesen oder keine Templates vorhanden. Bitte oben den VNB setzen — dann erscheinen die passenden Formulare automatisch.
+          No utility assigned or no templates available. Please set the utility above — the correct forms will appear automatically.
         </div>
       )}
 
-      {/* ── KI-Formulare (aus nb-templates/) ── */}
       {loadingTemplates && (
-        <p className="text-[11px] text-fg4 animate-pulse">Templates laden...</p>
+        <p className="text-[11px] text-fg4 animate-pulse">Loading templates...</p>
       )}
 
       {!loadingTemplates && filteredAiTemplates.length > 0 && ready && (
         <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
           <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">
-            {netzbetreiber ?? 'Formulare'}
+            {netzbetreiber ?? 'Forms'}
           </p>
 
           {aiByPhase.ANA.length > 0 && showPhase('ANA') && (
             <>
               {aiByPhase.ANA.length > 3 && (
-                <p className="text-[9px] text-fg4 uppercase tracking-wider mt-1">Anmeldung</p>
+                <p className="text-[9px] text-fg4 uppercase tracking-wider mt-1">{phaseLabel.ANA}</p>
               )}
               {aiByPhase.ANA.map((t) => (
                 <button key={t.path} onClick={() => generate(`ai:${t.path}`)} disabled={busy} className={btnClass}>
@@ -194,7 +200,7 @@ export function DocActions({
           {aiByPhase.FM.length > 0 && showPhase('FM') && (
             <>
               {filteredAiTemplates.length > 3 && (
-                <p className="text-[9px] text-fg4 uppercase tracking-wider mt-1">Fertigmeldung</p>
+                <p className="text-[9px] text-fg4 uppercase tracking-wider mt-1">{phaseLabel.FM}</p>
               )}
               {aiByPhase.FM.map((t) => (
                 <button key={t.path} onClick={() => generate(`ai:${t.path}`)} disabled={busy} className={btnClass}>
@@ -208,7 +214,7 @@ export function DocActions({
 
           {aiByPhase.WP.length > 0 && (
             <>
-              <p className="text-[9px] text-fg4 uppercase tracking-wider mt-1">Wärmepumpe</p>
+              <p className="text-[9px] text-fg4 uppercase tracking-wider mt-1">{phaseLabel.WP}</p>
               {aiByPhase.WP.map((t) => (
                 <button key={t.path} onClick={() => generate(`ai:${t.path}`)} disabled={busy} className={btnClass}>
                   <span className="text-fg2">{t.label}</span>
@@ -221,10 +227,9 @@ export function DocActions({
         </div>
       )}
 
-      {/* ── Bereits generierte Dokumente (nur KI, keine alten hardcoded) ── */}
       {documents.filter(d => d.form.startsWith('ai:')).length > 0 && (
         <div className="flex flex-col gap-1.5 border-t border-line pt-2 mt-1">
-          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Generierte Dokumente</p>
+          <p className="text-[10px] font-medium text-fg3 tracking-wide uppercase">Generated Documents</p>
           {documents.filter(d => d.form.startsWith('ai:')).map((d) => {
             const cleanLabel = d.form.slice(3).split('/').pop()?.replace('.pdf', '').replace(/_/g, ' ') ?? d.form;
             const editPath = `/netzanmeldung/${offerId}/edit?form=${encodeURIComponent(d.form)}`;
@@ -235,48 +240,46 @@ export function DocActions({
               className="flex items-center justify-between px-3 py-2 bg-surface-2 border border-line-2 rounded-lg text-xs hover:border-accent/40"
             >
               <span className="text-fg2 truncate">{cleanLabel.slice(0, 42)}</span>
-              <span className="text-accent font-medium shrink-0">Prüfen &amp; Bearbeiten &rarr;</span>
+              <span className="text-accent font-medium shrink-0">Review &amp; Edit &rarr;</span>
             </a>
           );
           })}
         </div>
       )}
 
-      {/* ── Workflow-Buttons ── */}
       {docStatus === 'pruefen' && (
         <button onClick={async () => {
           setBusy(true);
           await post({ offerId, docStatus: 'freigegeben' });
           setBusy(false);
-          // WhatsApp an Jan (Elektriker)
           const signUrl = `${window.location.origin}/sign`;
-          const msg = `Hi Jan, neue Dokumente zum Unterschreiben bereit: ${signUrl}`;
+          const msg = `New documents ready for signing: ${signUrl}`;
           window.open(`https://wa.me/4917661714746?text=${encodeURIComponent(msg)}`, '_blank');
           router.refresh();
         }} disabled={busy} className="px-3.5 py-2 bg-accent text-bg rounded-lg font-semibold text-xs disabled:opacity-50">
-          &#x2713; Freigeben &amp; an Jan senden
+          &#x2713; Approve &amp; send to electrician
         </button>
       )}
       {docStatus === 'freigegeben' && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-[11px] text-fg3">Freigegeben — wartet auf Jans Unterschrift.</p>
-          <a href="https://wa.me/4917661714746?text=Hi%20Jan%2C%20Erinnerung%3A%20Dokumente%20warten%20auf%20deine%20Unterschrift%20%F0%9F%91%89%20https%3A%2F%2Fbirdie-demo.vercel.app%2Fsign"
+          <p className="text-[11px] text-fg3">Approved — waiting for electrician&apos;s signature.</p>
+          <a href="https://wa.me/4917661714746?text=Reminder%3A%20Documents%20waiting%20for%20your%20signature%20%F0%9F%91%89%20https%3A%2F%2Fbirdie-demo.vercel.app%2Fsign"
             target="_blank" rel="noopener noreferrer"
             className="px-3.5 py-2 bg-surface-2 border border-line-2 text-fg rounded-lg font-medium text-xs text-center hover:border-accent/40">
-            Jan nochmal erinnern (WhatsApp)
+            Send reminder (WhatsApp)
           </a>
         </div>
       )}
       {docStatus === 'hochgeladen' && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-[11px] text-fg3">Wartet auf Unterschrift vom Elektriker — wird automatisch erkannt.</p>
+          <p className="text-[11px] text-fg3">Waiting for electrician&apos;s signature — detected automatically.</p>
           <button onClick={checkSigned} disabled={busy} className={btnClass}>
-            Jetzt prüfen
+            Check now
           </button>
         </div>
       )}
       {docStatus === 'unterschrieben' && (
-        <p className="text-[11px] text-fg3">Unterschrieben — Bot reicht beim Netzbetreiber ein.</p>
+        <p className="text-[11px] text-fg3">Signed — bot will submit to the utility.</p>
       )}
     </div>
   );

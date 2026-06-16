@@ -21,11 +21,11 @@ interface EmailForPanel {
 }
 
 const catLabel: Record<string, string> = {
-  netz_status: 'Netzbetreiber-Status',
-  netz_document: 'Netzbetreiber-Dokument',
-  customer_update: 'Kunden-Anfrage',
-  customer_doc: 'Kunden-Dokument',
-  customer_correction: 'Klärungsbedarf',
+  netz_status: 'Utility Status',
+  netz_document: 'Utility Document',
+  customer_update: 'Customer Inquiry',
+  customer_doc: 'Customer Document',
+  customer_correction: 'Clarification Needed',
 };
 
 export function EmailDetailPanel({ email, onClose, onSent }: {
@@ -84,7 +84,7 @@ export function EmailDetailPanel({ email, onClose, onSent }: {
       setSent(true);
       onSent?.();
     } catch {
-      setError('Fehler beim Senden');
+      setError('Failed to send');
     } finally {
       setSending(false);
     }
@@ -99,13 +99,13 @@ export function EmailDetailPanel({ email, onClose, onSent }: {
             <div className="flex items-center gap-2 flex-wrap">
               <Pill label={catLabel[email.category] ?? email.category} tone={email.category === 'netz_status' ? 'success' : 'warning'} dot={false} />
               {email.matched_customer && <Pill label={email.matched_customer} tone="info" dot={false} />}
-              {email.auto_replied && <Pill label="Auto-Reply gesendet" tone="success" dot={false} />}
+              {email.auto_replied && <Pill label="Auto-reply sent" tone="success" dot={false} />}
             </div>
             <h2 className="font-semibold text-lg text-fg">{email.subject}</h2>
             <div className="flex items-center gap-2 text-[12px] text-fg3">
               <span className="font-medium text-fg2">{email.from_name || email.from_email}</span>
               <span>·</span>
-              <span>{new Date(email.received_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              <span>{new Date(email.received_at).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
           <button onClick={onClose} className="text-fg3 hover:text-fg text-xl shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface">✕</button>
@@ -113,19 +113,19 @@ export function EmailDetailPanel({ email, onClose, onSent }: {
 
         {/* Email Body */}
         <div className="p-5 border-b border-line">
-          <h3 className="text-[11px] font-semibold text-fg3 uppercase tracking-wider mb-2">Nachricht</h3>
+          <h3 className="text-[11px] font-semibold text-fg3 uppercase tracking-wider mb-2">Message</h3>
           {email.summary && (
             <div className="bg-accent-bg/50 rounded-lg p-3 mb-3">
-              <p className="text-[12px] text-fg2 leading-relaxed"><span className="text-accent font-medium">KI-Zusammenfassung:</span> {email.summary}</p>
+              <p className="text-[12px] text-fg2 leading-relaxed"><span className="text-accent font-medium">AI Summary:</span> {email.summary}</p>
             </div>
           )}
-          <p className="text-[13px] text-fg2 leading-relaxed whitespace-pre-wrap">{email.body_plain || '(Kein Text-Inhalt)'}</p>
+          <p className="text-[13px] text-fg2 leading-relaxed whitespace-pre-wrap">{email.body_plain || '(No text content)'}</p>
         </div>
 
         {/* Context (from Reonic etc.) */}
         {context.length > 0 && (
           <div className="px-5 pt-4 pb-2">
-            <h3 className="text-[11px] font-semibold text-fg3 uppercase tracking-wider mb-2">Verwendeter Kontext</h3>
+            <h3 className="text-[11px] font-semibold text-fg3 uppercase tracking-wider mb-2">Context Used</h3>
             <div className="flex flex-col gap-2">
               {context.map((c, i) => (
                 <div key={i} className="bg-surface rounded-lg p-3 text-[11px] text-fg3 whitespace-pre-wrap leading-relaxed">{c}</div>
@@ -141,14 +141,14 @@ export function EmailDetailPanel({ email, onClose, onSent }: {
               onClick={generateReply}
               className="h-11 bg-accent text-bg rounded-xl flex items-center justify-center gap-2 font-semibold text-sm hover:bg-accent/90 transition-colors"
             >
-              ✨ KI-Antwort generieren
+              ✨ Generate AI Reply
             </button>
           )}
 
           {loading && (
             <div className="flex items-center justify-center gap-2 py-6 text-fg3">
               <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm">KI analysiert Email + Projektdaten...</span>
+              <span className="text-sm">AI analyzing email + project data...</span>
             </div>
           )}
 
@@ -159,8 +159,8 @@ export function EmailDetailPanel({ email, onClose, onSent }: {
           {suggestion && !sent && (
             <>
               <div className="flex items-center gap-2">
-                <h3 className="text-[11px] font-semibold text-fg3 uppercase tracking-wider">Antwort-Entwurf</h3>
-                <Pill label="Bearbeitbar" tone="info" dot={false} />
+                <h3 className="text-[11px] font-semibold text-fg3 uppercase tracking-wider">Reply Draft</h3>
+                <Pill label="Editable" tone="info" dot={false} />
               </div>
               <textarea
                 value={editedReply}
@@ -173,14 +173,14 @@ export function EmailDetailPanel({ email, onClose, onSent }: {
                   onClick={generateReply}
                   className="px-4 h-9 border border-line rounded-lg text-[12px] text-fg2 hover:bg-surface transition-colors"
                 >
-                  🔄 Neu generieren
+                  🔄 Regenerate
                 </button>
                 <button
                   onClick={sendReply}
                   disabled={sending || !editedReply.trim()}
                   className="px-6 h-9 bg-accent text-bg rounded-lg font-semibold text-[12px] hover:bg-accent/90 transition-colors disabled:opacity-50"
                 >
-                  {sending ? 'Wird gesendet...' : '📤 Antwort absenden'}
+                  {sending ? 'Sending...' : '📤 Send Reply'}
                 </button>
               </div>
             </>
@@ -190,8 +190,8 @@ export function EmailDetailPanel({ email, onClose, onSent }: {
             <div className="bg-success-bg rounded-xl p-4 flex items-center gap-3">
               <span className="text-success text-lg">✓</span>
               <div>
-                <p className="text-sm font-medium text-success">Antwort versendet</p>
-                <p className="text-[11px] text-fg3 mt-0.5">An {email.from_email} · als erledigt markiert</p>
+                <p className="text-sm font-medium text-success">Reply sent</p>
+                <p className="text-[11px] text-fg3 mt-0.5">To {email.from_email} · marked as done</p>
               </div>
             </div>
           )}

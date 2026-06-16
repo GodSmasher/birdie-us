@@ -20,10 +20,9 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
           className="hidden sm:flex w-[280px] h-9 bg-surface border border-line rounded-lg items-center px-3 gap-2 hover:border-line-2 transition-colors group"
         >
           <span className="text-fg3 text-sm">⌕</span>
-          <span className="text-xs text-fg3 group-hover:text-fg2">Suchen oder Befehl…</span>
+          <span className="text-xs text-fg3 group-hover:text-fg2">Search or command…</span>
           <span className="ml-auto px-1.5 py-0.5 rounded bg-surface-3 text-fg2 text-[10px] font-medium">⌘K</span>
         </button>
-        {/* Mobile search icon */}
         <button
           onClick={openPalette}
           className="sm:hidden w-9 h-9 bg-surface border border-line rounded-lg flex items-center justify-center text-fg2 hover:text-fg hover:border-line-2 transition-colors"

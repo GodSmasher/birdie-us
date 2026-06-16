@@ -48,7 +48,7 @@ export default function EditDocPage({ params }: { params: { slug: string } }) {
       body: JSON.stringify({ offerId: params.slug, form: fullForm, overrides }),
     });
     setSaving(false);
-    setLastSaved(new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    setLastSaved(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
   }, [params.slug, fullForm]);
 
   function updateField(name: string, value: string | boolean) {
@@ -71,7 +71,7 @@ export default function EditDocPage({ params }: { params: { slug: string } }) {
     });
     setBusy(false);
     const signUrl = `${window.location.origin}/sign`;
-    const msg = `Hi Jan, neue Dokumente zum Unterschreiben bereit: ${signUrl}`;
+    const msg = `Hi Jan, new documents ready for signature: ${signUrl}`;
     window.open(`https://wa.me/4917661714746?text=${encodeURIComponent(msg)}`, '_blank');
     router.push(`/netzanmeldung/${params.slug}`);
     router.refresh();
@@ -90,17 +90,17 @@ export default function EditDocPage({ params }: { params: { slug: string } }) {
           <div className="flex items-center gap-3">
             <Link href={`/netzanmeldung/${params.slug}`} className="text-fg3 hover:text-fg text-sm">&larr;</Link>
             <div className="flex flex-col">
-              <h1 className="font-semibold text-[14px] text-fg tracking-tight">{label || 'Dokument laden...'}</h1>
+              <h1 className="font-semibold text-[14px] text-fg tracking-tight">{label || 'Loading document...'}</h1>
               <span className="text-[10px] text-fg4">
-                {saving ? 'Speichern...' : lastSaved ? `Gespeichert ${lastSaved}` : loading ? 'Laden...' : 'Bereit'}
-                {' '}&middot; {filledText.length}/{textFields.length} Felder
+                {saving ? 'Saving...' : lastSaved ? `Saved ${lastSaved}` : loading ? 'Loading...' : 'Ready'}
+                {' '}&middot; {filledText.length}/{textFields.length} fields
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setPdfVersion(v => v + 1)}
               className="px-3 py-1.5 bg-surface-2 border border-line-2 rounded-lg text-[11px] text-fg2 hover:border-accent/40">
-              &#x21bb; Vorschau
+              &#x21bb; Preview
             </button>
             <a href={pdfUrl + '&download=1'} download
               className="px-3 py-1.5 bg-surface-2 border border-line-2 rounded-lg text-[11px] text-fg2 hover:border-accent/40">
@@ -108,7 +108,7 @@ export default function EditDocPage({ params }: { params: { slug: string } }) {
             </a>
             <button onClick={handleFreigeben} disabled={busy || loading}
               className="px-4 py-1.5 bg-accent text-bg rounded-lg font-semibold text-[11px] disabled:opacity-50">
-              {busy ? '...' : 'Freigeben'}
+              {busy ? '...' : 'Approve'}
             </button>
           </div>
         </header>
@@ -119,20 +119,20 @@ export default function EditDocPage({ params }: { params: { slug: string } }) {
             {fullForm ? (
               <embed src={pdfUrl + '#toolbar=0&navpanes=0&view=FitH'} type="application/pdf" className="w-full h-full" />
             ) : (
-              <div className="flex items-center justify-center h-full text-white/40">Kein Formular ausgew&auml;hlt</div>
+              <div className="flex items-center justify-center h-full text-white/40">No form selected</div>
             )}
           </div>
 
           {/* Field Editor */}
           <div className="w-[380px] shrink-0 border-l border-line bg-bg overflow-y-auto">
             {loading ? (
-              <div className="p-5 text-center text-fg3 text-xs animate-pulse">Felder werden geladen...</div>
+              <div className="p-5 text-center text-fg3 text-xs animate-pulse">Loading fields...</div>
             ) : (
               <>
                 <div className="border-b border-line">
                   <div className="px-4 py-2.5 bg-surface-2 border-b border-line">
                     <span className="text-[10px] font-semibold text-fg3 tracking-wide uppercase">
-                      Textfelder ({filledText.length}/{textFields.length})
+                      Text Fields ({filledText.length}/{textFields.length})
                     </span>
                   </div>
                   {textFields.map(f => (
@@ -141,7 +141,7 @@ export default function EditDocPage({ params }: { params: { slug: string } }) {
                       <input type="text" value={f.value as string}
                         onChange={e => updateField(f.name, e.target.value)}
                         className="bg-transparent text-[12px] text-fg px-0 py-0.5 border-b border-transparent focus:border-accent focus:outline-none"
-                        placeholder="(leer)" />
+                        placeholder="(empty)" />
                     </div>
                   ))}
                 </div>
@@ -149,7 +149,7 @@ export default function EditDocPage({ params }: { params: { slug: string } }) {
                   <div>
                     <div className="px-4 py-2.5 bg-surface-2 border-b border-line">
                       <span className="text-[10px] font-semibold text-fg3 tracking-wide uppercase">
-                        Checkboxen ({checkedBoxes.length}/{checkFields.length})
+                        Checkboxes ({checkedBoxes.length}/{checkFields.length})
                       </span>
                     </div>
                     {checkFields.map(f => (

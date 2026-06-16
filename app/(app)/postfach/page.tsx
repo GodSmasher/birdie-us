@@ -15,11 +15,11 @@ function fmtDate(raw?: string): string {
     d.getMonth() === now.getMonth() &&
     d.getFullYear() === now.getFullYear();
   if (isToday) {
-    return d.toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit' });
   }
-  return d.toLocaleString('de-DE', {
-    day: '2-digit',
+  return d.toLocaleString('en-US', {
     month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -44,7 +44,7 @@ function MailRow({
       <div className="min-w-0 flex-1 flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <span className="text-[13px] font-semibold text-fg truncate">
-            {mail.from || '(unbekannt)'}
+            {mail.from || '(unknown)'}
           </span>
           <span className="ml-auto text-[11px] text-fg3 shrink-0">
             {fmtDate(mail.date)}
@@ -69,7 +69,7 @@ export default async function PostfachPage() {
       <>
         <Sidebar active="postfach" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
-          <TopBar title="Postfach" subtitle="Google Workspace · Gmail" />
+          <TopBar title="Inbox" subtitle="Google Workspace · Gmail" />
           <div className="flex-1 px-8 py-7 flex flex-col gap-6">
             <ConnectHint />
           </div>
@@ -84,13 +84,13 @@ export default async function PostfachPage() {
         <Sidebar active="postfach" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar
-            title="Postfach"
+            title="Inbox"
             subtitle={mailbox.account ?? 'Gmail'}
           />
           <div className="flex-1 px-8 py-7 flex flex-col gap-6">
             <Card className="p-6 flex flex-col items-center text-center gap-3 max-w-[640px] mx-auto mt-8">
               <div className="w-10 h-10 rounded-xl bg-error-bg flex items-center justify-center text-error text-lg">!</div>
-              <h2 className="font-semibold text-fg">Gmail-Fehler</h2>
+              <h2 className="font-semibold text-fg">Gmail Error</h2>
               <p className="text-[13px] text-fg2">{mailbox.error}</p>
             </Card>
           </div>
@@ -99,7 +99,7 @@ export default async function PostfachPage() {
     );
   }
 
-  const syncTime = new Date().toLocaleString('de-DE', {
+  const syncTime = new Date().toLocaleString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -110,38 +110,36 @@ export default async function PostfachPage() {
       <Sidebar active="postfach" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar
-          title="Postfach"
-          subtitle={`${mailbox.account ?? 'Gmail'} · ${mailbox.unread} ungelesen`}
+          title="Inbox"
+          subtitle={`${mailbox.account ?? 'Gmail'} · ${mailbox.unread} unread`}
         />
         <div className="flex-1 px-8 py-7 flex flex-col gap-6">
-          {/* KPI row */}
           <div className="flex gap-4">
             <KpiCard
-              label="UNGELESEN"
-              value={mailbox.unread.toLocaleString('de-DE')}
-              sub="neue Nachrichten"
+              label="UNREAD"
+              value={mailbox.unread.toLocaleString('en-US')}
+              sub="new messages"
               valueColor={mailbox.unread > 0 ? 'text-warning' : 'text-fg'}
             />
             <KpiCard
-              label="GESAMT"
-              value={mailbox.messagesTotal.toLocaleString('de-DE')}
-              sub="alle Nachrichten"
+              label="TOTAL"
+              value={mailbox.messagesTotal.toLocaleString('en-US')}
+              sub="all messages"
             />
             <KpiCard
-              label="LETZTER SYNC"
+              label="LAST SYNC"
               value={syncTime}
-              sub="Server-Zeit"
+              sub="server time"
             />
           </div>
 
-          {/* Mail list */}
           <Card className="overflow-hidden">
             <CardHeader
-              title="Letzte Nachrichten"
+              title="Recent Messages"
               right={
                 <div className="flex items-center gap-3">
                   <span className="text-[12px] text-fg3">
-                    {mailbox.recent.length} geladen
+                    {mailbox.recent.length} loaded
                   </span>
                   <Pill label="LIVE" tone="success" />
                 </div>
@@ -149,7 +147,7 @@ export default async function PostfachPage() {
             />
             {mailbox.recent.length === 0 ? (
               <div className="px-5 py-10 text-center text-sm text-fg3">
-                Keine Nachrichten im Posteingang
+                No messages in inbox
               </div>
             ) : (
               mailbox.recent.map((mail, i) => (
@@ -174,12 +172,12 @@ function ConnectHint() {
         ✉
       </div>
       <h2 className="font-semibold text-lg text-fg tracking-tightest">
-        Google Workspace nicht verbunden
+        Google Workspace not connected
       </h2>
       <p className="text-[13px] text-fg2 leading-[20px] max-w-[460px]">
-        Mit verbundenem Workspace erscheint hier das Email-Postfach live.
-        Verbindung über OAuth (Client-ID/Secret + Refresh-Token) — wird als
-        Environment-Variable hinterlegt.
+        Once connected, your email inbox will appear here live.
+        Connection via OAuth (Client ID/Secret + Refresh Token) — set as
+        environment variables.
       </p>
       <div className="bg-bg border border-line rounded-lg p-4 text-left w-full max-w-[460px]">
         <code className="text-[11px] text-fg2 font-mono block leading-[18px]">

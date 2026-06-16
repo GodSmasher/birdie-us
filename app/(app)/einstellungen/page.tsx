@@ -12,29 +12,29 @@ export default async function EinstellungenPage() {
     <>
       <Sidebar active="einstellungen" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
-        <TopBar title="Einstellungen" subtitle="Profil · Connectoren · Sicherheit" />
+        <TopBar title="Settings" subtitle="Profile · Connectors · Security" />
         <div className="flex-1 px-8 py-7 flex flex-col gap-6 max-w-[820px]">
           <Card className="p-5 flex flex-col gap-4">
-            <h3 className="font-semibold text-[13px] text-fg">Profil</h3>
+            <h3 className="font-semibold text-[13px] text-fg">Profile</h3>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-bg font-semibold">SV</div>
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-fg">Sarah Vogel</span>
-                <span className="text-xs text-fg2">Volta Solaranlagen · Administrator</span>
+                <span className="text-xs text-fg2">Volta Solar Systems · Administrator</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <Row k="Firma" v="Volta Solaranlagen" />
-              <Row k="Branche" v="Solar" />
+              <Row k="Company" v="Volta Solar Systems" />
+              <Row k="Industry" v="Solar" />
               <Row k="Region" v="Frankfurt (EU)" />
-              <Row k="Sprache" v="Deutsch" />
+              <Row k="Language" v="English" />
             </div>
           </Card>
 
           <Card className="p-5 flex flex-col gap-4">
             <div className="flex items-center">
-              <h3 className="font-semibold text-[13px] text-fg">Verbundene Connectoren</h3>
-              <Link href="/connectors" className="ml-auto text-[11px] font-medium text-accent">Alle ansehen →</Link>
+              <h3 className="font-semibold text-[13px] text-fg">Connected Connectors</h3>
+              <Link href="/connectors" className="ml-auto text-[11px] font-medium text-accent">View all →</Link>
             </div>
             <div className="flex flex-wrap gap-2">
               {connected.map((c) => (
@@ -47,21 +47,21 @@ export default async function EinstellungenPage() {
 
           <Card className="p-5 flex flex-col gap-3">
             <div className="flex items-center">
-              <h3 className="font-semibold text-[13px] text-fg">Dateien & Wissen</h3>
-              <Link href="/dateien" className="ml-auto text-[11px] font-medium text-accent">Öffnen →</Link>
+              <h3 className="font-semibold text-[13px] text-fg">Files & Knowledge</h3>
+              <Link href="/dateien" className="ml-auto text-[11px] font-medium text-accent">Open →</Link>
             </div>
             <p className="text-xs text-fg2 leading-[18px]">
-              Eure Drive-Ablage pro Bereich — Anleitungen, Dienstanweisungen, Belege. Direkt aus .birdie durchblätterbar.
+              Your Drive storage by area — guides, operating procedures, records. Browsable directly from .birdie.
             </p>
           </Card>
 
           <Card className="p-5 flex flex-col gap-4">
-            <h3 className="font-semibold text-[13px] text-fg">Sicherheit</h3>
+            <h3 className="font-semibold text-[13px] text-fg">Security</h3>
             <div className="flex flex-col gap-2.5">
-              <SecRow label="Passwort-Zugang (Gate)" status="aktiv" tone="success" />
-              <SecRow label="2FA für Login" status="empfohlen" tone="warning" />
-              <SecRow label="Daten-Hosting" status="EU / DSGVO" tone="success" />
-              <SecRow label="Connectoren-Secrets" status="verschlüsselt (Vercel)" tone="success" />
+              <SecRow label="Password access (Gate)" status="active" tone="success" />
+              <SecRow label="2FA for login" status="recommended" tone="warning" />
+              <SecRow label="Data hosting" status="EU / GDPR" tone="success" />
+              <SecRow label="Connector secrets" status="encrypted (Vercel)" tone="success" />
             </div>
           </Card>
         </div>

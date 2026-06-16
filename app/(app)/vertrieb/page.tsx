@@ -8,20 +8,20 @@ import { OffersTable } from './offers-table';
 
 export const dynamic = 'force-dynamic';
 
-const euro = (n: number) => (n === 0 ? '—' : '€ ' + n.toLocaleString('de-DE', { maximumFractionDigits: 0 }));
+const usd = (n: number) => (n === 0 ? '—' : '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 }));
 
 function StatTable({ title, rows, exportBase }: { title: string; rows: SellerStat[]; exportBase?: string }) {
   return (
     <Card className="flex-1 min-w-0 overflow-hidden">
       <div className="h-13 px-5 border-b border-line flex items-center" style={{ height: 52 }}>
         <h3 className="font-semibold text-sm text-fg">{title}</h3>
-        <span className="ml-auto text-[11px] text-fg3">Name klicken → Details</span>
+        <span className="ml-auto text-[11px] text-fg3">Click name → Details</span>
       </div>
       <div className="grid grid-cols-[1fr_70px_110px_110px] bg-surface-2 h-9 items-center px-5 text-[10px] font-semibold text-fg3 tracking-[0.18em]">
-        <span>NAME</span><span>GEW.</span><span>GEW. WERT</span><span>PIPELINE</span>
+        <span>NAME</span><span>WON</span><span>WON VALUE</span><span>PIPELINE</span>
       </div>
       {rows.length === 0 ? (
-        <div className="px-5 py-8 text-center text-sm text-fg3">Keine Zuordnung</div>
+        <div className="px-5 py-8 text-center text-sm text-fg3">No assignment</div>
       ) : (
         rows.map((s, i) => (
           <div key={s.id} className={`grid grid-cols-[1fr_70px_110px_110px] h-[44px] items-center px-5 hover:bg-surface-2/40 transition-colors ${i < rows.length - 1 ? 'border-b border-line' : ''}`}>
@@ -32,8 +32,8 @@ function StatTable({ title, rows, exportBase }: { title: string; rows: SellerSta
               )}
             </span>
             <span className="text-xs text-fg2">{s.wonCount}</span>
-            <span className="text-[13px] font-semibold text-success">{euro(s.wonValue)}</span>
-            <span className="text-xs text-fg2">{euro(s.openValue)}</span>
+            <span className="text-[13px] font-semibold text-success">{usd(s.wonValue)}</span>
+            <span className="text-xs text-fg2">{usd(s.openValue)}</span>
           </div>
         ))
       )}
@@ -44,7 +44,7 @@ function StatTable({ title, rows, exportBase }: { title: string; rows: SellerSta
 const PERIODS: { key: string; label: string; cutoff: string | null }[] = [
   { key: '2026', label: '2026', cutoff: '2026-01-01' },
   { key: 'q2-26', label: 'Q2 2026', cutoff: '2026-04-01' },
-  { key: 'alle', label: 'Gesamt', cutoff: null },
+  { key: 'alle', label: 'Total', cutoff: null },
 ];
 
 export default async function VertriebPage({ searchParams }: { searchParams: { period?: string } }) {
@@ -68,18 +68,18 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
       <Sidebar active="vertrieb" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar
-          title="Vertrieb"
-          subtitle={configured && !p.error ? `${p.total.toLocaleString('de-DE')} Angebote · ${leads.total}${leads.capped ? '+' : ''} Leads · ${periodConfig.label}` : 'Reonic-Connector · Angebote, Teams & Leads'}
+          title="Sales"
+          subtitle={configured && !p.error ? `${p.total.toLocaleString('en-US')} Offers · ${leads.total}${leads.capped ? '+' : ''} Leads · ${periodConfig.label}` : 'Reonic Connector · Offers, Teams & Leads'}
         />
 
         <div className="flex-1 px-8 py-7 flex flex-col gap-6">
           {!configured && (
             <Card className="p-8 flex flex-col items-center text-center gap-4 max-w-[640px] mx-auto mt-8">
               <div className="w-12 h-12 rounded-xl bg-surface-2 flex items-center justify-center text-accent text-xl">↗</div>
-              <h2 className="font-semibold text-lg text-fg tracking-tightest">Reonic-Connector nicht verbunden</h2>
+              <h2 className="font-semibold text-lg text-fg tracking-tightest">Reonic Connector not connected</h2>
               <p className="text-[13px] text-fg2 leading-[20px] max-w-[460px]">
-                Mit Reonic-Key erscheinen hier echte Pipeline, Team-Performance (wer/welches Team verkauft hat) und
-                Lead-Quellen — alles live aus dem CRM.
+                With a Reonic key, real pipeline data, team performance (who/which team sold), and
+                lead sources will appear here — all live from the CRM.
               </p>
             </Card>
           )}
@@ -87,7 +87,7 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
           {configured && p.error && (
             <Card className="p-5 flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-error-bg flex items-center justify-center text-error font-bold">!</div>
-              <div className="flex flex-col"><span className="font-semibold text-[13px] text-fg">Reonic nicht erreichbar</span><span className="text-xs text-fg2">{p.error}</span></div>
+              <div className="flex flex-col"><span className="font-semibold text-[13px] text-fg">Reonic unreachable</span><span className="text-xs text-fg2">{p.error}</span></div>
             </Card>
           )}
 
@@ -109,11 +109,11 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
 
               {/* KPIs — compact row */}
               <div className="grid grid-cols-5 gap-3">
-                <KpiCard label="PIPELINE" value={euro(p.pipelineValueOpen)} sub={`${p.open} offen`} />
-                <KpiCard label="GEWONNEN" value={euro(p.wonValue)} sub={`${p.won}`} valueColor="text-success" />
-                <KpiCard label="VERLOREN" value={euro(lostValue)} sub={`${p.lost}`} valueColor="text-error" />
-                <KpiCard label="QUOTE" value={`${closeRate}%`} sub={`${p.won}/${p.won + p.lost}`} valueColor={closeRate >= 30 ? 'text-success' : 'text-fg'} />
-                <KpiCard label="LEADS" value={`${leads.total.toLocaleString('de-DE')}${leads.capped ? '+' : ''}`} sub="Kontakte" />
+                <KpiCard label="PIPELINE" value={usd(p.pipelineValueOpen)} sub={`${p.open} open`} />
+                <KpiCard label="WON" value={usd(p.wonValue)} sub={`${p.won}`} valueColor="text-success" />
+                <KpiCard label="LOST" value={usd(lostValue)} sub={`${p.lost}`} valueColor="text-error" />
+                <KpiCard label="CLOSE RATE" value={`${closeRate}%`} sub={`${p.won}/${p.won + p.lost}`} valueColor={closeRate >= 30 ? 'text-success' : 'text-fg'} />
+                <KpiCard label="LEADS" value={`${leads.total.toLocaleString('en-US')}${leads.capped ? '+' : ''}`} sub="Contacts" />
               </div>
 
               {/* Main: 2 columns — left: table, right: analytics */}
@@ -125,7 +125,7 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
                 <div className="flex flex-col gap-4">
                   {/* Funnel */}
                   <Card className="p-4 flex flex-col gap-2">
-                    <h3 className="font-semibold text-[12px] text-fg mb-1">Status-Funnel</h3>
+                    <h3 className="font-semibold text-[12px] text-fg mb-1">Status Funnel</h3>
                     {p.byStatus.slice(0, 6).map((s) => (
                       <div key={s.status} className="flex items-center gap-2">
                         <span className="text-[10px] text-fg3 w-[100px] truncate" title={s.status}>{s.status}</span>
@@ -137,7 +137,7 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
 
                   {/* Lead sources */}
                   <Card className="p-4 flex flex-col gap-2">
-                    <h3 className="font-semibold text-[12px] text-fg mb-1">Lead-Quellen</h3>
+                    <h3 className="font-semibold text-[12px] text-fg mb-1">Lead Sources</h3>
                     {leads.bySource.slice(0, 5).map((s) => (
                       <div key={s.source} className="flex items-center gap-2">
                         <span className="text-[10px] text-fg3 w-[100px] truncate" title={s.source}>{s.source}</span>
@@ -150,15 +150,15 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
                   {/* Teams */}
                   <Card className="p-4 flex flex-col gap-2 max-h-[280px] overflow-hidden">
                     <div className="flex items-center justify-between mb-1 shrink-0">
-                      <h3 className="font-semibold text-[12px] text-fg">Verk&auml;ufer ({p.bySeller.length})</h3>
+                      <h3 className="font-semibold text-[12px] text-fg">Sales Reps ({p.bySeller.length})</h3>
                       <a href="/api/export/sellers" className="text-[10px] text-accent font-medium">CSV &darr;</a>
                     </div>
                     <div className="overflow-y-auto flex flex-col gap-1">
                     {p.bySeller.map((s) => (
                       <Link key={s.id} href={`/vertrieb/seller/${encodeURIComponent(s.id)}`} className="flex items-center justify-between text-[11px] hover:bg-surface-2/40 -mx-1 px-1 py-1 rounded transition-colors shrink-0">
                         <span className="text-accent truncate flex-1">{s.name}</span>
-                        <span className="text-[10px] text-fg3 mx-2">{s.wonCount} gew.</span>
-                        <span className="text-success font-semibold">{euro(s.wonValue)}</span>
+                        <span className="text-[10px] text-fg3 mx-2">{s.wonCount} won</span>
+                        <span className="text-success font-semibold">{usd(s.wonValue)}</span>
                       </Link>
                     ))}
                     </div>
