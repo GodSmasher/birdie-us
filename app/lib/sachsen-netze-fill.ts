@@ -327,34 +327,77 @@ export async function fillSNIbn(project: ProjectData, customer: string): Promise
 
   const plzOrt = project.address ? [project.address.zip, project.address.city].filter(Boolean).join(' ') : '';
 
-  // ── Seite 1: Personen + Leistung ──
-  text('Straße, Hausnr', project.address?.line);         // Anlagenstandort
-  text('PLZ, Ort', plzOrt);
+  // ═══ SEITE 1: IBN-Protokoll (verifiziert über FIELDMAP_sn-ibn.pdf) ════
 
-  text('Name, Vorname_1', customer);                      // Betreiber
+  // ── Anlagenanschrift (linke Spalte) ──
+  text('Name, Vorname_1', customer);
+  text('Straße, Hausnr_1', project.address?.line);
   text('PLZ,Ort', plzOrt);
 
-  text('Firma', VOLTA.name);                              // Errichter
+  // ── Anschlussnehmer (rechte Spalte = Kunde bei Residential) ──
+  text('Name, Vorname_2', customer);
+  text('Straße, Hausn_2', project.address?.line);
+  text('PLZ, Ort', plzOrt);
+
+  // ── Anlagenerrichter = Volta ──
+  text('Firma', VOLTA.name);
+  text('Straße, Hausnr', VOLTA.street);
   text('Telefon, E-Mail', [VOLTA.phone, VOLTA.email].filter(Boolean).join(' / '));
-  text('Straße, Hausnr_1', VOLTA.street);
-  text('Straße, Hausn_2', VOLTA.plzOrt);                  // PLZ/Ort des Errichters (Feldname ist irreführend)
 
-  // Leistungsdaten
-  text('Wirkleistung', num(wrKw(project)));                // Wirkleistung WR (kW)
-  text('Scheinleistung', num(wrKva(project)));             // Scheinleistung WR (kVA)
-  text('Modulleistung', num(project.kwp));                 // Installierte Modulleistung (kWp)
-  text('Wirkleistung am NA', num(wrKw(project)));          // Wirkleistung am Netzanschlusspunkt
+  // ── Leistungsdaten ──
+  const wrKwVal = wrKw(project) ?? (project.kwp > 0 ? project.kwp : undefined);
+  text('Scheinleistung', num(wrKva(project) ?? wrKwVal));  // max kVA
+  text('Wirkleistung', num(wrKwVal));                       // max kW
+  text('Modulleistung', num(project.kwp));                  // kWp
 
-  // ── Seite 1: Checkboxen ──
-  // Kontrollkästchen2.x = verschiedene Prüfungen
-  check('Kontrollkästchen2.0');   // Übereinstimmung Datenblatt
-  check('Kontrollkästchen2.1');   // Einheitenzertifikat
-  check('Kontrollkästchen2.2');   // NA-Schutz vorhanden
-  check('Kontrollkästchen2.4');   // Funkrundsteuerempfänger
-  check('Kontrollkästchen2.5');   // Symmetriebedingung
-  if (naSchutzIntegriert(project)) {
-    check('Kontrollkästchen2.6.0'); // NA-Schutz integriert
-    check('Kontrollkästchen2.7');   // Funktionstest durchgeführt
+  // ── Eingestellte Wirkleistung am Netzanschluss (60%) ──
+  if (project.kwp > 0) {
+    const pavE = Math.round(project.kwp * 0.6 * 10) / 10;
+    text('Wirkleistung am NA', num(pavE));
+  }
+
+  // ── Symmetrie L1/L2/L3 ──
+  if (wrKwVal && phasen(project) === 3) {
+    const perPhase = num(Math.round(((wrKva(project) ?? wrKwVal) / 3) * 10) / 10);
+    text('Text4.1.0.0', perPhase);  // L1 neu
+    text('Text4.1.0.1', perPhase);  // L2 neu
+    text('Text4.1.1', perPhase);    // L3 neu
+  }
+
+  // ── Checkboxen Seite 1 ──
+  check('Kontrollkästchen2.0');     // Übereinstimmung Datenblatt ✓
+  check('Kontrollkästchen2.1');     // Abrechnungsmessung ✓
+  check('Kontrollkästchen2.2');     // Einheitenzertifikat ✓
+  check('Kontrollkästchen2.3');     // P_AV,E Zertifikat ✓
+  check('Kontrollkästchen2.6.0');   // Auslösetest zentraler NA-Schutz ✓
+  check('Kontrollkästchen2.6.1');   // Ruhestromprinzip ✓
+  check('Kontrollkästchen2.7');     // P_AV,E Funktionstest ✓
+  check('Kontrollkästchen5.0');     // Wirkleistungsbegrenzung 60% ✓
+  check('Kontrollkästchen5.1');     // Funkrundsteuerempfänger ✓
+  check('Kontrollkästchen5.2');     // Energieflussrichtungssensor ✓
+  if (phasen(project) === 3) {
+    check('Kontrollkästchen5.0.1.0.0');   // Drehstrom-Symmetrie ✓
+  }
+
+  // ═══ SEITE 2: Anlage 1 — NA-Schutz ════════════════════════════════════
+
+  const addrLine = project.address?.line ? `${customer}, ${project.address.line}, ${plzOrt}` : customer;
+  text('Anlagenanschrift', addrLine);
+
+  // ═══ SEITE 3: Anlage 2 — Parameter EZA ════════════════════════════════
+
+  text('Anlagenanschrift_2', addrLine);
+
+  // Gerät 1 = Wechselrichter
+  const wr = wrModelName(project);
+  text('Gerät 1', `${wr.hersteller} ${wr.typ}`.trim());
+  text('Anzahl', String(project.inverterCount ?? 1));
+
+  // Gerät 2 = Speicher (wenn vorhanden)
+  if (project.battery) {
+    const bat = batModelName(project);
+    text('Gerät 2', `${bat.hersteller} ${bat.typ}`.trim());
+    text('Anzahl_3', String(project.batteryModuleCount ?? 1));
   }
 
   try { form.updateFieldAppearances(); } catch {}

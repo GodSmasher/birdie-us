@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     offerId?: string;
     status?: string;
     docStatus?: string;
-    recordDraft?: 'e2' | 'e3';
+    recordDraft?: string;
     netzbetreiber?: string;
   };
   if (!body.offerId) {
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const ok = await setNetzbetreiber(body.offerId, body.netzbetreiber.trim());
     return NextResponse.json({ ok }, { status: ok ? 200 : 404 });
   }
-  if (body.recordDraft === 'e2' || body.recordDraft === 'e3') {
+  if (body.recordDraft && typeof body.recordDraft === 'string') {
     const ok = await recordDraft(body.offerId, body.recordDraft);
     return NextResponse.json({ ok }, { status: ok ? 200 : 404 });
   }

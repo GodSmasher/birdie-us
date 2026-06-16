@@ -214,8 +214,11 @@ export async function fillAN005(project: ProjectData, customer: string): Promise
 
   // ═══ SEITE 4: Datenblatt Speicher ═════════════════════════════════════
 
-  // Phasen-Anschluss (Drehstrom/Wechselstrom)
-  if (phasen(project) === 3) check('anschluss'); // 1. Widget = Drehstrom (3-phasig)
+  // Phasen-Anschluss — AN005 hat kein separates Drehstrom-Feld.
+  // "anschluss" ist der Checkbox für Art des Netzanschlusses.
+  // Für Drehstrom/3-phasig NICHT ankreuzen (= Standard bei TEN).
+  // "anschluss" = Wechselstrom/einphasig → nur bei 1-phasig checken.
+  if (phasen(project) === 1) check('anschluss');
 
   if (project.battery) {
     // ── Row 4: Speichereinheit ──

@@ -3,30 +3,34 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Brand } from './ui';
+import { BirdieLogo } from './ui';
 
 type NavKey =
   | 'dashboard' | 'anlagen' | 'vertrieb' | 'katalog' | 'postfach' | 'kalender'
   | 'bots' | 'workflows' | 'connectors' | 'finance' | 'netzanmeldung' | 'dateien' | 'team' | 'einstellungen' | 'support';
 
-const items: { label: string; icon: string; href: string; key: NavKey }[] = [
-  { label: 'Dashboard', icon: '◇', href: '/dashboard', key: 'dashboard' },
-  { label: 'Anlagen', icon: '☀', href: '/anlagen', key: 'anlagen' },
-  { label: 'Vertrieb', icon: '↗', href: '/vertrieb', key: 'vertrieb' },
-  { label: 'Netzanmeldung', icon: '⚡', href: '/netzanmeldung', key: 'netzanmeldung' },
-  { label: 'Katalog', icon: '▦', href: '/katalog', key: 'katalog' },
-  { label: 'Postfach', icon: '✉', href: '/postfach', key: 'postfach' },
-  { label: 'Kalender', icon: '◷', href: '/kalender', key: 'kalender' },
-  { label: 'Bots', icon: '◈', href: '/bots', key: 'bots' },
-  { label: 'Workflows', icon: '→', href: '/workflows', key: 'workflows' },
-  { label: 'Connectoren', icon: '⌘', href: '/connectors', key: 'connectors' },
-  { label: 'Finanzen', icon: '₣', href: '/finance', key: 'finance' },
+// Grouped navigation — less overwhelming, clearer hierarchy
+const mainItems = [
+  { label: 'Dashboard', icon: '◇', href: '/dashboard', key: 'dashboard' as NavKey },
+  { label: 'Netzanmeldung', icon: '⚡', href: '/netzanmeldung', key: 'netzanmeldung' as NavKey },
+  { label: 'Vertrieb', icon: '↗', href: '/vertrieb', key: 'vertrieb' as NavKey },
+  { label: 'Finanzen', icon: '₣', href: '/finance', key: 'finance' as NavKey },
 ];
 
-const accountItems: { label: string; icon: string; href: string; key: NavKey }[] = [
-  { label: 'Team', icon: '○', href: '/team', key: 'team' },
-  { label: 'Einstellungen', icon: '✱', href: '/einstellungen', key: 'einstellungen' },
-  { label: 'Support', icon: '?', href: '/support', key: 'support' },
+const monitorItems = [
+  { label: 'Anlagen', icon: '☀', href: '/anlagen', key: 'anlagen' as NavKey },
+  { label: 'Postfach', icon: '✉', href: '/postfach', key: 'postfach' as NavKey },
+];
+
+const autoItems = [
+  { label: 'Bots', icon: '◈', href: '/bots', key: 'bots' as NavKey },
+  { label: 'Workflows', icon: '→', href: '/workflows', key: 'workflows' as NavKey },
+  { label: 'Connectoren', icon: '⌘', href: '/connectors', key: 'connectors' as NavKey },
+];
+
+const accountItems = [
+  { label: 'Einstellungen', icon: '✱', href: '/einstellungen', key: 'einstellungen' as NavKey },
+  { label: 'Support', icon: '?', href: '/support', key: 'support' as NavKey },
 ];
 
 function NavItem({ label, icon, href, active, onClick }: { label: string; icon: string; href: string; active: boolean; onClick?: () => void }) {
@@ -34,53 +38,69 @@ function NavItem({ label, icon, href, active, onClick }: { label: string; icon: 
     <Link
       href={href}
       onClick={onClick}
-      className={`flex items-center gap-2.5 h-9 px-2.5 rounded-lg ${
-        active ? 'bg-surface-2 text-fg' : 'text-fg2 hover:text-fg hover:bg-surface'
+      className={`flex items-center gap-2.5 h-9 px-2.5 rounded-lg transition-colors ${
+        active ? 'bg-surface-2 text-fg font-medium' : 'text-fg2 hover:text-fg hover:bg-surface'
       }`}
     >
-      <span className={`text-sm ${active ? 'text-accent' : 'text-fg2'}`}>{icon}</span>
-      <span className={`text-[13px] ${active ? 'font-medium' : ''}`}>{label}</span>
+      <span className={`text-sm w-5 text-center ${active ? 'text-accent' : 'text-fg3'}`}>{icon}</span>
+      <span className="text-[13px]">{label}</span>
     </Link>
+  );
+}
+
+function NavGroup({ label, items, active, onNavigate }: { label: string; items: typeof mainItems; active: NavKey; onNavigate?: () => void }) {
+  return (
+    <div className="mb-5">
+      <p className="text-[9px] font-semibold text-fg4 tracking-[0.18em] uppercase mb-1.5 px-2.5">{label}</p>
+      <nav className="flex flex-col gap-0.5">
+        {items.map(it => (
+          <NavItem key={it.key} label={it.label} icon={it.icon} href={it.href} active={it.key === active} onClick={onNavigate} />
+        ))}
+      </nav>
+    </div>
   );
 }
 
 function SidebarContent({ active, onNavigate }: { active: NavKey; onNavigate?: () => void }) {
   return (
     <>
-      <Brand />
-      <div className="mt-7" />
+      {/* Logo */}
+      <div className="px-1 mb-8">
+        <BirdieLogo variant="light" className="h-[22px]" />
+      </div>
 
-      <p className="text-[10px] font-medium text-fg4 tracking-[0.16em] mb-2">MENU</p>
-      <nav className="flex flex-col gap-0.5">
-        {items.map((it) => (
-          <NavItem key={it.label} label={it.label} icon={it.icon} href={it.href} active={it.key === active} onClick={onNavigate} />
-        ))}
-      </nav>
+      {/* Main nav groups */}
+      <NavGroup label="Kernbereiche" items={mainItems} active={active} onNavigate={onNavigate} />
+      <NavGroup label="Monitoring" items={monitorItems} active={active} onNavigate={onNavigate} />
+      <NavGroup label="Automation" items={autoItems} active={active} onNavigate={onNavigate} />
 
-      <p className="text-[10px] font-medium text-fg4 tracking-[0.16em] mb-2 mt-6">ACCOUNT</p>
-      <nav className="flex flex-col gap-0.5">
-        {accountItems.map((it) => (
-          <NavItem key={it.label} label={it.label} icon={it.icon} href={it.href} active={it.key === active} onClick={onNavigate} />
-        ))}
-      </nav>
+      {/* Spacer */}
+      <div className="mt-auto" />
 
-      <div className="mt-auto flex flex-col gap-3">
-        <div className="bg-surface rounded-lg p-3 flex flex-col gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-success" />
-            <span className="text-xs font-medium text-fg">Alle Systeme online</span>
-          </div>
-          <span className="text-[11px] text-fg2">n8n · Supabase · Connectoren</span>
+      {/* System status */}
+      <div className="bg-surface rounded-xl p-3 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-success shrink-0" />
+          <span className="text-[11px] font-medium text-fg">Alle Systeme online</span>
         </div>
+        <span className="text-[10px] text-fg3 mt-1 block pl-4">n8n &middot; Supabase &middot; Connectoren</span>
+      </div>
 
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-bg font-semibold text-[11px]">
-            SV
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-xs font-medium text-fg">Sarah Vogel</span>
-            <span className="text-[11px] text-fg2">Alpen Energie GmbH</span>
-          </div>
+      {/* Account items */}
+      <nav className="flex flex-col gap-0.5 mb-4">
+        {accountItems.map(it => (
+          <NavItem key={it.key} label={it.label} icon={it.icon} href={it.href} active={it.key === active} onClick={onNavigate} />
+        ))}
+      </nav>
+
+      {/* User */}
+      <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-surface transition-colors cursor-pointer">
+        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-bg font-semibold text-[11px]">
+          SV
+        </div>
+        <div className="flex flex-col leading-tight">
+          <span className="text-[12px] font-medium text-fg">Sarah Vogel</span>
+          <span className="text-[10px] text-fg3">Volta Solaranlagen</span>
         </div>
       </div>
     </>
@@ -91,17 +111,16 @@ export function Sidebar({ active }: { active: NavKey }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close mobile sidebar on navigation
   useEffect(() => { setOpen(false); }, [pathname]);
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-[220px] xl:w-[248px] shrink-0 bg-bg border-r border-line flex-col py-6 px-4 xl:px-5 h-screen sticky top-0">
+      {/* Desktop */}
+      <aside className="hidden lg:flex w-[230px] shrink-0 bg-bg border-r border-line flex-col py-5 px-4 h-screen sticky top-0">
         <SidebarContent active={active} />
       </aside>
 
-      {/* Mobile hamburger button — rendered by TopBar via global state */}
+      {/* Mobile hamburger */}
       <button
         onClick={() => setOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-surface border border-line rounded-lg flex items-center justify-center text-fg2 hover:text-fg"
@@ -114,13 +133,13 @@ export function Sidebar({ active }: { active: NavKey }) {
       {open && (
         <div className="lg:hidden fixed inset-0 z-40 flex">
           <div className="fixed inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <aside className="relative w-[280px] bg-bg border-r border-line flex flex-col py-6 px-5 h-screen overflow-y-auto z-50">
+          <aside className="relative w-[280px] bg-bg border-r border-line flex flex-col py-5 px-5 h-screen overflow-y-auto z-50">
             <button
               onClick={() => setOpen(false)}
               className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-surface border border-line flex items-center justify-center text-fg2 hover:text-fg"
               aria-label="Schliessen"
             >
-              ✕
+              &#x2715;
             </button>
             <SidebarContent active={active} onNavigate={() => setOpen(false)} />
           </aside>

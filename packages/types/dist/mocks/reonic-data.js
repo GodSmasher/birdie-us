@@ -1,0 +1,197 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.realKpiSnapshots = exports.realConnectors = exports.realOffers = exports.realLeads = exports.realTeamMembers = void 0;
+const CID = '00000000-0000-0000-0000-000000000001';
+const HID = '00000000-0000-0000-0000-000000000010';
+exports.realTeamMembers = [
+    {
+        id: 'tm-001', company_id: CID, holding_id: HID, profile_id: null,
+        external_id: null, first_name: 'Laura', last_name: 'Brunner',
+        display_name: 'Laura Brunner', email: 'l.brunner@muster-solar.ch',
+        phone: '+41 79 123 45 01', role_type: 'admin', team: 'Vertrieb',
+        is_active: true, created_at: '2026-01-15T08:00:00Z', updated_at: '2026-01-15T08:00:00Z',
+    },
+    {
+        id: 'tm-002', company_id: CID, holding_id: HID, profile_id: null,
+        external_id: null, first_name: 'Marco', last_name: 'Keller',
+        display_name: 'Marco Keller', email: 'm.keller@muster-solar.ch',
+        phone: '+41 79 123 45 02', role_type: 'editor', team: 'Vertrieb',
+        is_active: true, created_at: '2026-01-15T08:00:00Z', updated_at: '2026-01-15T08:00:00Z',
+    },
+    {
+        id: 'tm-003', company_id: CID, holding_id: HID, profile_id: null,
+        external_id: null, first_name: 'Nina', last_name: 'Hofer',
+        display_name: 'Nina Hofer', email: 'n.hofer@muster-solar.ch',
+        phone: '+41 79 123 45 03', role_type: 'editor', team: 'Vertrieb',
+        is_active: true, created_at: '2026-01-15T08:00:00Z', updated_at: '2026-01-15T08:00:00Z',
+    },
+    {
+        id: 'tm-004', company_id: CID, holding_id: HID, profile_id: null,
+        external_id: null, first_name: 'David', last_name: 'Meier',
+        display_name: 'David Meier', email: 'd.meier@muster-solar.ch',
+        phone: '+41 79 123 45 04', role_type: 'editor', team: 'Technik',
+        is_active: true, created_at: '2026-01-15T08:00:00Z', updated_at: '2026-01-15T08:00:00Z',
+    },
+    {
+        id: 'tm-005', company_id: CID, holding_id: HID, profile_id: null,
+        external_id: null, first_name: 'Sarah', last_name: 'Weber',
+        display_name: 'Sarah Weber', email: 's.weber@muster-solar.ch',
+        phone: '+41 79 123 45 05', role_type: 'editor', team: 'Innendienst',
+        is_active: true, created_at: '2026-01-15T08:00:00Z', updated_at: '2026-01-15T08:00:00Z',
+    },
+    {
+        id: 'tm-006', company_id: CID, holding_id: HID, profile_id: null,
+        external_id: null, first_name: 'Fabian', last_name: 'Roth',
+        display_name: 'Fabian Roth', email: 'f.roth@muster-solar.ch',
+        phone: '+41 79 123 45 06', role_type: 'editor', team: 'Vertrieb',
+        is_active: true, created_at: '2026-01-15T08:00:00Z', updated_at: '2026-01-15T08:00:00Z',
+    },
+];
+const leadData = [
+    { first: 'Thomas', last: 'Müller', city: 'Zürich', zip: '8001', street: 'Bahnhofstrasse 12' },
+    { first: 'Sandra', last: 'Fischer', city: 'Bern', zip: '3011', street: 'Kramgasse 45' },
+    { first: 'Peter', last: 'Schneider', city: 'Basel', zip: '4001', street: 'Freie Strasse 8' },
+    { first: 'Anna', last: 'Huber', city: 'Luzern', zip: '6003', street: 'Pilatusstrasse 22' },
+    { first: 'Michael', last: 'Steiner', city: 'St. Gallen', zip: '9000', street: 'Multergasse 5' },
+    { first: 'Claudia', last: 'Gerber', city: 'Winterthur', zip: '8400', street: 'Marktgasse 71' },
+    { first: 'Stefan', last: 'Brunner', city: 'Thun', zip: '3600', street: 'Hauptgasse 18' },
+    { first: 'Lisa', last: 'Baumann', city: 'Aarau', zip: '5000', street: 'Rathausgasse 3' },
+    { first: 'Christian', last: 'Keller', city: 'Olten', zip: '4600', street: 'Baselstrasse 14' },
+    { first: 'Monika', last: 'Schmid', city: 'Solothurn', zip: '4500', street: 'Hauptgasse 33' },
+    { first: 'Daniel', last: 'Widmer', city: 'Biel', zip: '2502', street: 'Nidaugasse 9' },
+    { first: 'Kathrin', last: 'Berger', city: 'Schaffhausen', zip: '8200', street: 'Vorstadt 26' },
+    { first: 'Martin', last: 'Frei', city: 'Frauenfeld', zip: '8500', street: 'Zürcherstrasse 41' },
+    { first: 'Eva', last: 'Sutter', city: 'Wil', zip: '9500', street: 'Obere Bahnhofstrasse 7' },
+    { first: 'Simon', last: 'Vogt', city: 'Rapperswil', zip: '8640', street: 'Hauptplatz 2' },
+    { first: 'Andrea', last: 'Roth', city: 'Zug', zip: '6300', street: 'Neugasse 16' },
+    { first: 'Patrick', last: 'Egger', city: 'Baden', zip: '5400', street: 'Weite Gasse 11' },
+    { first: 'Sabrina', last: 'Bühler', city: 'Langenthal', zip: '4900', street: 'Marktgasse 28' },
+    { first: 'Felix', last: 'Aeschbacher', city: 'Burgdorf', zip: '3400', street: 'Kronenplatz 4' },
+    { first: 'Yvonne', last: 'Hess', city: 'Wetzikon', zip: '8620', street: 'Bahnhofstrasse 53' },
+    { first: 'René', last: 'Blaser', city: 'Emmen', zip: '6020', street: 'Seetalstrasse 19' },
+    { first: 'Nicole', last: 'Aebi', city: 'Köniz', zip: '3098', street: 'Schwarzenburgstrasse 64' },
+    { first: 'Oliver', last: 'Gasser', city: 'Kriens', zip: '6010', street: 'Luzernerstrasse 37' },
+    { first: 'Tamara', last: 'Wyss', city: 'Dietikon', zip: '8953', street: 'Badenerstrasse 12' },
+    { first: 'Lukas', last: 'Tanner', city: 'Uster', zip: '8610', street: 'Bankstrasse 6' },
+];
+const leadStatuses = ['new', 'contacted', 'qualified', 'new', 'contacted', 'qualified', 'won', 'appointment_set'];
+const leadSources = ['website', 'referral', 'partner', 'website', 'referral', 'other'];
+exports.realLeads = leadData.map((l, i) => ({
+    id: `lead-${String(i + 1).padStart(3, '0')}`,
+    company_id: CID,
+    holding_id: HID,
+    external_id: null,
+    first_name: l.first,
+    last_name: l.last,
+    email: `${l.first.toLowerCase()}.${l.last.toLowerCase()}@gmail.com`,
+    phone: `+41 79 ${String(100 + i).padStart(3, '0')} ${String(10 + i * 3).padStart(2, '0')} ${String(40 + i).padStart(2, '0')}`,
+    address_street: l.street,
+    address_zip: l.zip,
+    address_city: l.city,
+    address_canton: null,
+    status: leadStatuses[i % leadStatuses.length],
+    source: leadSources[i % leadSources.length],
+    setter_id: [`tm-002`, `tm-003`, `tm-006`][i % 3],
+    notes: null,
+    qualified_at: leadStatuses[i % leadStatuses.length] === 'qualified' ? '2026-05-10T10:00:00Z' : null,
+    created_at: `2026-${String(3 + Math.floor(i / 10)).padStart(2, '0')}-${String(1 + (i % 28)).padStart(2, '0')}T09:00:00Z`,
+    updated_at: `2026-05-${String(1 + (i % 18)).padStart(2, '0')}T14:00:00Z`,
+}));
+const offerTitles = [
+    'PV-Anlage 12.5 kWp Einfamilienhaus',
+    'PV-Anlage 8.4 kWp mit Speicher',
+    'PV-Anlage 25 kWp Gewerbegebäude',
+    'PV-Anlage 15 kWp Doppelhaus',
+    'PV-Anlage 6.3 kWp Reihenhaus',
+    'PV-Anlage 18 kWp Mehrfamilienhaus',
+    'PV + Wärmepumpe Komplettsystem',
+    'Erweiterung bestehende PV-Anlage',
+    'PV-Anlage 30 kWp Industriehalle',
+    'PV-Anlage 10 kWp Neubau',
+    'PV-Anlage 9.2 kWp + Wallbox',
+    'PV-Anlage 22 kWp Landwirtschaft',
+];
+const offerStatuses = ['draft', 'sent', 'sent', 'won', 'won', 'lost', 'sent', 'draft', 'won', 'sent', 'expired', 'won'];
+const offerAmounts = [42500, 28900, 78000, 52300, 21800, 64200, 89500, 35600, 112000, 38700, 31200, 71800];
+exports.realOffers = offerTitles.map((title, i) => ({
+    id: `offer-${String(i + 1).padStart(3, '0')}`,
+    company_id: CID,
+    holding_id: HID,
+    external_id: null,
+    lead_id: `lead-${String(i + 1).padStart(3, '0')}`,
+    berater_id: [`tm-002`, `tm-003`, `tm-006`][i % 3],
+    title,
+    description: null,
+    amount_chf: String(offerAmounts[i]) + '.00',
+    status: offerStatuses[i],
+    sent_at: offerStatuses[i] !== 'draft' ? `2026-04-${String(5 + i).padStart(2, '0')}T10:00:00Z` : null,
+    decided_at: ['won', 'lost'].includes(offerStatuses[i]) ? `2026-05-${String(1 + i).padStart(2, '0')}T15:00:00Z` : null,
+    valid_until: `2026-06-${String(1 + i).padStart(2, '0')}T23:59:59Z`,
+    created_at: `2026-04-${String(1 + i).padStart(2, '0')}T08:00:00Z`,
+    updated_at: `2026-05-${String(1 + (i % 18)).padStart(2, '0')}T12:00:00Z`,
+}));
+exports.realConnectors = [
+    {
+        id: 'conn-001', company_id: CID, holding_id: HID,
+        type: 'crm', name: 'CRM System', status: 'active',
+        config: {}, credentials: {},
+        last_synced_at: '2026-05-18T04:00:00Z', last_error: null,
+        sync_interval_minutes: 60,
+        created_at: '2026-01-10T08:00:00Z', updated_at: '2026-05-18T04:00:00Z',
+    },
+    {
+        id: 'conn-002', company_id: CID, holding_id: HID,
+        type: 'accounting', name: 'Buchhaltung', status: 'active',
+        config: {}, credentials: {},
+        last_synced_at: '2026-05-18T05:00:00Z', last_error: null,
+        sync_interval_minutes: 60,
+        created_at: '2026-02-01T08:00:00Z', updated_at: '2026-05-18T05:00:00Z',
+    },
+    {
+        id: 'conn-003', company_id: CID, holding_id: HID,
+        type: 'google_calendar', name: 'Google Calendar', status: 'active',
+        config: {}, credentials: {},
+        last_synced_at: '2026-05-18T06:00:00Z', last_error: null,
+        sync_interval_minutes: 15,
+        created_at: '2026-03-01T08:00:00Z', updated_at: '2026-05-18T06:00:00Z',
+    },
+    {
+        id: 'conn-004', company_id: CID, holding_id: HID,
+        type: 'gmail', name: 'E-Mail', status: 'active',
+        config: {}, credentials: {},
+        last_synced_at: '2026-05-17T22:00:00Z', last_error: null,
+        sync_interval_minutes: 30,
+        created_at: '2026-03-15T08:00:00Z', updated_at: '2026-05-17T22:00:00Z',
+    },
+];
+exports.realKpiSnapshots = [
+    {
+        id: 'kpi-001', company_id: CID, holding_id: HID,
+        snapshot_type: 'company_daily', entity_id: CID,
+        period_date: '2026-05-18',
+        metrics: {
+            total_leads: 25,
+            qualified_leads: 8,
+            pipeline_value: 676500,
+            won_deals: 4,
+            conversion_rate: 0.32,
+            avg_deal_size: 55625,
+        },
+        created_at: '2026-05-18T05:00:00Z',
+    },
+    {
+        id: 'kpi-002', company_id: CID, holding_id: HID,
+        snapshot_type: 'company_daily', entity_id: CID,
+        period_date: '2026-05-17',
+        metrics: {
+            total_leads: 23,
+            qualified_leads: 7,
+            pipeline_value: 645200,
+            won_deals: 3,
+            conversion_rate: 0.30,
+            avg_deal_size: 52800,
+        },
+        created_at: '2026-05-17T05:00:00Z',
+    },
+];
+//# sourceMappingURL=reonic-data.js.map

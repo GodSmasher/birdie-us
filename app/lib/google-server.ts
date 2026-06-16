@@ -221,6 +221,102 @@ export async function searchDrive(query: string): Promise<{ name: string; link?:
   }
 }
 
+/** Upload a file to Google Drive. Returns file ID and web link. */
+export async function uploadToDrive(
+  filename: string,
+  content: Buffer | Uint8Array,
+  mimeType: string = 'application/pdf',
+  parentFolderId?: string,
+): Promise<{ id: string; name: string; link: string } | null> {
+  const auth = googleAuth();
+  if (!auth) return null;
+  try {
+    const token = await accessToken(auth);
+
+    // Multipart upload: metadata + file content
+    const boundary = '---birdie-upload-' + Date.now();
+    const metadata = JSON.stringify({
+      name: filename,
+      mimeType,
+      ...(parentFolderId ? { parents: [parentFolderId] } : {}),
+    });
+
+    const parts = [
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n`,
+      `--${boundary}\r\nContent-Type: ${mimeType}\r\nContent-Transfer-Encoding: base64\r\n\r\n${Buffer.from(content).toString('base64')}\r\n`,
+      `--${boundary}--`,
+    ];
+    const body = parts.join('');
+
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': `multipart/related; boundary=${boundary}`,
+      },
+      body,
+    });
+
+    if (!res.ok) {
+      console.error('[drive] Upload failed:', res.status, await res.text().catch(() => ''));
+      return null;
+    }
+
+    const json = (await res.json()) as { id: string; name: string; webViewLink?: string };
+    return { id: json.id, name: json.name, link: json.webViewLink ?? `https://drive.google.com/file/d/${json.id}/view` };
+  } catch (e) {
+    console.error('[drive] Upload error:', (e as Error).message);
+    return null;
+  }
+}
+
+/** Ensure a folder exists inside a parent (create if needed). Returns folder ID. */
+export async function ensureDriveFolder(name: string, parentId?: string): Promise<string | null> {
+  const auth = googleAuth();
+  if (!auth) return null;
+  try {
+    const token = await accessToken(auth);
+    const h = { Authorization: `Bearer ${token}` };
+
+    // Check if folder already exists
+    console.log(`[drive] ensureFolder name="${name}" parent=${parentId ?? 'root'}`);
+    const q = parentId
+      ? `name='${name}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`
+      : `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`;
+    const searchRes = await fetch(searchUrl, { headers: h });
+    console.log(`[drive] Search status=${searchRes.status}`);
+    if (searchRes.ok) {
+      const data = (await searchRes.json()) as { files?: { id: string }[] };
+      if (data.files?.length) { console.log(`[drive] Found existing: ${data.files[0].id}`); return data.files[0].id; }
+    } else {
+      console.error(`[drive] Search failed: ${searchRes.status}`, await searchRes.text().catch(() => ''));
+    }
+
+    // Create folder
+    console.log(`[drive] Creating folder "${name}"...`);
+    const createRes = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+      method: 'POST',
+      headers: { ...h, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        mimeType: 'application/vnd.google-apps.folder',
+        ...(parentId ? { parents: [parentId] } : {}),
+      }),
+    });
+    if (!createRes.ok) {
+      console.error(`[drive] Folder create failed: ${createRes.status}`, await createRes.text().catch(() => ''));
+      return null;
+    }
+    const folder = (await createRes.json()) as { id: string };
+    console.log(`[drive] Folder created: ${folder.id}`);
+    return folder.id;
+  } catch (e) {
+    console.error('[drive] ensureFolder error:', (e as Error).message);
+    return null;
+  }
+}
+
 /** Download a Drive file's raw bytes (server-only). */
 export async function downloadDriveFile(fileId: string): Promise<Uint8Array | null> {
   const auth = googleAuth();

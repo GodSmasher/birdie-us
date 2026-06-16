@@ -7,5 +7,4 @@ supabase/
 apps/
 packages/
 .turbo/
-nb-templates/
 scripts/

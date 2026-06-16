@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server';
 // (i.e. on the production deploy that carries real Reonic data). Without the
 // env var the app stays open as the public mock demo.
 
-const PUBLIC_PREFIXES = ['/gate', '/api/gate', '/api/sync', '/api/netzanmeldung/bot', '/api/dunning', '/api/emails'];
+const PUBLIC_PREFIXES = ['/gate', '/api/gate', '/api/sync', '/api/netzanmeldung/bot', '/api/netzanmeldung/emails', '/api/dunning', '/api/emails', '/sign', '/api/sign'];
 
 async function sha256Hex(input: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
@@ -19,6 +19,8 @@ export async function middleware(req: NextRequest) {
   if (!password) return NextResponse.next();
 
   const { pathname } = req.nextUrl;
+  // Landing page + login are public
+  if (pathname === '/' || pathname === '/login' || pathname.startsWith('/case-studies') || pathname.startsWith('/partner') || pathname.startsWith('/impressum') || pathname.startsWith('/datenschutz')) return NextResponse.next();
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
   const cookie = req.cookies.get('birdie_gate')?.value;

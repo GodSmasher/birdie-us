@@ -1,4 +1,5 @@
-import { type GeneratedDoc, type PCloudUpload, type BotError } from '@/app/lib/netzanmeldung';
+import { type GeneratedDoc, type PCloudUpload, type BotError, type PortalUpdate } from '@/app/lib/netzanmeldung';
+import type { NetzEmail } from '@/app/lib/netz-email';
 
 interface TimelineEvent {
   at: string;
@@ -13,11 +14,15 @@ function buildTimeline({
   documents,
   pcloudUploads,
   botErrors,
+  emails,
+  portalUpdates,
 }: {
   startedAt?: string;
   documents?: GeneratedDoc[];
   pcloudUploads?: PCloudUpload[];
   botErrors?: BotError[];
+  emails?: NetzEmail[];
+  portalUpdates?: PortalUpdate[];
 }): TimelineEvent[] {
   const events: TimelineEvent[] = [];
 
@@ -63,6 +68,43 @@ function buildTimeline({
     });
   }
 
+  // Portal-Updates vom Bot
+  for (const u of portalUpdates ?? []) {
+    const icon = u.type === 'status' ? '🌐' : u.type === 'document' ? '📋' : u.type === 'error' ? '⚠' : '💬';
+    const tone = u.type === 'error' ? 'error' as const : u.type === 'status' ? 'success' as const : 'info' as const;
+    events.push({
+      at: u.at,
+      icon,
+      label: `Portal: ${u.content.slice(0, 80)}${u.content.length > 80 ? '…' : ''}`,
+      detail: u.source,
+      tone,
+    });
+  }
+
+  // Emails
+  for (const e of emails ?? []) {
+    const catLabel = e.category === 'netz_status' ? 'NB-Status'
+      : e.category === 'customer_update' ? 'Kunde-Anfrage'
+      : e.category === 'customer_doc' ? 'Dokument'
+      : e.category === 'customer_correction' ? 'Klärungsbedarf'
+      : e.category === 'netz_document' ? 'NB-Dokument'
+      : 'Email';
+    const tone = e.category === 'netz_status' ? 'success' as const
+      : e.category.startsWith('customer') ? 'info' as const
+      : 'neutral' as const;
+    events.push({
+      at: e.received_at,
+      icon: '📧',
+      label: `${catLabel}: ${e.subject}`,
+      detail: [
+        e.from_name || e.from_email,
+        e.summary,
+        e.auto_replied ? '→ Auto-Antwort gesendet' : undefined,
+      ].filter(Boolean).join(' · '),
+      tone,
+    });
+  }
+
   events.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   return events;
 }
@@ -85,13 +127,17 @@ export function Timeline({
   documents,
   pcloudUploads,
   botErrors,
+  emails,
+  portalUpdates,
 }: {
   startedAt?: string;
   documents?: GeneratedDoc[];
   pcloudUploads?: PCloudUpload[];
   botErrors?: BotError[];
+  emails?: NetzEmail[];
+  portalUpdates?: PortalUpdate[];
 }) {
-  const events = buildTimeline({ startedAt, documents, pcloudUploads, botErrors });
+  const events = buildTimeline({ startedAt, documents, pcloudUploads, botErrors, emails, portalUpdates });
 
   if (events.length === 0) {
     return <p className="text-[11px] text-fg4">Noch keine Ereignisse.</p>;

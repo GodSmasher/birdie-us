@@ -22,7 +22,7 @@ import { getGoogleCalendar } from './google-server';
 
 export type Source = 'DB-Cache' | 'live';
 
-export async function loadPipeline(): Promise<{ data: Pipeline; source: Source }> {
+export async function loadPipeline(cutoff?: string): Promise<{ data: Pipeline; source: Source }> {
   const offers = await getEntities<RawOffer>('offer');
   if (!offers.length) return { data: await getReonicPipeline(), source: 'live' };
   const [users, teams] = await Promise.all([
@@ -31,7 +31,7 @@ export async function loadPipeline(): Promise<{ data: Pipeline; source: Source }
   ]);
   const userNames = new Map(users.map((u) => [u.id, u.name]));
   const teamNames = new Map(teams.map((t) => [t.id, t.name]));
-  return { data: buildPipeline(offers, userNames, teamNames), source: 'DB-Cache' };
+  return { data: buildPipeline(offers, userNames, teamNames, cutoff), source: 'DB-Cache' };
 }
 
 export async function loadLeads(): Promise<{ data: Leads; source: Source }> {

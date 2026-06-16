@@ -4,6 +4,7 @@
 
 import { getDb, tenantId } from './db';
 import { findInverter, findBattery, type InverterSpec, type BatterySpec } from './ecoflow-specs';
+import { loadEnrichment, type ExtractedFields } from './reonic-files';
 
 const INV = /wechselrichter|inverter|hybrid/i;
 const BAT = /speicher|batterie|battery|\blfp\b|powerocean.*(batt|lfp)|akku/i;
@@ -68,6 +69,8 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   let moduleType: string | undefined;
   let inverter: string | undefined;
   let battery: string | undefined;
+  let batteryModuleCount = 0;
+  let totalBatteryKwh = 0;
   for (const c of comps) {
     const nm = (c.name || '').trim();
     const qty = Number(c.quantity) || 1;
@@ -77,14 +80,19 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
       moduleCount += qty;
       if (!moduleType) moduleType = nm;
     } else if (BAT.test(nm)) {
-      battery = battery ? battery : nm;
+      if (!battery) battery = nm;
+      batteryModuleCount += qty;
+      // Extract kWh per module and multiply by quantity
+      const kwhMatch = /(\d+(?:[.,]\d+)?)\s*kwh/i.exec(nm);
+      if (kwhMatch) {
+        totalBatteryKwh += Number(kwhMatch[1].replace(',', '.')) * qty;
+      }
     } else if (INV.test(nm)) {
       inverter = inverter ? inverter : nm;
     }
   }
   kwp = Math.round(kwp * 100) / 100;
-  const batMatch = battery ? /(\d+(?:[.,]\d+)?)\s*kwh/i.exec(battery) : null;
-  const batteryKwh = batMatch ? Number(batMatch[1].replace(',', '.')) : undefined;
+  const batteryKwh = totalBatteryKwh > 0 ? Math.round(totalBatteryKwh * 10) / 10 : undefined;
 
   // Wechselrichter-Nennleistung (kW) und Anzahl aus Inverter-String extrahieren
   let inverterKw: number | undefined;
@@ -98,22 +106,43 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
       .reduce((sum, c) => sum + (Number(c.quantity) || 1), 0) || 1;
   }
 
-  // Address + name + phone + email from the linked contact
+  // Address + name + phone + email from the offer data (v3: inline customerContact + address)
   let address: ProjectData['address'];
   let contactName = '';
   let phone: string | undefined;
   let email: string | undefined;
-  const customerId = (o.customer as { id?: string })?.id;
-  if (customerId) {
-    const { data: cRow } = await db
-      .from('entities').select('data').eq('tenant_id', tid).eq('kind', 'contact').eq('external_id', customerId).single();
-    if (cRow) {
-      const c = (cRow as { data: Record<string, unknown> }).data;
-      const line = [c.street, c.number].filter(Boolean).join(' ').trim();
-      address = { line, zip: c.postcode as string, city: c.city as string };
-      contactName = [c.firstName, c.lastName].filter(Boolean).join(' ').trim();
-      phone = (c.phone || c.phoneNumber || c.mobile || c.telefon) as string | undefined;
-      email = (c.email || c.emailAddress) as string | undefined;
+
+  // v3: address is directly on the offer
+  const offerAddr = o.address as { street?: string; houseNumber?: string; postcode?: string; city?: string } | undefined;
+  if (offerAddr?.postcode && offerAddr?.city) {
+    const line = [offerAddr.street, offerAddr.houseNumber].filter(Boolean).join(' ').trim();
+    address = { line, zip: offerAddr.postcode, city: offerAddr.city };
+  }
+
+  // v3: customerContact is directly on the offer
+  const cc = (o.customerContact ?? o.customer) as { id?: string; fullName?: string; firstName?: string; lastName?: string; primaryEmail?: string; phone?: string } | undefined;
+  if (cc) {
+    contactName = cc.fullName?.trim() || [cc.firstName, cc.lastName].filter(Boolean).join(' ').trim();
+    email = cc.primaryEmail;
+    phone = cc.phone;
+  }
+
+  // Fallback: try DB contact lookup (for v2 data)
+  if (!contactName || !address) {
+    const customerId = (o.customer as { id?: string })?.id ?? cc?.id;
+    if (customerId) {
+      const { data: cRow } = await db
+        .from('entities').select('data').eq('tenant_id', tid).eq('kind', 'contact').eq('external_id', customerId).single();
+      if (cRow) {
+        const c = (cRow as { data: Record<string, unknown> }).data;
+        if (!address) {
+          const line = [c.street, c.number].filter(Boolean).join(' ').trim();
+          if (c.postcode && c.city) address = { line, zip: c.postcode as string, city: c.city as string };
+        }
+        if (!contactName) contactName = [c.firstName, c.lastName].filter(Boolean).join(' ').trim();
+        if (!phone) phone = (c.phone || c.phoneNumber || c.mobile || c.telefon) as string | undefined;
+        if (!email) email = (c.email || c.emailAddress) as string | undefined;
+      }
     }
   }
   // Fallback: derive a clean name from the offer title ("Max Müller 2 - PV" → "Max Müller")
@@ -123,35 +152,78 @@ export async function getProjectData(offerId: string): Promise<ProjectData | nul
   const demand = o.demand as { annualEnergyDemandWh?: number } | undefined;
   const annualKwh = demand?.annualEnergyDemandWh ? Math.round(demand.annualEnergyDemandWh / 1000) : undefined;
 
-  const missing: string[] = [];
-  if (!address?.zip || !address?.city) missing.push('Adresse / PLZ');
-  if (kwp <= 0) missing.push('Anlagengröße (kWp)');
-  if (!inverter) missing.push('Wechselrichter');
-  if (moduleCount === 0) missing.push('Module');
-
   const batSpec = battery ? findBattery(battery) : undefined;
-  // Batterie-Modulanzahl: Gesamt-kWh / Kapazität pro Modul (z.B. 10,24kWh / 5,12kWh = 2)
-  const batteryModuleCount = batSpec && batteryKwh ? Math.round(batteryKwh / batSpec.capacityKwh) || 1 : undefined;
+  const finalBatteryModuleCount = batteryModuleCount > 0 ? batteryModuleCount : (batSpec && batteryKwh ? Math.round(batteryKwh / batSpec.capacityKwh) || 1 : undefined);
+
+  // ── Enrichment from documents ──────────────────────────────────────────────
+  // Dokumente (Auftragsbestätigung, Angebot) haben VORRANG vor Reonic-Komponenten,
+  // weil die Komponentenliste oft veraltet ist (anderer WR im Angebot als verbaut).
+  let enrichedKwp = kwp;
+  let enrichedModuleCount = moduleCount;
+  let enrichedModuleType = moduleType;
+  let enrichedInverter = inverter;
+  let enrichedInverterKw = inverterKw;
+  let enrichedBatteryKwh = batteryKwh;
+  let enrichedBattery = battery;
+  let enrichedAddress = address;
+  let enrichedCustomerName = customerName;
+  try {
+    let e = await loadEnrichment(offerId);
+
+    // Auto-enrich: IMMER wenn kein Cache vorhanden (nicht nur bei fehlenden Daten)
+    if (!e) {
+      try {
+        const { enrichFromDocuments } = await import('./reonic-files');
+        const result = await enrichFromDocuments(offerId);
+        if (Object.keys(result.extracted).length > 0) {
+          e = result.extracted;
+        }
+      } catch { /* auto-enrich is best-effort — don't block page load */ }
+    }
+
+    // Dokument-Daten überschreiben Reonic-Komponenten (Dokument = Wahrheit)
+    if (e) {
+      if (e.kwp && typeof e.kwp === 'number') enrichedKwp = e.kwp;
+      if (e.modulTyp) enrichedModuleType = String(e.modulTyp);
+      if (e.modulAnzahl && typeof e.modulAnzahl === 'number') enrichedModuleCount = e.modulAnzahl;
+      if (e.wechselrichterTyp) enrichedInverter = String(e.wechselrichterTyp);
+      if (e.anschlussLeistungKw && typeof e.anschlussLeistungKw === 'number') enrichedInverterKw = e.anschlussLeistungKw;
+      if (e.speicherKwh && typeof e.speicherKwh === 'number') {
+        enrichedBatteryKwh = e.speicherKwh;
+        enrichedBattery = e.speicherTyp ? String(e.speicherTyp) : `Speicher (${e.speicherKwh} kWh)`;
+      }
+      if (e.strasse && e.plz && e.ort) {
+        enrichedAddress = { line: String(e.strasse), zip: String(e.plz), city: String(e.ort) };
+      }
+      if (e.kundenName) enrichedCustomerName = String(e.kundenName);
+    }
+  } catch { /* enrichment is best-effort */ }
+
+  const missing: string[] = [];
+  if (!enrichedAddress?.zip || !enrichedAddress?.city) missing.push('Adresse / PLZ');
+  if (enrichedKwp <= 0) missing.push('Anlagengröße (kWp)');
+  if (!enrichedInverter) missing.push('Wechselrichter');
+  if (enrichedModuleCount === 0 && !enrichedModuleType) missing.push('Module');
 
   return {
     offerId,
     name: (o.name as string) || offerId,
-    customerName,
+    customerName: enrichedCustomerName,
     phone,
     email,
     type: o.type as string,
-    address,
-    kwp,
-    moduleCount,
-    moduleType,
-    inverter,
-    inverterKw,
+    address: enrichedAddress,
+    kwp: enrichedKwp,
+    moduleCount: enrichedModuleCount,
+    moduleType: enrichedModuleType,
+    inverter: enrichedInverter,
+    inverterKw: enrichedInverterKw,
     inverterCount,
-    battery,
-    batteryKwh,
-    batteryModuleCount,
+    battery: enrichedBattery,
+    batteryKwh: enrichedBatteryKwh,
+    batteryModuleCount: finalBatteryModuleCount,
     annualKwh,
-    inverterSpec: inverter ? findInverter(inverter) : undefined,
+    inverterSpec: enrichedInverter ? findInverter(enrichedInverter) : undefined,
     batterySpec: batSpec,
     missing,
     ready: missing.length === 0,

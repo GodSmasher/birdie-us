@@ -33,7 +33,7 @@ export type DocStatus = (typeof DOC_STAGES)[number]['id'] | 'freigegeben';
 export const DOC_STATUS_IDS: DocStatus[] = [...DOC_STAGES.map((s) => s.id), 'freigegeben'];
 
 export interface GeneratedDoc {
-  form: 'e2' | 'e3';
+  form: string;
   at: string;
   source?: 'manuell' | 'bot';
   draftRef?: string;
@@ -55,20 +55,30 @@ export interface BotError {
   retries: number;      // wie oft schon versucht
 }
 
+export interface PortalUpdate {
+  at: string;           // ISO timestamp
+  type: 'message' | 'status' | 'document' | 'error';
+  content: string;      // Nachricht/Status-Text vom Portal
+  source?: string;      // z.B. "MITNETZ Portal", "TEN Portal"
+}
+
 export interface Registration {
   offerId: string;
   customer: string;
   value: number;
   netzbetreiber: string;
   status: StageId;
+  reonicoColumn?: string; // Quell-Kanban-Spalte aus Reonic (für Display)
   startedAt: string;
   dueDate?: string;
   docStatus?: DocStatus;
   documents?: GeneratedDoc[];
   pcloudUploads?: PCloudUpload[];
   botErrors?: BotError[];
-  botRetries?: number;   // Gesamtzahl Versuche
-  botSkipUntil?: string; // exponentielles Backoff — vor diesem Zeitpunkt nicht erneut versuchen
+  botRetries?: number;
+  botSkipUntil?: string;
+  portalUpdates?: PortalUpdate[]; // Nachrichten/Updates vom Portal-Bot
+  portalLastChecked?: string;     // Letzter Portal-Check Timestamp
 }
 
 function customerName(c: unknown, ...fallbacks: (string | undefined | null)[]): string {
@@ -148,8 +158,17 @@ export async function getRegistrations(): Promise<Registration[]> {
   return rows.sort((a, b) => STAGE_IDS.indexOf(a.status) - STAGE_IDS.indexOf(b.status));
 }
 
-// Kanban-Spalte bei der Projekte reif für Netzanmeldung sind.
-const NETZ_READY_STATUS = 'NTS/Zählerweise/HAK';
+// Kanban-Spalten im Installationsablauf PV-Anlage Board (ff565b9f...)
+// v3: Projekte werden über kanbanColumnId identifiziert.
+const NETZ_COLUMNS: Record<string, { label: string; startStatus: StageId }> = {
+  '662b6e5a-006c-47d2-b0cf-523d2713adae': { label: 'NTS/ Zählerwechsel/HAK öffnen', startStatus: 'anfrage' },
+  '3ffa1624-a9a5-4fb0-8161-5d4652555958': { label: 'Inbetriebnahme einreichen', startStatus: 'inbetriebnahme' },
+};
+
+/** Check whether an offer is relevant for Netzanmeldung (NTS or IBN column). */
+function isNetzRelevant(o: RawOffer): boolean {
+  return !!o.kanbanColumnId && o.kanbanColumnId in NETZ_COLUMNS;
+}
 
 /** Create registrations for won offers that don't have one yet AND refresh
  *  customer name / value on existing ones (status, docStatus, documents stay). */
@@ -173,22 +192,20 @@ export async function seedRegistrations(): Promise<SeedResult> {
 
   const offers = await getEntities<RawOffer>('offer');
   const offerMap = new Map(offers.map((o) => [o.id, o]));
-  const wonAll = offers.filter((o) => o.state === 'Won');
+  const wonAll = offers.filter((o) => (o.dealState ?? o.state) === 'Won');
 
-  // Nur gewonnene Projekte im richtigen Kanban-Status (NTS/Zählerweise/HAK).
-  const won = wonAll.filter((o) => o.status === NETZ_READY_STATUS);
+  // Gewonnene Projekte in NTS- oder IBN-Spalte auf dem PV-Installationsboard.
+  const won = wonAll.filter(isNetzRelevant);
 
-  // Bestehende Registrations aufräumen: wenn das Offer NICHT mehr im NTS-Status
-  // steht UND noch nicht bearbeitet wurde (anfrage + offen), löschen.
+  // Aufräumen: wenn das Offer nicht mehr in einer relevanten Spalte steht,
+  // löschen — es sei denn der Netz-Status ist schon über "anfrage" hinaus.
+  const wonIds = new Set(won.map((o) => o.id));
   const toDelete = existingRegs
     .filter((r) => {
-      const offer = offerMap.get(r.offerId);
-      if (!offer || offer.status === NETZ_READY_STATUS) return false; // keep
-      // Schon bearbeitet? → behalten (Status weiter als anfrage ODER Dokumente erzeugt)
+      if (wonIds.has(r.offerId)) return false; // still NTS-ready → keep
+      // Schon beim Netzbetreiber? → behalten (zusage, inbetriebnahme, mastr, abschluss)
       if (r.status !== 'anfrage') return false;
-      if (r.docStatus && r.docStatus !== 'offen') return false;
-      if (r.documents && r.documents.length > 0) return false;
-      return true; // unbearbeitet + falscher Status → weg
+      return true; // nicht mehr NTS + noch in Anfrage-Phase → weg
     })
     .map((r) => r.offerId);
   if (toDelete.length > 0) {
@@ -196,11 +213,13 @@ export async function seedRegistrations(): Promise<SeedResult> {
   }
 
   const now = new Date();
-  // Nur NTS-Offers: neue anlegen oder bestehende aktualisieren
+  // NTS + IBN Offers: neue anlegen oder bestehende aktualisieren
   const rows = won.map((o) => {
     const existing = regMap.get(o.id);
     const name = customerName(o.customer, o.name ?? o.customerNumber);
-    const value = typeof o.totalPlannedPrice === 'number' ? o.totalPlannedPrice : 0;
+    const price = o.totalPriceOverride ?? o.componentsTotalPrice ?? o.totalPlannedPrice;
+    const value = typeof price === 'number' ? price : 0;
+    const colInfo = NETZ_COLUMNS[o.kanbanColumnId ?? ''];
     if (existing) {
       return {
         externalId: o.id,
@@ -208,9 +227,12 @@ export async function seedRegistrations(): Promise<SeedResult> {
           ...existing,
           customer: name !== '—' ? name : existing.customer,
           value: value > 0 ? value : existing.value,
+          reonicoColumn: colInfo?.label,
         } satisfies Registration,
       };
     }
+    // Neue Registration — Status hängt von der Spalte ab
+    const startStatus = colInfo?.startStatus ?? 'anfrage';
     return {
       externalId: o.id,
       data: {
@@ -218,7 +240,8 @@ export async function seedRegistrations(): Promise<SeedResult> {
         customer: name,
         value,
         netzbetreiber: '—',
-        status: 'anfrage' as StageId,
+        status: startStatus,
+        reonicoColumn: colInfo?.label,
         startedAt: now.toISOString(),
         docStatus: 'offen' as DocStatus,
         documents: [],
@@ -278,7 +301,7 @@ async function loadReg(offerId: string): Promise<{ tid: string; reg: Registratio
 /** Record that a draft document was generated → moves the registration to 'pruefen'. */
 export async function recordDraft(
   offerId: string,
-  form: 'e2' | 'e3',
+  form: string,
   opts: { source?: 'manuell' | 'bot'; draftRef?: string } = {},
 ): Promise<boolean> {
   const loaded = await loadReg(offerId);
@@ -384,8 +407,17 @@ export async function recordSigned(
 
 export interface OfferAddress { zip?: string; city?: string; street?: string }
 
-/** Resolve address for an offer by loading its linked contact. */
+/** Resolve address for an offer — v3 projects carry address inline. */
 async function addressForOffer(db: ReturnType<typeof getDb>, tid: string, offer: RawOffer): Promise<OfferAddress> {
+  // v3: address is directly on the project
+  if (offer.address?.postcode) {
+    return {
+      zip: offer.address.postcode,
+      city: offer.address.city,
+      street: offer.address.street ? `${offer.address.street} ${(offer as unknown as { address: { houseNumber?: string } }).address?.houseNumber ?? ''}`.trim() : undefined,
+    };
+  }
+  // Fallback: load from contact entity (v2 compat)
   const customerId = (offer.customer as { id?: string })?.id;
   if (!customerId || !db) return {};
   const { data: cRow } = await db
@@ -525,6 +557,27 @@ export async function setNetzbetreiber(offerId: string, nbName: string): Promise
   if (!loaded) return false;
   const { tid, reg } = loaded;
   reg.netzbetreiber = nbName;
+  const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
+  return n > 0;
+}
+
+/** Add a portal status update (from bot scraping). Keeps last 20 updates. */
+export async function addPortalUpdate(
+  offerId: string,
+  update: Omit<PortalUpdate, 'at'>,
+): Promise<boolean> {
+  const loaded = await loadReg(offerId);
+  if (!loaded) return false;
+  const { tid, reg } = loaded;
+  const newUpdate: PortalUpdate = { ...update, at: new Date().toISOString() };
+  const existing = reg.portalUpdates ?? [];
+  // Dedup: skip if same content within last 5 min
+  const recent = existing[existing.length - 1];
+  if (recent && recent.content === newUpdate.content && Date.now() - Date.parse(recent.at) < 5 * 60_000) {
+    return true;
+  }
+  reg.portalUpdates = [...existing.slice(-19), newUpdate]; // keep last 20
+  reg.portalLastChecked = new Date().toISOString();
   const n = await upsertEntities(tid, 'reonic', 'registration', [{ externalId: offerId, data: reg }]);
   return n > 0;
 }

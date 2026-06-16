@@ -1,0 +1,184 @@
+{
+  "name": "Netz-Email Sync (IMAP → birdie)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 15 }]
+        }
+      },
+      "name": "Alle 15 Minuten",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "host": "imap.strato.de",
+        "port": 993,
+        "secure": true,
+        "credentials": "={{ $json.credentials }}",
+        "mailbox": "INBOX",
+        "unseen": true,
+        "simple": false
+      },
+      "name": "IMAP na@",
+      "type": "n8n-nodes-base.imapEmail",
+      "typeVersion": 2,
+      "position": [440, 200],
+      "credentials": {
+        "imap": {
+          "id": "REPLACE_WITH_NA_CREDENTIAL_ID",
+          "name": "Strato na@volta"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "host": "imap.strato.de",
+        "port": 993,
+        "secure": true,
+        "mailbox": "INBOX",
+        "unseen": true,
+        "simple": false
+      },
+      "name": "IMAP netzanmeldung@",
+      "type": "n8n-nodes-base.imapEmail",
+      "typeVersion": 2,
+      "position": [440, 400],
+      "credentials": {
+        "imap": {
+          "id": "REPLACE_WITH_NETZ_CREDENTIAL_ID",
+          "name": "Strato netzanmeldung@volta"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "mailbox", "value": "na@volta-energietechnik.de" }
+          ]
+        }
+      },
+      "name": "Set Mailbox na@",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [660, 200]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "mailbox", "value": "netzanmeldung@volta-energietechnik.de" }
+          ]
+        }
+      },
+      "name": "Set Mailbox netz@",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [660, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://birdie-demo.vercel.app/api/netzanmeldung/emails",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "mailbox", "value": "={{ $json.mailbox }}" },
+            { "name": "messageId", "value": "={{ $json.messageId || $json.headers?.['message-id'] || $json.id }}" },
+            { "name": "from", "value": "={{ $json.from?.value?.[0]?.address || $json.from }}" },
+            { "name": "fromName", "value": "={{ $json.from?.value?.[0]?.name || '' }}" },
+            { "name": "to", "value": "={{ $json.to?.value?.[0]?.address || $json.to }}" },
+            { "name": "subject", "value": "={{ $json.subject }}" },
+            { "name": "body", "value": "={{ $json.text || $json.textPlain || '' }}" },
+            { "name": "date", "value": "={{ $json.date }}" }
+          ]
+        },
+        "options": {
+          "timeout": 25000
+        }
+      },
+      "name": "Push zu birdie API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            { "value1": "={{ $json.autoReply }}", "value2": true }
+          ]
+        }
+      },
+      "name": "Auto-Reply?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $json.autoReplyFrom }}",
+        "toEmail": "={{ $json.autoReplyTo }}",
+        "subject": "={{ $json.autoReplySubject }}",
+        "text": "={{ $json.autoReplyText }}"
+      },
+      "name": "Auto-Antwort senden",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1320, 200],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "Strato SMTP Volta"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Alle 15 Minuten": {
+      "main": [
+        [
+          { "node": "IMAP na@", "type": "main", "index": 0 },
+          { "node": "IMAP netzanmeldung@", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "IMAP na@": {
+      "main": [
+        [{ "node": "Set Mailbox na@", "type": "main", "index": 0 }]
+      ]
+    },
+    "IMAP netzanmeldung@": {
+      "main": [
+        [{ "node": "Set Mailbox netz@", "type": "main", "index": 0 }]
+      ]
+    },
+    "Set Mailbox na@": {
+      "main": [
+        [{ "node": "Push zu birdie API", "type": "main", "index": 0 }]
+      ]
+    },
+    "Set Mailbox netz@": {
+      "main": [
+        [{ "node": "Push zu birdie API", "type": "main", "index": 0 }]
+      ]
+    },
+    "Push zu birdie API": {
+      "main": [
+        [{ "node": "Auto-Reply?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Auto-Reply?": {
+      "main": [
+        [{ "node": "Auto-Antwort senden", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

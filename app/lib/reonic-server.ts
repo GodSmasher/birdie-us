@@ -1,6 +1,8 @@
-// Server-only Reonic v2 client. Reads credentials from env — never shipped to the
+// Server-only Reonic v3 client. Reads credentials from env — never shipped to the
 // browser (only imported by server components). Mirrors the auth + categorization
 // from the @birdie/connectors package.
+// v3 changes: no clientId in path, x-authorization without Basic prefix,
+// /residentialProjects instead of /h360/offers, kanbanColumnId on projects.
 
 type ComponentType =
   | 'module' | 'inverter' | 'microinverter' | 'optimizer' | 'batteryStorage'
@@ -66,31 +68,45 @@ const num = (v: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-// ---------------- Sales pipeline (h360 offers) ----------------
+// ---------------- Sales pipeline ----------------
 
-function reonicAuth(): { apiKey: string; clientId: string; baseUrl: string } | null {
-  const apiKey = process.env.REONIC_API_KEY;
-  const clientId = process.env.REONIC_CLIENT_ID;
-  if (!apiKey || !clientId) return null;
+function reonicAuth(): { apiKey: string; baseUrl: string } | null {
+  const raw = process.env.REONIC_API_KEY;
+  if (!raw) return null;
+  // Strip BOM / whitespace that env-var tooling sometimes injects
+  const apiKey = raw.replace(/^﻿/, '').trim();
   return {
-    apiKey: apiKey.startsWith('Basic ') ? apiKey : `Basic ${apiKey}`,
-    clientId,
-    baseUrl: (process.env.REONIC_BASE_URL || 'https://api.reonic.de/rest/v2').replace(/\/$/, ''),
+    apiKey,                                           // v3: raw key, no "Basic " prefix
+    baseUrl: (process.env.REONIC_BASE_URL || 'https://api.reonic.de/rest/v3').replace(/\/$/, ''),
   };
+}
+
+function reonicHeaders(auth: NonNullable<ReturnType<typeof reonicAuth>>): Record<string, string> {
+  return { 'x-authorization': auth.apiKey, Accept: 'application/json' };
 }
 
 export interface RawOffer {
   id: string;
   name?: string;
   type?: string;
-  status?: string;
-  state?: string;
+  status?: string;             // v2 Kanban column name (kept for compat)
+  state?: string;              // v2 deal state
   customer?: unknown;
   customerNumber?: string;
-  totalPlannedPrice?: number;
+  totalPlannedPrice?: number;  // v2 price
   lostReason?: string;
   assignedToId?: string;
   assignedTeamIds?: string[];
+  // v3 fields (populated from /residentialProjects)
+  kanbanBoardId?: string;
+  kanbanColumnId?: string;
+  stage?: string;              // 'request' | 'offer' | 'installation'
+  dealState?: string;          // 'Open' | 'Won' | 'Lost'
+  componentsTotalPrice?: number;
+  totalPriceOverride?: number | null;
+  address?: { street?: string; houseNumber?: string; postcode?: string; city?: string };
+  customerContact?: { id?: string; fullName?: string; firstName?: string; lastName?: string; primaryEmail?: string };
+  createdAt?: string;
 }
 
 export interface SellerStat { id: string; name: string; wonCount: number; wonValue: number; openValue: number }
@@ -102,15 +118,15 @@ async function fetchNameMap(
   const map = new Map<string, string>();
   try {
     for (let page = 1; page <= 3; page++) {
-      const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/${resource}?page=${page}`, {
-        headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' },
+      const res = await fetch(`${auth.baseUrl}/${resource}?page=${page}`, {
+        headers: reonicHeaders(auth),
         next: { revalidate: 600 },
       });
       if (!res.ok) break;
-      const data = (await res.json()) as Array<{ id: string; fullName?: string; name?: string }>;
-      const list = Array.isArray(data) ? data : [];
+      const json = (await res.json()) as { data?: Array<{ id: string; fullName?: string; name?: string }> };
+      const list = json.data ?? [];
       for (const item of list) map.set(item.id, item.fullName || item.name || '—');
-      if (list.length < 100) break;
+      if (list.length < 50) break;
     }
   } catch {
     /* names stay unresolved */
@@ -125,15 +141,17 @@ function topStats(
 ): SellerStat[] {
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
   const m = new Map<string, SellerStat>();
+  const price = (o: RawOffer) => num(o.totalPriceOverride ?? o.componentsTotalPrice ?? o.totalPlannedPrice);
   for (const o of offers) {
     const id = keyOf(o);
     if (!id) continue;
+    const st = (o.dealState ?? o.state) || '—';
     const s = m.get(id) ?? { id, name: names.get(id) || '—', wonCount: 0, wonValue: 0, openValue: 0 };
-    if (o.state === 'Won') {
+    if (st === 'Won') {
       s.wonCount++;
-      s.wonValue += num(o.totalPlannedPrice);
-    } else if (o.state === 'Open') {
-      s.openValue += num(o.totalPlannedPrice);
+      s.wonValue += price(o);
+    } else if (st === 'Open') {
+      s.openValue += price(o);
     }
     m.set(id, s);
   }
@@ -148,6 +166,8 @@ function customerName(c: unknown, fallback?: string): string {
   if (typeof c === 'string' && c.trim()) return c;
   if (c && typeof c === 'object') {
     const o = c as Record<string, unknown>;
+    // v3: customerContact has fullName
+    if (typeof o.fullName === 'string' && o.fullName.trim()) return o.fullName.trim();
     const name = [o.firstName, o.lastName].filter(Boolean).join(' ').trim();
     if (name) return name;
     if (typeof o.name === 'string') return o.name;
@@ -181,22 +201,77 @@ export interface Pipeline {
   recent: OfferRow[];
 }
 
-export async function getReonicPipeline(maxPages = 15): Promise<Pipeline> {
+// ── v3 project shape (from /residentialProjects) ───────────────────────────
+
+interface V3Project {
+  id: string;
+  name?: string;
+  stage?: string;
+  address?: { street?: string; houseNumber?: string; postcode?: string; city?: string };
+  customerContact?: { id?: string; fullName?: string; firstName?: string; lastName?: string; primaryEmail?: string };
+  keyAccountManagerId?: string;
+  kanbanBoardId?: string;
+  kanbanColumnId?: string;
+  deal?: { state?: string; lostReason?: string };
+  primaryOfferVariant?: { id?: string; componentsTotalPrice?: number; totalPriceOverride?: number | null };
+  tagIds?: string[];
+  assignedUserIds?: string[];
+  assignedTeamIds?: string[];
+  customerNumber?: string;
+  projectCreatedAt?: string;
+  offerCreatedAt?: string;
+  requestCreatedAt?: string;
+  updatedAt?: string;
+}
+
+/** Map a v3 residentialProject to the RawOffer shape used throughout birdie. */
+function v3ToRawOffer(p: V3Project): RawOffer {
+  const price = p.primaryOfferVariant?.totalPriceOverride
+    ?? p.primaryOfferVariant?.componentsTotalPrice
+    ?? 0;
+  return {
+    id: p.id,
+    name: p.name,
+    state: p.deal?.state,        // "Open" | "Won" | "Lost"
+    status: undefined,           // v3 uses kanbanColumnId instead
+    customer: p.customerContact,
+    customerNumber: p.customerNumber,
+    totalPlannedPrice: price,
+    lostReason: p.deal?.lostReason ?? undefined,
+    assignedToId: p.keyAccountManagerId ?? p.assignedUserIds?.[0],
+    assignedTeamIds: p.assignedTeamIds,
+    // v3 extras
+    kanbanBoardId: p.kanbanBoardId,
+    kanbanColumnId: p.kanbanColumnId,
+    stage: p.stage,
+    dealState: p.deal?.state,
+    componentsTotalPrice: p.primaryOfferVariant?.componentsTotalPrice,
+    totalPriceOverride: p.primaryOfferVariant?.totalPriceOverride,
+    address: p.address,
+    customerContact: p.customerContact,
+    createdAt: p.projectCreatedAt ?? p.requestCreatedAt ?? p.offerCreatedAt,
+  };
+}
+
+export type { V3Project };
+
+export async function getReonicPipeline(maxPages = 20): Promise<Pipeline> {
   const auth = reonicAuth();
   if (!auth) return emptyPipeline();
 
   try {
     const all: RawOffer[] = [];
     for (let page = 1; page <= maxPages; page++) {
-      const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/h360/offers?page=${page}`, {
-        headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' },
+      const res = await fetch(`${auth.baseUrl}/residentialProjects?page=${page}`, {
+        headers: reonicHeaders(auth),
         next: { revalidate: 300 },
       });
       if (!res.ok) return { ...emptyPipeline(), configured: true, error: `Reonic HTTP ${res.status}` };
-      const data = (await res.json()) as { results?: RawOffer[]; hasNextPage?: boolean };
-      const results = data.results ?? [];
-      all.push(...results);
-      if (!data.hasNextPage || results.length === 0) break;
+      const json = (await res.json()) as { data?: V3Project[] };
+      const results = json.data ?? [];
+      if (results.length === 0) break;
+      all.push(...results.map(v3ToRawOffer));
+      if (results.length < 50) break;
     }
 
     const [userNames, teamNames] = await Promise.all([fetchNameMap(auth, 'users'), fetchNameMap(auth, 'teams')]);
@@ -210,12 +285,22 @@ export function emptyPipeline(): Pipeline {
   return { configured: false, total: 0, open: 0, won: 0, lost: 0, pipelineValueOpen: 0, wonValue: 0, byStatus: [], byType: [], bySeller: [], byTeam: [], recent: [] };
 }
 
-/** Aggregate raw offers into the Pipeline view. Reused for live + DB-backed reads. */
-export function buildPipeline(all: RawOffer[], userNames: Map<string, string>, teamNames: Map<string, string>): Pipeline {
+/** Aggregate raw offers into the Pipeline view. Reused for live + DB-backed reads.
+ *  Optional `cutoff` ISO date string filters to offers created on or after that date. */
+export function buildPipeline(allRaw: RawOffer[], userNames: Map<string, string>, teamNames: Map<string, string>, cutoff?: string): Pipeline {
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
-  const open = all.filter((o) => o.state === 'Open');
-  const won = all.filter((o) => o.state === 'Won');
-  const lost = all.filter((o) => o.state === 'Lost');
+
+  // Zeitraum-Filter (wenn cutoff gesetzt)
+  const all = cutoff ? allRaw.filter((o) => (o.createdAt ?? '') >= cutoff) : allRaw;
+
+  // v3: deal.state is mapped to both state and dealState
+  const getState = (o: RawOffer) => o.dealState ?? o.state ?? '—';
+  const open = all.filter((o) => getState(o) === 'Open');
+  const won = all.filter((o) => getState(o) === 'Won');
+  const lost = all.filter((o) => getState(o) === 'Lost');
+
+  // v3: price from totalPriceOverride > componentsTotalPrice > totalPlannedPrice
+  const price = (o: RawOffer) => num(o.totalPriceOverride ?? o.componentsTotalPrice ?? o.totalPlannedPrice);
 
   const countBy = (key: keyof RawOffer) => {
     const m = new Map<string, number>();
@@ -226,15 +311,22 @@ export function buildPipeline(all: RawOffer[], userNames: Map<string, string>, t
     return [...m.entries()].map(([k, count]) => ({ k, count })).sort((a, b) => b.count - a.count);
   };
 
+  // v3: status is undefined, use stage instead (request/offer/installation)
+  const byStage = new Map<string, number>();
+  for (const o of all) {
+    const s = o.stage ?? o.status ?? '—';
+    byStage.set(s, (byStage.get(s) ?? 0) + 1);
+  }
+
   return {
     configured: true,
     total: all.length,
     open: open.length,
     won: won.length,
     lost: lost.length,
-    pipelineValueOpen: Math.round(open.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
-    wonValue: Math.round(won.reduce((s, o) => s + num(o.totalPlannedPrice), 0)),
-    byStatus: countBy('status').slice(0, 10).map(({ k, count }) => ({ status: k, count })),
+    pipelineValueOpen: Math.round(open.reduce((s, o) => s + price(o), 0)),
+    wonValue: Math.round(won.reduce((s, o) => s + price(o), 0)),
+    byStatus: [...byStage.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([status, count]) => ({ status, count })),
     byType: countBy('type').map(({ k, count }) => ({ type: k, count })),
     bySeller: topStats(all, (o) => o.assignedToId, userNames),
     byTeam: topStats(all, (o) => o.assignedTeamIds?.[0], teamNames),
@@ -242,29 +334,64 @@ export function buildPipeline(all: RawOffer[], userNames: Map<string, string>, t
       id: o.id,
       name: o.name || '—',
       customer: customerName(o.customer, o.customerNumber),
-      status: o.status || '—',
-      state: o.state || '—',
+      status: o.stage ?? o.status ?? '—',
+      state: getState(o),
       type: o.type || '—',
-      value: num(o.totalPlannedPrice),
+      value: price(o),
     })),
   };
 }
 
+// ---------------- Won projects (for Anlagen page) ----------------
+
+export async function getWonProjects(maxPages = 5): Promise<RawOffer[]> {
+  const auth = reonicAuth();
+  if (!auth) return [];
+  const all: RawOffer[] = [];
+  try {
+    for (let page = 1; page <= maxPages; page++) {
+      const res = await fetch(`${auth.baseUrl}/residentialProjects?page=${page}&dealState=Won`, {
+        headers: reonicHeaders(auth),
+        next: { revalidate: 300 },
+      });
+      if (!res.ok) break;
+      const json = (await res.json()) as { data?: V3Project[] };
+      const results = json.data ?? [];
+      if (results.length === 0) break;
+      all.push(...results.map(v3ToRawOffer));
+      if (results.length < 50) break;
+    }
+  } catch { /* best effort */ }
+  return all;
+}
+
 // ---------------- Raw fetchers (for DB sync) ----------------
 
-export async function getReonicOffersRaw(maxPages = 15): Promise<{ id: string; data: unknown }[]> {
+export async function getReonicOffersRaw(maxPages = 40): Promise<{ id: string; data: unknown }[]> {
   const auth = reonicAuth();
   if (!auth) return [];
   const all: { id: string; data: unknown }[] = [];
-  for (let page = 1; page <= maxPages; page++) {
-    const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/h360/offers?page=${page}`, {
-      headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
-    });
-    if (!res.ok) break;
-    const data = (await res.json()) as { results?: { id: string }[]; hasNextPage?: boolean };
-    const r = data.results ?? [];
-    for (const o of r) all.push({ id: o.id, data: o });
-    if (!data.hasNextPage || r.length === 0) break;
+  const seen = new Set<string>();
+
+  // Sync Won offers first (important for Netzanmeldung), then remaining.
+  // v3 API supports dealState filter — Won-only is much smaller (~800 vs 10.000+).
+  for (const dealState of ['Won', '']) {
+    const filter = dealState ? `&dealState=${dealState}` : '';
+    for (let page = 1; page <= maxPages; page++) {
+      const res = await fetch(`${auth.baseUrl}/residentialProjects?page=${page}${filter}`, {
+        headers: reonicHeaders(auth), cache: 'no-store',
+      });
+      if (!res.ok) break;
+      const json = (await res.json()) as { data?: V3Project[] };
+      const results = json.data ?? [];
+      for (const p of results) {
+        if (!seen.has(p.id)) {
+          seen.add(p.id);
+          all.push({ id: p.id, data: v3ToRawOffer(p) });
+        }
+      }
+      if (results.length < 50) break;
+    }
   }
   return all;
 }
@@ -274,14 +401,14 @@ export async function getReonicContactsRaw(maxPages = 60): Promise<{ id: string;
   if (!auth) return [];
   const all: { id: string; data: unknown }[] = [];
   for (let page = 1; page <= maxPages; page++) {
-    const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/contacts?page=${page}`, {
-      headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
+    const res = await fetch(`${auth.baseUrl}/contacts?page=${page}`, {
+      headers: reonicHeaders(auth), cache: 'no-store',
     });
     if (!res.ok) break;
-    const list = (await res.json()) as { id: string }[];
-    if (!Array.isArray(list)) break;
+    const json = (await res.json()) as { data?: { id: string }[] };
+    const list = json.data ?? [];
     for (const c of list) all.push({ id: c.id, data: c });
-    if (list.length < 100) break;
+    if (list.length < 50) break;
   }
   return all;
 }
@@ -289,15 +416,12 @@ export async function getReonicContactsRaw(maxPages = 60): Promise<{ id: string;
 export async function getReonicDirectoryRaw(resource: 'users' | 'teams'): Promise<{ id: string; data: unknown }[]> {
   const auth = reonicAuth();
   if (!auth) return [];
-  // /users and /teams return the full list in one response (page is ignored).
-  const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/${resource}`, {
-    headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, cache: 'no-store',
+  const res = await fetch(`${auth.baseUrl}/${resource}`, {
+    headers: reonicHeaders(auth), cache: 'no-store',
   });
   if (!res.ok) return [];
-  const json = (await res.json()) as unknown;
-  const list = (Array.isArray(json) ? json : ((json as { results?: unknown[] })?.results ?? [])) as {
-    id: string; fullName?: string; name?: string; email?: string; role?: string;
-  }[];
+  const json = (await res.json()) as { data?: { id: string; fullName?: string; name?: string; email?: string; role?: string }[] };
+  const list = json.data ?? [];
   const byId = new Map<string, { id: string; data: unknown }>();
   for (const item of list) {
     byId.set(item.id, {
@@ -332,15 +456,15 @@ export async function getReonicLeads(maxPages = 8): Promise<Leads> {
     const all: RawContact[] = [];
     let capped = false;
     for (let page = 1; page <= maxPages; page++) {
-      const res = await fetch(`${auth.baseUrl}/clients/${auth.clientId}/contacts?page=${page}`, {
-        headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' },
+      const res = await fetch(`${auth.baseUrl}/contacts?page=${page}`, {
+        headers: reonicHeaders(auth),
         next: { revalidate: 300 },
       });
       if (!res.ok) return { ...base, configured: true };
-      const data = (await res.json()) as RawContact[];
-      const list = Array.isArray(data) ? data : [];
+      const json = (await res.json()) as { data?: RawContact[] };
+      const list = json.data ?? [];
       all.push(...list);
-      if (list.length < 100) break;
+      if (list.length < 50) break;
       if (page === maxPages) capped = true;
     }
 
@@ -385,11 +509,11 @@ export async function getUpcomingEvents(limit = 8): Promise<UpcomingEvent[]> {
   if (!auth) return [];
   try {
     const nowIso = new Date().toISOString();
-    const url = `${auth.baseUrl}/clients/${auth.clientId}/calendar-events?sort=start&start.gt=${encodeURIComponent(nowIso)}&page=1`;
-    const res = await fetch(url, { headers: { 'x-authorization': auth.apiKey, Accept: 'application/json' }, next: { revalidate: 300 } });
+    const url = `${auth.baseUrl}/appointments?page=1`;
+    const res = await fetch(url, { headers: reonicHeaders(auth), next: { revalidate: 300 } });
     if (!res.ok) return [];
-    const data = (await res.json()) as RawEvent[] | { results?: RawEvent[] };
-    const list = Array.isArray(data) ? data : (data.results ?? []);
+    const json = (await res.json()) as { data?: RawEvent[] };
+    const list = json.data ?? [];
     const now = Date.now();
     return list
       .filter((e) => e.start && Date.parse(e.start) >= now)
@@ -424,22 +548,18 @@ export async function getReonicDashboard(): Promise<ReonicDashboard> {
 }
 
 export async function getReonicCatalog(): Promise<Catalog> {
-  const apiKey = process.env.REONIC_API_KEY;
-  const clientId = process.env.REONIC_CLIENT_ID;
-  const baseUrl = (process.env.REONIC_BASE_URL || 'https://api.reonic.de/rest/v2').replace(/\/$/, '');
-
-  if (!apiKey || !clientId) {
-    return { configured: false, total: 0, byType: [], components: [] };
-  }
+  const auth = reonicAuth();
+  if (!auth) return { configured: false, total: 0, byType: [], components: [] };
 
   try {
-    const res = await fetch(`${baseUrl}/clients/${clientId}/components`, {
-      headers: { 'x-authorization': apiKey.startsWith('Basic ') ? apiKey : `Basic ${apiKey}`, Accept: 'application/json' },
+    const res = await fetch(`${auth.baseUrl}/components`, {
+      headers: reonicHeaders(auth),
       next: { revalidate: 300 },
     });
     if (!res.ok) return { configured: true, total: 0, byType: [], components: [], error: `Reonic HTTP ${res.status}` };
 
-    const raw = (await res.json()) as RawComponent[];
+    const json = (await res.json()) as { data?: RawComponent[] };
+    const raw = json.data ?? [];
     const components: CatalogComponent[] = raw.map((c) => {
       const type = inferType(c.name, undefined, c.brand);
       return {

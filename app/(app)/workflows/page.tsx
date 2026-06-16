@@ -1,13 +1,13 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
-import { bots } from '@/lib/data';
+import { voltaBots as bots } from '@/lib/volta-bots';
 import { getConnectorStatuses } from '@/app/lib/connector-status';
 
 export const dynamic = 'force-dynamic';
 
 const catLabel: Record<string, string> = {
-  FIN: 'Finanzen', VTR: 'Vertrieb', KOM: 'Kommunikation', ALL: 'Allgemein', PRJ: 'Projekte',
+  FIN: 'Finanzen', CRM: 'CRM & Daten', KOM: 'Kommunikation', PRJ: 'Projekte & Netz', IOT: 'IoT & Monitoring',
 };
 
 function syncAgo(iso?: string): string {

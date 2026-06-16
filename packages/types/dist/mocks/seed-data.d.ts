@@ -1,0 +1,23 @@
+import type { CompanyRow, CompanyBrandingRow, ProfileRow, RoleRow, PermissionRow, RolePermissionRow, ProfileRoleRow, TeamMemberRow, LeadRow, OfferRow, CallRow, CallAnalysisRow, ProjectRow, PhaseDefinitionRow, InvoiceRow, ConnectorRow, KpiSnapshotRow } from '../database.js';
+export declare const DEFAULT_HOLDING_ID = "00000000-0000-0000-0000-000000000010";
+export declare const TENANT_ALPEN_ENERGIE_ID = "00000000-0000-0000-0000-000000000001";
+export declare const TENANT_TEST_COMPANY_ID = "00000000-0000-0000-0000-000000000002";
+export declare const HOLDING_ADMIN_PROFILE_ID = "h0000000-0000-0000-0000-000000000001";
+export declare const tenants: CompanyRow[];
+export declare const tenantBrandings: CompanyBrandingRow[];
+export declare const roles: RoleRow[];
+export declare const permissions: PermissionRow[];
+export declare const rolePermissions: RolePermissionRow[];
+export declare const profiles: ProfileRow[];
+export declare const profileRoles: ProfileRoleRow[];
+export declare const teamMembers: TeamMemberRow[];
+export declare const leads: LeadRow[];
+export declare const offers: OfferRow[];
+export declare const calls: CallRow[];
+export declare const callAnalyses: CallAnalysisRow[];
+export declare const phaseDefinitions: PhaseDefinitionRow[];
+export declare const projects: ProjectRow[];
+export declare const invoices: InvoiceRow[];
+export declare const connectors: ConnectorRow[];
+export declare const kpiSnapshots: KpiSnapshotRow[];
+//# sourceMappingURL=seed-data.d.ts.map

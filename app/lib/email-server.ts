@@ -1,8 +1,10 @@
 // Email sync + matching engine.
 // Fetches emails from Gmail API, stores in Supabase.
 // Uses Claude Haiku for intelligent categorization and invoice matching.
+// Also bridges netz-relevant emails to the netz_emails table.
 
 import { getDb, tenantId } from './db';
+import { ingestEmail } from './netz-email';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -76,7 +78,7 @@ async function analyzeWithHaiku(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-20250414',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 300,
         system: HAIKU_SYSTEM,
         messages: [{ role: 'user', content: emailText }],
@@ -314,6 +316,20 @@ export async function syncEmails(maxResults = 25): Promise<SyncResult> {
         } else {
           result.newEmails++;
           if (invoiceNr || matchedProjectId) result.matched++;
+
+          // Bridge to netz_emails — let Haiku classify for Netzanmeldung relevance
+          try {
+            await ingestEmail({
+              mailbox: header(msg, 'to') || 'gmail',
+              messageId: msg.id,
+              from: from.email,
+              fromName: from.name,
+              to: header(msg, 'to'),
+              subject,
+              body: body.slice(0, 5000),
+              date: received,
+            });
+          } catch { /* netz-email ingest is best-effort */ }
         }
       } catch (e) {
         result.errors.push(`Process ${msg.id}: ${(e as Error).message}`);

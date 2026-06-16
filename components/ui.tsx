@@ -12,16 +12,23 @@ export function LogoMark({ size = 28 }: { size?: number }) {
   );
 }
 
-export function Brand({ admin = false }: { admin?: boolean }) {
+/** Wordmark logo: golden dot + "birdie" in clean sans-serif. Works on light and dark. */
+export function BirdieLogo({ variant = 'dark', className = '' }: { variant?: 'dark' | 'light'; className?: string }) {
+  const textColor = variant === 'dark' ? '#1a1a1a' : '#ffffff';
   return (
-    <div className="flex items-center gap-2.5">
-      <LogoMark />
-      <div className="flex items-center">
-        <span className="text-accent font-bold text-lg leading-none">.</span>
-        <span className="font-semibold text-lg tracking-tightest leading-none">birdie</span>
-      </div>
+    <svg viewBox="0 0 200 48" className={className} aria-label=".birdie" role="img">
+      <circle cx="12" cy="36" r="6" fill="#FACC15" />
+      <text x="28" y="38" fontFamily="system-ui, -apple-system, 'Segoe UI', sans-serif" fontSize="38" fontWeight="700" fill={textColor} letterSpacing="-1">birdie</text>
+    </svg>
+  );
+}
+
+export function Brand({ admin = false, variant = 'light' }: { admin?: boolean; variant?: 'dark' | 'light' }) {
+  return (
+    <div className="flex items-center gap-1">
+      <BirdieLogo variant={variant} className="h-7" />
       {admin && (
-        <span className="ml-1 px-1.5 py-0.5 rounded bg-accent-bg text-accent font-semibold text-[9px] tracking-[0.16em]">
+        <span className="ml-2 px-1.5 py-0.5 rounded bg-accent-bg text-accent font-semibold text-[9px] tracking-[0.16em]">
           ADMIN
         </span>
       )}

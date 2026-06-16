@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
 import { Card, CardHeader, KpiCard, Pill, Tag } from '@/components/ui';
 import { BarChart24h, HourAxis } from '@/components/sparkline';
-import { bots, getBot } from '@/lib/data';
+import { voltaBots as bots, getVoltaBot as getBot } from '@/lib/volta-bots';
 
 export function generateStaticParams() {
   return bots.map((b) => ({ slug: b.slug }));

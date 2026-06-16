@@ -14,6 +14,8 @@ import {
   type Registration,
 } from '@/app/lib/netzanmeldung';
 import { getWpOfferIds } from '@/app/lib/waermepumpe';
+import { getNetzEmails, getNetzEmailStats } from '@/app/lib/netz-email';
+import { NetzEmailKanban } from '@/components/netz-email-kanban';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,11 +50,15 @@ export default async function NetzanmeldungPage({
     : 'alle';
   const searchQuery = (searchParams?.q ?? '').trim().toLowerCase();
 
-  const [allRegs, portals, wpIds] = await Promise.all([
+  const [allRegs, portals, wpIds, unmatchedEmails, emailStats] = await Promise.all([
     getRegistrations(),
     getPortals(),
     getWpOfferIds(),
+    getNetzEmails({ limit: 20 }),
+    getNetzEmailStats(),
   ]);
+  // Filter to only unmatched + netz-relevant emails
+  const unmatched = unmatchedEmails.filter((e) => !e.matched_registration_id && e.category !== 'general');
 
   // Apply type filter
   let regs = allRegs;
@@ -196,6 +202,19 @@ export default async function NetzanmeldungPage({
                 })}
               </div>
             </>
+          )}
+
+          {/* Email Kanban */}
+          {emailStats.total > 0 && (
+            <section className="flex flex-col gap-3 pt-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="font-semibold text-sm text-fg tracking-tightest">📧 Netz-Emails</h2>
+                <Pill label={`${emailStats.total} GESAMT`} tone="info" />
+                {emailStats.unread > 0 && <Pill label={`${emailStats.unread} NEU`} tone="warning" />}
+                {emailStats.matched > 0 && <Pill label={`${emailStats.matched} ZUGEORDNET`} tone="success" />}
+              </div>
+              <NetzEmailKanban emails={unmatchedEmails} />
+            </section>
           )}
 
           {portals.length > 0 && (

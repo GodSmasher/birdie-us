@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getBotJobsWithCredentials } from '@/app/lib/netzbot-jobs';
-import { recordDraft, reportBotError, setDocStatus, seedRegistrations } from '@/app/lib/netzanmeldung';
+import { recordDraft, reportBotError, setDocStatus, seedRegistrations, addPortalUpdate } from '@/app/lib/netzanmeldung';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -47,6 +47,17 @@ export async function POST(req: Request) {
   // Successful submission — Bot meldet Einreichung
   if (body.submitted) {
     const ok = await setDocStatus(body.offerId, 'eingereicht');
+    return NextResponse.json({ ok }, { status: ok ? 200 : 404 });
+  }
+
+  // Portal update — Bot hat Nachricht/Status aus Portal gescrapt
+  if ((body as { portalUpdate?: unknown }).portalUpdate) {
+    const pu = (body as { portalUpdate: { type: string; content: string; source?: string } }).portalUpdate;
+    const ok = await addPortalUpdate(body.offerId, {
+      type: (pu.type as 'message' | 'status' | 'document' | 'error') ?? 'message',
+      content: pu.content,
+      source: pu.source,
+    });
     return NextResponse.json({ ok }, { status: ok ? 200 : 404 });
   }
 

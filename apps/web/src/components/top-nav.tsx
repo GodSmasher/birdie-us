@@ -1,0 +1,379 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useState, useRef, useEffect } from 'react'
+import { signOutAction } from '@/app/actions'
+import {
+  navigationSections,
+  settingsNavItem,
+  type NavigationSection,
+} from '@enura/types'
+
+// ---------------------------------------------------------------------------
+// Icons
+// ---------------------------------------------------------------------------
+
+function IconDashboard({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zm0 6a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7zM4 14a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5z" />
+    </svg>
+  )
+}
+
+function IconSales({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  )
+}
+
+function IconProject({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+    </svg>
+  )
+}
+
+function IconMontage({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  )
+}
+
+function IconAnalytics({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  )
+}
+
+function IconFinance({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
+
+function IconSettings({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+    </svg>
+  )
+}
+
+function IconBot({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.46 1.46a3.375 3.375 0 01-4.78 0L12 15.2l-.76.76a3.375 3.375 0 01-4.78 0L5 14.5m14 0V19a2 2 0 01-2 2H7a2 2 0 01-2-2v-4.5" />
+    </svg>
+  )
+}
+
+function IconRoute({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+    </svg>
+  )
+}
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  dashboard: IconDashboard,
+  sales: IconSales,
+  project: IconProject,
+  montage: IconMontage,
+  analytics: IconAnalytics,
+  finance: IconFinance,
+  bot: IconBot,
+  route: IconRoute,
+  settings: IconSettings,
+}
+
+function getIcon(iconKey: string): React.ComponentType<{ className?: string }> {
+  return ICON_MAP[iconKey] ?? IconDashboard
+}
+
+// ---------------------------------------------------------------------------
+// Permission filtering
+// ---------------------------------------------------------------------------
+
+function filterByPermissions(
+  sections: NavigationSection[],
+  permissions: string[],
+  isHoldingAdmin: boolean,
+): NavigationSection[] {
+  return sections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (!item.requiredPermission) return true
+        if (isHoldingAdmin) return true
+        return permissions.includes(item.requiredPermission)
+      }),
+    }))
+    .filter((section) => section.items.length > 0)
+}
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type ConnectorInfo = {
+  name: string
+  status: 'connected' | 'warning' | 'disconnected'
+}
+
+type TopNavProps = {
+  companyName: string
+  userName: string
+  userEmail: string
+  userRole: string
+  permissions: string[]
+  isHoldingAdmin?: boolean
+  isSuperUser?: boolean
+  connectors?: ConnectorInfo[]
+}
+
+// ---------------------------------------------------------------------------
+// Dropdown hook
+// ---------------------------------------------------------------------------
+
+function useDropdown() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open])
+
+  return { open, setOpen, ref }
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+export function TopNav({
+  companyName,
+  userName,
+  userEmail,
+  userRole: _userRole,
+  permissions,
+  isHoldingAdmin = false,
+  isSuperUser = false,
+  connectors = [],
+}: TopNavProps) {
+  const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const userMenu = useDropdown()
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard') return pathname === '/dashboard' || pathname === '/'
+    return pathname.startsWith(href)
+  }
+
+  const visibleSections = filterByPermissions(navigationSections, permissions, isHoldingAdmin)
+  const allItems = visibleSections.flatMap((s) => s.items)
+
+  const showSettings =
+    isHoldingAdmin ||
+    isSuperUser ||
+    permissions.includes(settingsNavItem.requiredPermission!)
+
+  const initials = userName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
+  const statusDot = (status: ConnectorInfo['status']) => {
+    switch (status) {
+      case 'connected': return 'bg-emerald-400'
+      case 'warning': return 'bg-amber-400'
+      case 'disconnected': return 'bg-red-400'
+    }
+  }
+
+  return (
+    <>
+      <header className="topnav">
+        <div className="topnav-inner">
+          {/* Brand */}
+          <Link href="/dashboard" className="topnav-brand">
+            <div className="topnav-logo">B</div>
+            <span className="topnav-brand-text">birdie</span>
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="topnav-links">
+            {allItems.map((item) => {
+              const active = isActive(item.href)
+              const Icon = getIcon(item.icon)
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={`topnav-link ${active ? 'topnav-link-active' : ''}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Link>
+              )
+            })}
+            {showSettings && (
+              <Link
+                href={settingsNavItem.href}
+                className={`topnav-link ${pathname.startsWith('/settings') ? 'topnav-link-active' : ''}`}
+              >
+                <IconSettings className="h-4 w-4" />
+                <span>{settingsNavItem.label}</span>
+              </Link>
+            )}
+          </nav>
+
+          {/* Right side: connectors + user */}
+          <div className="topnav-right">
+            {/* Connector status pills */}
+            {connectors.length > 0 && (
+              <div className="topnav-connectors">
+                {connectors.map((c) => (
+                  <div key={c.name} className="topnav-connector-pill" title={c.name}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${statusDot(c.status)}`} />
+                    <span className="text-xs text-gray-500">{c.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* User avatar + dropdown */}
+            <div ref={userMenu.ref} className="relative">
+              <button
+                type="button"
+                onClick={() => userMenu.setOpen(!userMenu.open)}
+                className="topnav-avatar-btn"
+                aria-label="Benutzermenu"
+              >
+                <div className="topnav-avatar">{initials}</div>
+              </button>
+
+              {userMenu.open && (
+                <div className="topnav-user-dropdown">
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">{userName}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{userEmail}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wider">{companyName}</p>
+                  </div>
+                  <div className="py-1">
+                    <form action={signOutAction}>
+                      <button
+                        type="submit"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Abmelden
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="topnav-hamburger"
+              aria-label="Menu"
+            >
+              {mobileOpen ? (
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile dropdown nav */}
+      {mobileOpen && (
+        <div className="topnav-mobile-menu">
+          <nav className="px-4 py-3 space-y-1">
+            {allItems.map((item) => {
+              const active = isActive(item.href)
+              const Icon = getIcon(item.icon)
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="h-[18px] w-[18px] shrink-0" />
+                  {item.label}
+                </Link>
+              )
+            })}
+            {showSettings && (
+              <Link
+                href={settingsNavItem.href}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  pathname.startsWith('/settings')
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <IconSettings className="h-[18px] w-[18px] shrink-0" />
+                {settingsNavItem.label}
+              </Link>
+            )}
+          </nav>
+          <div className="border-t border-gray-100 px-4 py-3">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">
+                {initials}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">{userName}</p>
+                <p className="text-xs text-gray-500">{userEmail}</p>
+              </div>
+            </div>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                Abmelden
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
