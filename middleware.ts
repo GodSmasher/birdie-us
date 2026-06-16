@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Lightweight access gate. Active only when BIRDIE_ACCESS_PASSWORD is set
-// (i.e. on the production deploy that carries real Reonic data). Without the
-// env var the app stays open as the public mock demo.
-
-const PUBLIC_PREFIXES = ['/gate', '/api/gate', '/api/sync', '/api/netzanmeldung/bot', '/api/netzanmeldung/emails', '/api/dunning', '/api/emails', '/sign', '/api/sign'];
+const PUBLIC_PREFIXES = [
+  '/gate', '/api/gate', '/api/auth',
+  '/api/sync', '/api/netzanmeldung/bot', '/api/netzanmeldung/emails',
+  '/api/dunning', '/api/emails', '/sign', '/api/sign',
+];
 
 async function sha256Hex(input: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
@@ -15,20 +15,36 @@ async function sha256Hex(input: string): Promise<string> {
 }
 
 export async function middleware(req: NextRequest) {
-  const password = process.env.BIRDIE_ACCESS_PASSWORD;
-  if (!password) return NextResponse.next();
-
   const { pathname } = req.nextUrl;
-  // Landing page + login are public
-  if (pathname === '/' || pathname === '/login' || pathname.startsWith('/case-studies') || pathname.startsWith('/partner') || pathname.startsWith('/impressum') || pathname.startsWith('/datenschutz')) return NextResponse.next();
+
+  if (
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname.startsWith('/case-studies') ||
+    pathname.startsWith('/partner') ||
+    pathname.startsWith('/impressum') ||
+    pathname.startsWith('/datenschutz') ||
+    pathname.startsWith('/de') ||
+    pathname.startsWith('/use-cases')
+  ) {
+    return NextResponse.next();
+  }
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
-  const cookie = req.cookies.get('birdie_gate')?.value;
-  const expected = await sha256Hex(password);
-  if (cookie === expected) return NextResponse.next();
+  // Check for session cookie (new auth)
+  const session = req.cookies.get('birdie_session')?.value;
+  if (session) return NextResponse.next();
+
+  // Legacy gate cookie fallback
+  const password = process.env.BIRDIE_ACCESS_PASSWORD;
+  if (password) {
+    const gate = req.cookies.get('birdie_gate')?.value;
+    const expected = await sha256Hex(password);
+    if (gate === expected) return NextResponse.next();
+  }
 
   const url = req.nextUrl.clone();
-  url.pathname = '/gate';
+  url.pathname = '/login';
   url.searchParams.set('next', pathname);
   return NextResponse.redirect(url);
 }

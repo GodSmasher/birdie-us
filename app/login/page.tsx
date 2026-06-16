@@ -1,7 +1,38 @@
+'use client';
+
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Brand } from '@/components/ui';
 
-export default function LoginPage() {
+function LoginForm() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const next = params.get('next') || '/dashboard';
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (res.ok) {
+      router.replace(next);
+      router.refresh();
+    } else {
+      const body = await res.json().catch(() => ({}));
+      setError(body.message || 'Invalid credentials');
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen flex">
       <div className="hidden lg:flex w-[600px] flex-col bg-surface border-r border-line p-[60px]">
@@ -40,48 +71,59 @@ export default function LoginPage() {
             <p className="text-[13px] text-fg2">Sign in with your company email</p>
           </div>
 
-          <div className="flex flex-col gap-3.5">
+          <form onSubmit={submit} className="flex flex-col gap-3.5">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-fg2">Email</label>
-              <div className="h-11 bg-surface border border-line-2 rounded-[10px] px-3.5 flex items-center">
-                <span className="text-[13px] text-fg">demo@sunpeak.solar</span>
-              </div>
+              <input
+                type="email"
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="h-11 bg-surface border border-line-2 rounded-[10px] px-3.5 text-[13px] text-fg outline-none focus:border-accent placeholder:text-fg3"
+              />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center">
                 <label className="text-xs font-medium text-fg2">Password</label>
-                <span className="ml-auto text-xs font-medium text-accent">Forgot?</span>
               </div>
-              <div className="h-11 bg-surface border border-line-2 rounded-[10px] px-3.5 flex items-center">
-                <span className="text-base text-fg tracking-widest">••••••••••••</span>
-              </div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="h-11 bg-surface border border-line-2 rounded-[10px] px-3.5 text-[13px] text-fg outline-none focus:border-accent placeholder:text-fg3"
+              />
             </div>
 
-            <Link
-              href="/dashboard"
-              className="h-[46px] bg-accent text-bg rounded-[10px] flex items-center justify-center gap-2 font-semibold text-sm hover:brightness-95"
+            {error && <span className="text-xs text-error">{error}</span>}
+
+            <button
+              type="submit"
+              disabled={loading || !email || !password}
+              className="h-[46px] bg-accent text-bg rounded-[10px] flex items-center justify-center gap-2 font-semibold text-sm hover:brightness-95 disabled:opacity-50"
             >
-              Continue <span className="font-bold">→</span>
-            </Link>
-
-            <div className="flex items-center gap-3 py-1">
-              <div className="flex-1 h-px bg-line" />
-              <span className="text-[11px] text-fg3">or</span>
-              <div className="flex-1 h-px bg-line" />
-            </div>
-
-            <button className="h-[46px] bg-surface border border-line-2 rounded-[10px] flex items-center justify-center gap-2 font-medium text-[13px] text-fg">
-              <span className="text-accent font-bold text-[13px]">✦</span> Get magic link via email
+              {loading ? 'Signing in…' : 'Continue'} <span className="font-bold">→</span>
             </button>
-          </div>
+          </form>
 
           <div className="flex flex-col items-center gap-1.5 mt-2">
             <span className="text-xs text-fg3">Don&apos;t have access yet?</span>
-            <span className="text-xs font-medium text-accent">Email hello@birdie.solar</span>
+            <Link href="mailto:info@birdiesolar.com" className="text-xs font-medium text-accent">
+              Email info@birdiesolar.com
+            </Link>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
