@@ -302,7 +302,7 @@ async function loadReg(offerId: string): Promise<{ tid: string; reg: Registratio
 export async function recordDraft(
   offerId: string,
   form: string,
-  opts: { source?: 'manuell' | 'bot'; draftRef?: string } = {},
+  opts: { source?: 'manual' | 'bot'; draftRef?: string } = {},
 ): Promise<boolean> {
   const loaded = await loadReg(offerId);
   if (!loaded) return false;

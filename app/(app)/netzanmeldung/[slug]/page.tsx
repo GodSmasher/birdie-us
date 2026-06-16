@@ -33,7 +33,7 @@ export default async function RegistrationDetail({ params }: { params: { slug: s
   if (!reg && !project) notFound();
   const stageLabel = STAGES.find((s) => s.id === reg?.status)?.label ?? '—';
   const nb = netzbetreiberForPlz(project?.address?.zip);
-  const nbTone = nb?.confidence === 'sicher' ? 'success' : nb?.confidence === 'wahrscheinlich' ? 'info' : 'warning';
+  const nbTone = nb?.confidence === 'confirmed' ? 'success' : nb?.confidence === 'likely' ? 'info' : 'warning';
   const mastr = project ? buildMastrSheet(project, reg) : [];
   const mastrOpen = mastrOpenCount(mastr);
 
@@ -316,7 +316,7 @@ function SourceBadge({ source }: { source: FieldSource }) {
   const map: Record<FieldSource, { label: string; cls: string }> = {
     reonic: { label: 'from Reonic', cls: 'bg-success-bg text-success' },
     auto: { label: 'automatic', cls: 'bg-info-bg text-info' },
-    manuell: { label: 'manual', cls: 'bg-warning-bg text-warning' },
+    manual: { label: 'manual', cls: 'bg-warning-bg text-warning' },
   };
   const m = map[source];
   return <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${m.cls}`}>{m.label}</span>;

@@ -77,5 +77,5 @@ export function buildMastrSheet(project: ProjectData, reg?: Registration): Mastr
 
 /** Count how many fields still need manual entry — drives the readiness badge. */
 export function mastrOpenCount(sections: MastrSection[]): number {
-  return sections.flatMap((s) => s.fields).filter((f) => f.source === 'manuell' || !f.value).length;
+  return sections.flatMap((s) => s.fields).filter((f) => f.source === 'manual' || !f.value).length;
 }
