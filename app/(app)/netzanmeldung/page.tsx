@@ -16,6 +16,8 @@ import {
 import { getWpOfferIds } from '@/app/lib/waermepumpe';
 import { getNetzEmails, getNetzEmailStats } from '@/app/lib/netz-email';
 import { NetzEmailKanban } from '@/components/netz-email-kanban';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { DEMO_REGISTRATIONS, DEMO_NETZ_EMAIL_STATS } from '@/app/lib/demo-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,13 +52,16 @@ export default async function NetzanmeldungPage({
     : 'alle';
   const searchQuery = (searchParams?.q ?? '').trim().toLowerCase();
 
-  const [allRegs, portals, wpIds, unmatchedEmails, emailStats] = await Promise.all([
+  let [allRegs, portals, wpIds, unmatchedEmails, emailStats] = await Promise.all([
     getRegistrations(),
     getPortals(),
     getWpOfferIds(),
     getNetzEmails({ limit: 20 }),
     getNetzEmailStats(),
   ]);
+  if (allRegs.length === 0 && isDemoMode()) {
+    allRegs = DEMO_REGISTRATIONS as any;
+  }
   // Filter to only unmatched + netz-relevant emails
   const unmatched = unmatchedEmails.filter((e) => !e.matched_registration_id && e.category !== 'general');
 

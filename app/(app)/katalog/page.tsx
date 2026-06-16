@@ -2,6 +2,8 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill, Tag } from '@/components/ui';
 import { loadCatalog } from '@/app/lib/reonic-data';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { DEMO_CATALOG } from '@/app/lib/demo-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +22,12 @@ const typeTone: Record<string, 'success' | 'warning' | 'info' | 'accent' | 'purp
 };
 
 export default async function KatalogPage() {
-  const { data: catalog, source } = await loadCatalog();
+  let { data: catalog, source } = await loadCatalog();
+
+  if (!catalog.configured && isDemoMode()) {
+    catalog = DEMO_CATALOG as any;
+    source = 'DB-Cache';
+  }
 
   return (
     <>

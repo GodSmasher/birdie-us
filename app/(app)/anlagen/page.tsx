@@ -4,6 +4,8 @@ import { TopBar } from '@/components/topbar';
 import { KpiCard, Pill } from '@/components/ui';
 import { getWonProjects } from '@/app/lib/reonic-server';
 import { getProjectDataBatch } from '@/app/lib/projektdaten';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { DEMO_ANLAGEN } from '@/app/lib/demo-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +25,7 @@ export default async function AnlagenPage() {
   const offerIds = wonRaw.slice(0, 50).map((p) => p.id);
   const projectDataList = await getProjectDataBatch(offerIds);
 
-  const anlagen: Anlage[] = projectDataList.map((pd) => {
+  let anlagen: Anlage[] = projectDataList.map((pd) => {
     const addrStr = pd.address
       ? [pd.address.line, pd.address.zip, pd.address.city].filter(Boolean).join(', ')
       : '—';
@@ -38,6 +40,10 @@ export default async function AnlagenPage() {
       battery: pd.battery || '—',
     };
   });
+
+  if (anlagen.length === 0 && isDemoMode()) {
+    anlagen = DEMO_ANLAGEN;
+  }
 
   const totalKwp = anlagen.reduce((n, a) => n + a.kwp, 0);
 

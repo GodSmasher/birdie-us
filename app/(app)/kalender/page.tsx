@@ -2,6 +2,8 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { getGoogleCalendar } from '@/app/lib/google-server';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { DEMO_CALENDAR } from '@/app/lib/demo-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +19,11 @@ function fmtTime(e: { start: string; end?: string; allDay: boolean }): string {
 }
 
 export default async function KalenderPage() {
-  const cal = await getGoogleCalendar();
+  let cal = await getGoogleCalendar();
+
+  if (!cal.configured && isDemoMode()) {
+    cal = DEMO_CALENDAR as any;
+  }
 
   // group events by day
   const groups = new Map<string, typeof cal.events>();

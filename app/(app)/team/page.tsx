@@ -2,6 +2,8 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 import { getEntities } from '@/app/lib/db';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { DEMO_USERS, DEMO_TEAMS } from '@/app/lib/demo-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +15,13 @@ const roleLabel: Record<string, string> = {
 };
 
 export default async function TeamPage() {
-  const [users, teams] = await Promise.all([getEntities<User>('user'), getEntities<Team>('team')]);
+  let [users, teams] = await Promise.all([getEntities<User>('user'), getEntities<Team>('team')]);
+
+  if (!users.length && !teams.length && isDemoMode()) {
+    users = DEMO_USERS;
+    teams = DEMO_TEAMS;
+  }
+
   const configured = users.length > 0 || teams.length > 0;
   const sorted = [...users].sort((a, b) => a.name.localeCompare(b.name));
 

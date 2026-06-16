@@ -2,6 +2,8 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 import { getMailbox } from '@/app/lib/google-server';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { DEMO_MAILBOX } from '@/app/lib/demo-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +64,11 @@ function MailRow({
 }
 
 export default async function PostfachPage() {
-  const mailbox = await getMailbox();
+  let mailbox = await getMailbox();
+
+  if (!mailbox.configured && isDemoMode()) {
+    mailbox = DEMO_MAILBOX as any;
+  }
 
   if (!mailbox.configured) {
     return (

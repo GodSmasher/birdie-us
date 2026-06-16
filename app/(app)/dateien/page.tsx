@@ -3,13 +3,18 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { getDrive } from '@/app/lib/google-server';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { DEMO_DRIVE } from '@/app/lib/demo-data';
 
 export const dynamic = 'force-dynamic';
 
 const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-US') : '');
 
 export default async function DateienPage({ searchParams }: { searchParams: { folder?: string; name?: string } }) {
-  const drive = await getDrive(searchParams.folder);
+  let drive = await getDrive(searchParams.folder);
+  if (!drive.configured && isDemoMode()) {
+    drive = DEMO_DRIVE as any;
+  }
   const inFolder = !!searchParams.folder;
 
   return (
