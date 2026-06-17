@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, KpiCard, Tag } from '@/components/ui';
-import { DemoView } from '@/components/birdie-guide';
+import { DemoSalesView } from '@/components/birdie-guide';
 import { type SellerStat } from '@/app/lib/reonic-server';
 import { loadPipeline, loadLeads } from '@/app/lib/reonic-data';
 import { isDemoMode } from '@/app/lib/demo-mode';
@@ -64,17 +64,7 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
         <Sidebar active="vertrieb" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Sales" subtitle="CRM · Pipeline · Teams" />
-          <DemoView message="Your sales pipeline will show every deal, rep, and lead source once you connect your CRM. Pipeline value, close rates, and team leaderboard — all live.">
-            <Card className="overflow-hidden opacity-75">
-              <div className="px-4 py-3 border-b border-line"><h3 className="font-semibold text-[13px] text-fg">Sales Pipeline</h3></div>
-              <div className="grid grid-cols-[1fr_80px_100px_100px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>CUSTOMER</span><span>SIZE</span><span>VALUE</span><span>STATUS</span></div>
-              {[['— —','— kW','— —','—'],['— —','— kW','— —','—'],['— —','— kW','— —','—']].map((row, i) => (
-                <div key={i} className={`grid grid-cols-[1fr_80px_100px_100px] h-[38px] items-center px-4 ${i < 2 ? 'border-b border-line' : ''}`}>
-                  <span className="text-[11px] text-fg3">{row[0]}</span><span className="text-[10px] text-fg3">{row[1]}</span><span className="text-[11px] text-fg3">{row[2]}</span><span className="text-[10px] text-fg3">{row[3]}</span>
-                </div>
-              ))}
-            </Card>
-          </DemoView>
+          <DemoSalesView />
         </main>
       </>
     );

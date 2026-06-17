@@ -17,7 +17,7 @@ import { getWpOfferIds } from '@/app/lib/waermepumpe';
 import { getNetzEmails, getNetzEmailStats } from '@/app/lib/netz-email';
 import { NetzEmailKanban } from '@/components/netz-email-kanban';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DemoView } from '@/components/birdie-guide';
+import { DemoInterconnectionView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,19 +65,7 @@ export default async function NetzanmeldungPage({
         <Sidebar active="netzanmeldung" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Interconnection" subtitle="Utility Applications · AHJ Tracking · PTO" />
-          <DemoView message="Track every interconnection project from utility application through PTO. Kanban board, auto-filled forms, status monitoring — all in one place.">
-            <Card className="overflow-hidden opacity-75">
-              <div className="px-4 py-2.5 border-b border-line"><h3 className="font-semibold text-[12px] text-fg">Interconnection Pipeline</h3></div>
-              <div className="p-4 flex gap-3">
-                {['Application','Under Review','Approved','Inspection','PTO'].map(s => (
-                  <div key={s} className="flex-1 flex flex-col gap-2 items-center">
-                    <span className="text-[10px] font-semibold text-fg3">{s}</span>
-                    <div className="w-full h-24 rounded-lg bg-surface-2 border border-line border-dashed flex items-center justify-center text-[10px] text-fg4">—</div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </DemoView>
+          <DemoInterconnectionView />
         </main>
       </>
     );

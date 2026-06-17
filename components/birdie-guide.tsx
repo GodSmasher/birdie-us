@@ -1194,3 +1194,416 @@ export function SidebarTourGuide() {
     ]}
   />;
 }
+
+// ════════════════════════════════════════════════════════
+//  DEMO CONNECTED STATE — localStorage toggle
+// ════════════════════════════════════════════════════════
+const DEMO_KEY = 'birdie-demo-connected';
+
+export function useDemoConnected() {
+  const [connected, setConnected] = useState(false);
+  useEffect(() => {
+    setConnected(localStorage.getItem(DEMO_KEY) === 'true');
+    const handler = () => setConnected(localStorage.getItem(DEMO_KEY) === 'true');
+    window.addEventListener('demo-connected-change', handler);
+    return () => window.removeEventListener('demo-connected-change', handler);
+  }, []);
+  return connected;
+}
+
+function setDemoConnected(val: boolean) {
+  localStorage.setItem(DEMO_KEY, val ? 'true' : 'false');
+  window.dispatchEvent(new Event('demo-connected-change'));
+}
+
+// ════════════════════════════════════════════════════════
+//  CONNECT SIMULATION — OAuth-style modal
+// ════════════════════════════════════════════════════════
+const SIM_STEPS = [
+  { label: 'Redirecting…', icon: '🔗', duration: 800 },
+  { label: 'Authenticating…', icon: '🔐', duration: 1200 },
+  { label: 'Syncing data…', icon: '🔄', duration: 1500 },
+  { label: 'Connected!', icon: '✅', duration: 1000 },
+];
+
+function ConnectSimulation({ name, onDone }: { name: string; onDone: () => void }) {
+  const [simStep, setSimStep] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+
+  useEffect(() => {
+    if (simStep < SIM_STEPS.length) {
+      const t = setTimeout(() => {
+        if (simStep === SIM_STEPS.length - 1) {
+          setShowConfetti(true);
+          setTimeout(() => onDoneRef.current(), 1200);
+        } else {
+          setSimStep(s => s + 1);
+        }
+      }, SIM_STEPS[simStep].duration);
+      return () => clearTimeout(t);
+    }
+  }, [simStep]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <GuideStyles />
+      {showConfetti && <ConfettiBurst />}
+      <div className="g-spring bg-surface border border-line rounded-2xl p-8 w-[400px] flex flex-col items-center gap-6 shadow-2xl">
+        <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+          <BirdieChar size={48} pose={simStep === SIM_STEPS.length - 1 ? 'celebrate' : 'default'} />
+        </div>
+        <h3 className="font-bold text-lg text-fg tracking-tight">Connecting {name}</h3>
+        <div className="w-full flex flex-col gap-3">
+          {SIM_STEPS.map((s, i) => (
+            <div key={i} className={`flex items-center gap-3 transition-opacity duration-300 ${i <= simStep ? 'opacity-100' : 'opacity-20'}`}>
+              <span className="text-lg w-7 text-center">{i < simStep ? '✅' : i === simStep ? s.icon : '○'}</span>
+              <span className={`text-sm ${i === simStep ? 'text-fg font-medium' : 'text-fg3'}`}>{s.label}</span>
+              {i === simStep && i < SIM_STEPS.length - 1 && <span className="ml-auto w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />}
+            </div>
+          ))}
+        </div>
+        <div className="w-full bg-surface-2 rounded-full h-2 overflow-hidden">
+          <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${((simStep + 1) / SIM_STEPS.length) * 100}%` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+//  DEMO CONNECTORS PAGE — interactive connect flow
+// ════════════════════════════════════════════════════════
+const DEMO_CONNECTORS = [
+  { name: 'Google Workspace', cat: 'Email · Calendar · Drive' },
+  { name: 'Aurora Solar', cat: 'CRM · Proposals' },
+  { name: 'QuickBooks', cat: 'Accounting' },
+  { name: 'SolarEdge', cat: 'Monitoring · Fleet' },
+  { name: 'Slack', cat: 'Team Chat' },
+  { name: 'Enphase', cat: 'Monitoring · Fleet' },
+  { name: 'Salesforce', cat: 'CRM · Pipeline' },
+  { name: 'HubSpot', cat: 'CRM · Marketing' },
+  { name: 'Stripe', cat: 'Payments' },
+  { name: 'Calendly', cat: 'Scheduling' },
+  { name: 'Zapier', cat: 'Integration Hub' },
+];
+
+export function DemoConnectorsPage() {
+  const demoConnected = useDemoConnected();
+  const [localConnected, setLocalConnected] = useState<string[]>([]);
+  const [connecting, setConnecting] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (demoConnected) setLocalConnected(DEMO_CONNECTORS.slice(0, 5).map(c => c.name));
+  }, [demoConnected]);
+
+  const handleDone = useCallback(() => {
+    setConnecting(prev => {
+      if (prev) {
+        setLocalConnected(lc => {
+          const next = [...lc, prev];
+          if (next.length >= 3) setDemoConnected(true);
+          return next;
+        });
+      }
+      return null;
+    });
+  }, []);
+
+  const connected = DEMO_CONNECTORS.filter(c => localConnected.includes(c.name));
+  const available = DEMO_CONNECTORS.filter(c => !localConnected.includes(c.name));
+
+  return (
+    <div className="flex-1 flex flex-col h-[calc(100vh-64px)] overflow-auto">
+      <GuideStyles />
+      {connecting && <ConnectSimulation name={connecting} onDone={handleDone} />}
+      <div className="px-6 py-5 flex flex-col gap-5 max-w-[960px] mx-auto w-full">
+        <div className="g-slide-in flex items-center gap-4">
+          <div className="g-float shrink-0 w-14 h-14 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+            <BirdieChar size={40} pose="point" />
+          </div>
+          <div className="relative bg-surface-2/80 backdrop-blur-sm border border-accent/12 rounded-2xl px-5 py-3.5 max-w-[580px] shadow-sm">
+            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-surface-2/80 border-l border-b border-accent/12 rotate-45" />
+            <p className="text-[13px] text-fg2 leading-relaxed relative z-10">
+              {connected.length === 0
+                ? "Click 'Connect' on any tool below to see how the setup flow works. Once you connect a few, the rest of the app lights up with sample data."
+                : connected.length < 3
+                ? `Nice! ${connected.length} connected. Connect ${3 - connected.length} more to unlock populated views across all pages.`
+                : "Your tools are connected! Navigate to Sales, Fleet, or any other page to see what birdie looks like with live data flowing in."}
+            </p>
+          </div>
+        </div>
+
+        {connected.length > 0 && (
+          <div className="g-slide flex flex-col gap-2" style={{ animationDelay: '0.1s' }}>
+            <div className="flex items-center gap-3"><h2 className="font-semibold text-sm text-fg">Connected</h2><Pill label="LIVE" tone="success" /></div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {connected.map(c => (
+                <div key={c.name} className="g-spring bg-surface border border-line rounded-xl p-4 flex flex-col gap-2.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-surface-3 flex items-center justify-center font-semibold text-xs text-fg">{c.name.slice(0, 2)}</div>
+                    <div className="flex flex-col min-w-0"><span className="font-semibold text-[12px] text-fg truncate">{c.name}</span><span className="text-[10px] text-fg3">{c.cat}</span></div>
+                    <span className="ml-auto w-2.5 h-2.5 rounded-full bg-success" />
+                  </div>
+                  <div className="border-t border-line pt-2"><Pill label="CONNECTED" tone="success" /></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {available.length > 0 && (
+          <div className="g-slide flex flex-col gap-2" style={{ animationDelay: '0.2s' }}>
+            <div className="flex items-center gap-3"><h2 className="font-semibold text-sm text-fg">Available</h2></div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {available.map(c => (
+                <div key={c.name} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-2.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-surface-3 flex items-center justify-center font-semibold text-xs text-fg">{c.name.slice(0, 2)}</div>
+                    <div className="flex flex-col min-w-0"><span className="font-semibold text-[12px] text-fg truncate">{c.name}</span><span className="text-[10px] text-fg3">{c.cat}</span></div>
+                  </div>
+                  <div className="border-t border-line pt-2 flex items-center justify-between">
+                    <Pill label="AVAILABLE" tone="neutral" />
+                    <button onClick={() => setConnecting(c.name)} className="px-3 py-1.5 rounded-lg bg-accent text-bg text-[11px] font-bold hover:scale-[1.04] active:scale-[0.96] transition-transform">Connect</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+//  POPULATED DEMO VIEWS — shown after "connecting"
+// ════════════════════════════════════════════════════════
+function DemoPopulated({ message, pose = 'point' as const, children }: { message: string; pose?: 'default' | 'wave' | 'point' | 'celebrate'; children: ReactNode }) {
+  return (
+    <div className="flex-1 flex flex-col h-[calc(100vh-64px)] overflow-auto">
+      <GuideStyles />
+      <div className="px-6 py-5 flex flex-col gap-5 max-w-[1100px] mx-auto w-full">
+        <div className="g-slide-in flex items-center gap-4">
+          <div className="g-float shrink-0 w-14 h-14 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+            <BirdieChar size={40} pose={pose} />
+          </div>
+          <div className="relative bg-surface-2/80 backdrop-blur-sm border border-accent/12 rounded-2xl px-5 py-3.5 max-w-[580px] shadow-sm">
+            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-surface-2/80 border-l border-b border-accent/12 rotate-45" />
+            <p className="text-[13px] text-fg2 leading-relaxed relative z-10">{message}</p>
+          </div>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function DemoSalesView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Your sales pipeline — leads, proposals, contracts, all in one view. Connect your CRM to see live deals flowing in.">
+      <Card className="overflow-hidden opacity-75">
+        <div className="grid grid-cols-[1fr_80px_100px_100px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>CUSTOMER</span><span>SIZE</span><span>VALUE</span><span>STAGE</span></div>
+        {['Martinez','Johnson','Chen','Williams','Davis'].map((n, i) => (
+          <div key={n} className={`grid grid-cols-[1fr_80px_100px_100px] h-[36px] items-center px-4 ${i < 4 ? 'border-b border-line' : ''}`}>
+            <span className="text-[11px] text-fg3">{n}</span><span className="text-[10px] text-fg3">—</span><span className="text-[11px] text-fg3">—</span><span className="text-[10px] text-fg3">—</span>
+          </div>
+        ))}
+      </Card>
+    </DemoView>
+  );
+  return (
+    <DemoPopulated message="Here's your pipeline with live data from Aurora Solar. Every lead, every deal, every stage — updated in real time.">
+      <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
+        {[{ l: 'PIPELINE VALUE', v: '$271,900' },{ l: 'DEALS', v: '8' },{ l: 'CLOSE RATE', v: '38%' },{ l: 'AVG DEAL', v: '$34,000' }].map(k => (
+          <div key={k.l} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-1"><span className="font-medium text-[10px] text-fg3 tracking-[0.14em]">{k.l}</span><span className="font-bold text-[20px] text-fg">{k.v}</span></div>
+        ))}
+      </div>
+      <Card className="overflow-hidden g-slide" style={{ animationDelay: '0.25s' }}>
+        <div className="px-4 py-2.5 border-b border-line flex items-center justify-between"><h3 className="font-semibold text-[12px] text-fg">Sales Pipeline</h3><span className="text-[10px] text-fg3">Live from Aurora Solar</span></div>
+        <div className="grid grid-cols-[1fr_80px_100px_100px_90px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>CUSTOMER</span><span>SIZE</span><span>VALUE</span><span>STAGE</span><span>REP</span></div>
+        {[['Martinez Residence','8.4 kW','$32,500','Proposal','Jake'],['Johnson Commercial','45 kW','$128,000','Negotiation','Sarah'],['Williams Home','6.2 kW','$24,800','New Lead','Mike'],['Chen Duplex','12.6 kW','$48,200','Won','Sarah'],['Davis Property','9.8 kW','$38,400','Survey','Jake']].map((row, i) => (
+          <div key={i} className={`g-slide grid grid-cols-[1fr_80px_100px_100px_90px] h-[40px] items-center px-4 ${i < 4 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.35 + i * 0.06}s` }}>
+            <span className="text-[11px] text-accent font-medium">{row[0]}</span><span className="text-[10px] text-fg2">{row[1]}</span><span className="text-[11px] font-semibold text-fg">{row[2]}</span>
+            <Pill label={row[3].toUpperCase()} tone={row[3] === 'Won' ? 'success' : row[3] === 'New Lead' ? 'info' : 'warning'} />
+            <span className="text-[10px] text-fg3">{row[4]}</span>
+          </div>
+        ))}
+      </Card>
+    </DemoPopulated>
+  );
+}
+
+export function DemoInterconnectionView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Interconnection tracking — every permit application from submission to activation. Connect your tools to see the full pipeline.">
+      <div className="grid grid-cols-4 gap-3">
+        {['Applied','Under Review','Approved','Activated'].map(s => (
+          <div key={s} className="bg-surface border border-line rounded-xl p-3 opacity-75">
+            <span className="text-[11px] font-semibold text-fg3">{s}</span>
+            <div className="mt-3 h-20 border border-dashed border-line rounded-lg flex items-center justify-center text-[10px] text-fg3">No projects</div>
+          </div>
+        ))}
+      </div>
+    </DemoView>
+  );
+  return (
+    <DemoPopulated message="Interconnection pipeline — every permit tracked from application to activation. Drag cards between columns as they progress.">
+      <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
+        {[
+          { stage: 'Applied', tone: 'info' as const, items: [{ name: 'Williams Home', kw: '6.2 kW', days: '3 days ago' },{ name: 'Davis Property', kw: '9.8 kW', days: '1 day ago' }] },
+          { stage: 'Under Review', tone: 'warning' as const, items: [{ name: 'Martinez Residence', kw: '8.4 kW', days: '12 days' }] },
+          { stage: 'Approved', tone: 'success' as const, items: [{ name: 'Chen Duplex', kw: '12.6 kW', days: '2 days ago' },{ name: 'Brown Residence', kw: '7.1 kW', days: '5 days ago' }] },
+          { stage: 'Activated', tone: 'success' as const, items: [{ name: 'Johnson Commercial', kw: '45 kW', days: 'yesterday' }] },
+        ].map((col, ci) => (
+          <div key={col.stage} className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-fg">{col.stage}</span>
+              <Pill label={String(col.items.length)} tone={col.tone} />
+            </div>
+            {col.items.map((item, ii) => (
+              <Card key={item.name} className="g-slide p-3 flex flex-col gap-1" style={{ animationDelay: `${0.25 + ci * 0.1 + ii * 0.06}s` }}>
+                <span className="text-[11px] font-semibold text-fg">{item.name}</span>
+                <span className="text-[10px] text-fg3">{item.kw} · {item.days}</span>
+              </Card>
+            ))}
+          </div>
+        ))}
+      </div>
+    </DemoPopulated>
+  );
+}
+
+export function DemoFleetView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Fleet monitoring shows live production data from every system you've installed. Connect SolarEdge or Enphase to see real-time performance.">
+      <div className="grid grid-cols-3 gap-3">
+        {['Martinez','Johnson','Chen','Williams','Davis','Brown'].map(n => (
+          <Card key={n} className="p-4 flex flex-col gap-2 opacity-75">
+            <span className="text-[12px] font-semibold text-fg">{n}</span>
+            <span className="text-[18px] font-bold text-fg3">— kW</span>
+            <span className="text-[10px] text-fg3">awaiting connection</span>
+          </Card>
+        ))}
+      </div>
+    </DemoView>
+  );
+  return (
+    <DemoPopulated message="Fleet monitoring — live from SolarEdge. Every system, every panel, every alert. If something underperforms, you know before the customer calls.">
+      <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
+        {[{ l: 'TOTAL SYSTEMS', v: '6' },{ l: 'POWER NOW', v: '62.6 kW' },{ l: 'AVG SELF-CONS.', v: '78%' },{ l: 'ALERTS', v: '1' }].map(k => (
+          <div key={k.l} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-1"><span className="font-medium text-[10px] text-fg3 tracking-[0.14em]">{k.l}</span><span className="font-bold text-[20px] text-fg">{k.v}</span></div>
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-3 g-slide" style={{ animationDelay: '0.25s' }}>
+        {[{ name: 'Martinez Residence', kw: '8.4', prod: '6.2', s: 'Online', t: 'success' as const },{ name: 'Johnson Commercial', kw: '45', prod: '38.1', s: 'Online', t: 'success' as const },{ name: 'Chen Duplex', kw: '12.6', prod: '0', s: 'Alert', t: 'warning' as const },{ name: 'Williams Home', kw: '6.2', prod: '5.1', s: 'Online', t: 'success' as const },{ name: 'Davis Property', kw: '9.8', prod: '7.4', s: 'Online', t: 'success' as const },{ name: 'Brown Residence', kw: '7.1', prod: '5.8', s: 'Online', t: 'success' as const }].map((sys, i) => (
+          <Card key={sys.name} className="g-slide p-4 flex flex-col gap-2" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
+            <div className="flex items-center justify-between"><span className="text-[12px] font-semibold text-fg">{sys.name}</span><Pill label={sys.s.toUpperCase()} tone={sys.t} /></div>
+            <span className="text-[22px] font-bold text-fg">{sys.prod} kW</span>
+            <div className="flex items-center justify-between"><span className="text-[10px] text-fg3">{sys.kw} kW installed</span><span className="text-[10px] text-fg3">self-cons. 82%</span></div>
+            <div className="w-full bg-surface-2 rounded-full h-1.5"><div className="h-full bg-accent rounded-full" style={{ width: `${(parseFloat(sys.prod) / parseFloat(sys.kw)) * 100}%` }} /></div>
+          </Card>
+        ))}
+      </div>
+    </DemoPopulated>
+  );
+}
+
+export function DemoFinanceView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Revenue, invoices, margins — all in one place. Connect QuickBooks or Stripe to see your financial data live.">
+      <div className="h-32 bg-surface border border-line rounded-xl flex items-center justify-center text-fg3 text-xs opacity-60">Revenue chart — awaiting connection</div>
+    </DemoView>
+  );
+  return (
+    <DemoPopulated message="Your financial overview — live from QuickBooks. Revenue, outstanding invoices, and margins at a glance.">
+      <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
+        {[{ l: 'REVENUE MTD', v: '$84,200' },{ l: 'OUTSTANDING', v: '$32,500' },{ l: 'MARGIN', v: '34%' },{ l: 'INVOICES', v: '12' }].map(k => (
+          <div key={k.l} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-1"><span className="font-medium text-[10px] text-fg3 tracking-[0.14em]">{k.l}</span><span className="font-bold text-[20px] text-fg">{k.v}</span></div>
+        ))}
+      </div>
+      <Card className="overflow-hidden g-slide" style={{ animationDelay: '0.25s' }}>
+        <div className="px-4 py-2.5 border-b border-line"><h3 className="font-semibold text-[12px] text-fg">Recent Invoices</h3></div>
+        <div className="grid grid-cols-[1fr_100px_100px_90px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>CUSTOMER</span><span>AMOUNT</span><span>DATE</span><span>STATUS</span></div>
+        {[['Martinez Residence','$32,500','Jun 12','Paid'],['Johnson Commercial','$128,000','Jun 8','Pending'],['Williams Home','$24,800','Jun 5','Paid'],['Chen Duplex','$48,200','Jun 1','Overdue']].map((row, i) => (
+          <div key={i} className={`g-slide grid grid-cols-[1fr_100px_100px_90px] h-[40px] items-center px-4 ${i < 3 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.35 + i * 0.06}s` }}>
+            <span className="text-[11px] text-fg font-medium">{row[0]}</span><span className="text-[11px] font-semibold text-fg">{row[1]}</span><span className="text-[10px] text-fg3">{row[2]}</span>
+            <Pill label={row[3].toUpperCase()} tone={row[3] === 'Paid' ? 'success' : row[3] === 'Overdue' ? 'warning' : 'info'} />
+          </div>
+        ))}
+      </Card>
+    </DemoPopulated>
+  );
+}
+
+export function DemoInboxView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Your unified inbox — emails, notifications, and messages from every connected tool. Connect Google Workspace to see it live.">
+      <div className="flex flex-col gap-2">
+        {['New proposal request','Site survey confirmation','Permit update'].map(s => (
+          <div key={s} className="bg-surface border border-line rounded-lg px-4 py-3 flex items-center gap-3 opacity-60">
+            <span className="w-8 h-8 rounded-full bg-surface-3" /><div className="flex flex-col"><span className="text-[11px] text-fg3">{s}</span><span className="text-[10px] text-fg3">—</span></div>
+          </div>
+        ))}
+      </div>
+    </DemoView>
+  );
+  return (
+    <DemoPopulated message="Your inbox — all customer emails and notifications from connected tools in one stream." pose="wave">
+      <div className="flex flex-col gap-1 g-slide" style={{ animationDelay: '0.15s' }}>
+        {[{ from: 'Tom Martinez', subj: 'Re: Proposal for 8.4 kW system', time: '2h ago', unread: true },{ from: 'APS Utility', subj: 'Interconnection application #IX-4821 approved', time: '5h ago', unread: true },{ from: 'Lisa Johnson', subj: 'Commercial install — parking lot questions', time: 'yesterday', unread: false },{ from: 'SolarEdge Alerts', subj: 'Chen Duplex — inverter offline since 8am', time: 'yesterday', unread: false },{ from: 'Jake (Sales)', subj: 'Davis site survey photos attached', time: '2 days ago', unread: false }].map((e, i) => (
+          <div key={i} className={`g-slide flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-surface-2/50 transition-colors ${e.unread ? 'bg-accent/5 border border-accent/10' : 'bg-surface border border-line'}`} style={{ animationDelay: `${0.2 + i * 0.06}s` }}>
+            <div className="w-8 h-8 rounded-full bg-surface-3 flex items-center justify-center text-[10px] font-bold text-fg3">{e.from.slice(0, 2)}</div>
+            <div className="flex-1 min-w-0 flex flex-col"><span className={`text-[12px] truncate ${e.unread ? 'font-semibold text-fg' : 'text-fg2'}`}>{e.from}</span><span className="text-[11px] text-fg3 truncate">{e.subj}</span></div>
+            <span className="text-[10px] text-fg3 shrink-0">{e.time}</span>
+            {e.unread && <span className="w-2 h-2 rounded-full bg-accent shrink-0" />}
+          </div>
+        ))}
+      </div>
+    </DemoPopulated>
+  );
+}
+
+export function DemoCalendarView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Your team calendar — site visits, inspections, sales calls. Connect Google Workspace to sync your schedule.">
+      <div className="grid grid-cols-5 gap-2">
+        {['Mon','Tue','Wed','Thu','Fri'].map(d => (
+          <div key={d} className="bg-surface border border-line rounded-lg p-2 opacity-60 min-h-[80px]">
+            <span className="text-[10px] font-semibold text-fg3">{d}</span>
+          </div>
+        ))}
+      </div>
+    </DemoView>
+  );
+  return (
+    <DemoPopulated message="Your week — synced from Google Calendar. Site visits, inspections, and sales calls all in one view.">
+      <div className="grid grid-cols-5 gap-2 g-slide" style={{ animationDelay: '0.15s' }}>
+        {[
+          { day: 'Mon', events: [{ t: '9am', e: 'Martinez — site survey', c: 'bg-accent/15 text-accent' }] },
+          { day: 'Tue', events: [{ t: '10am', e: 'Johnson — install day 1', c: 'bg-success/15 text-success' },{ t: '2pm', e: 'Williams — proposal call', c: 'bg-info/15 text-info' }] },
+          { day: 'Wed', events: [{ t: '8am', e: 'Johnson — install day 2', c: 'bg-success/15 text-success' }] },
+          { day: 'Thu', events: [{ t: '10am', e: 'Davis — inspection', c: 'bg-warning/15 text-warning' },{ t: '3pm', e: 'Team standup', c: 'bg-accent/15 text-accent' }] },
+          { day: 'Fri', events: [{ t: '11am', e: 'Chen — activation', c: 'bg-success/15 text-success' }] },
+        ].map(col => (
+          <div key={col.day} className="bg-surface border border-line rounded-lg p-2 flex flex-col gap-1.5 min-h-[120px]">
+            <span className="text-[10px] font-semibold text-fg3">{col.day}</span>
+            {col.events.map((ev, i) => (
+              <div key={i} className={`rounded-md px-2 py-1.5 ${ev.c}`}>
+                <span className="text-[9px] font-semibold block">{ev.t}</span>
+                <span className="text-[10px] leading-tight">{ev.e}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </DemoPopulated>
+  );
+}

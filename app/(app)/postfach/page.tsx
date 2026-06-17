@@ -3,7 +3,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 import { getMailbox } from '@/app/lib/google-server';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DemoView } from '@/components/birdie-guide';
+import { DemoInboxView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,17 +73,7 @@ export default async function PostfachPage() {
           <Sidebar active="postfach" />
           <main className="flex-1 min-w-0 flex flex-col bg-bg">
             <TopBar title="Inbox" subtitle="Email · Auto-Categorization · Project Matching" />
-            <DemoView message="Your smart inbox auto-categorizes emails and matches them to the right project. Utility approvals, customer replies, vendor shipments — all sorted.">
-              <Card className="overflow-hidden opacity-75">
-                <div className="px-4 py-2.5 border-b border-line"><h3 className="font-semibold text-[12px] text-fg">Inbox</h3></div>
-                {['Oncor Electric — Interconnection Approved','Sarah Martinez — Re: Installation timeline','CED Greentech — Order shipped','Duke Energy — Inspection scheduled'].map((s, i) => (
-                  <div key={i} className={`flex items-center gap-3 px-4 py-3 ${i < 3 ? 'border-b border-line' : ''}`}>
-                    <div className="w-8 h-8 rounded-full bg-surface-2 flex items-center justify-center text-[10px] font-bold text-fg3">{s.split(' ')[0][0]}{s.split(' ')[1]?.[0] || ''}</div>
-                    <span className="text-[11px] text-fg2 truncate">{s}</span>
-                  </div>
-                ))}
-              </Card>
-            </DemoView>
+            <DemoInboxView />
           </main>
         </>
       );

@@ -1,7 +1,7 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
-import { DemoView } from '@/components/birdie-guide';
+import { DemoConnectorsPage } from '@/components/birdie-guide';
 import { isDemoMode } from '@/app/lib/demo-mode';
 import { getConnectorStatuses, type ConnStatus } from '@/app/lib/connector-status';
 
@@ -47,40 +47,7 @@ export default async function ConnectorsPage() {
         <Sidebar active="connectors" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Connectors" subtitle="Integrations · APIs · Data Bridges" />
-          <DemoView message="Connectors bridge .birdie and your existing tools. Here's what it looks like once a few are connected — each green dot means live data flowing in.">
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-3"><h2 className="font-semibold text-sm text-fg">Connected</h2><Pill label="LIVE" tone="success" /></div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {[{ name: 'Google Workspace', cat: 'Email · Calendar · Drive' },{ name: 'Aurora Solar', cat: 'CRM · Proposals' },{ name: 'QuickBooks', cat: 'Accounting' },{ name: 'SolarEdge', cat: 'Monitoring · Fleet' },{ name: 'Slack', cat: 'Team Chat' }].map(c => (
-                    <div key={c.name} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-2.5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-surface-3 flex items-center justify-center font-semibold text-xs text-fg">{c.name.slice(0, 2)}</div>
-                        <div className="flex flex-col min-w-0"><span className="font-semibold text-[12px] text-fg truncate">{c.name}</span><span className="text-[10px] text-fg3">{c.cat}</span></div>
-                        <span className="ml-auto w-2.5 h-2.5 rounded-full bg-success" />
-                      </div>
-                      <div className="border-t border-line pt-2"><Pill label="CONNECTED" tone="success" /></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-3"><h2 className="font-semibold text-sm text-fg">Available</h2></div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 opacity-70">
-                  {[{ name: 'Enphase', cat: 'Monitoring · Fleet' },{ name: 'Salesforce', cat: 'CRM · Pipeline' },{ name: 'HubSpot', cat: 'CRM · Marketing' },{ name: 'Stripe', cat: 'Payments' },{ name: 'Calendly', cat: 'Scheduling' },{ name: 'Zapier', cat: 'Integration Hub' }].map(c => (
-                    <div key={c.name} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-2.5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-surface-3 flex items-center justify-center font-semibold text-xs text-fg">{c.name.slice(0, 2)}</div>
-                        <div className="flex flex-col min-w-0"><span className="font-semibold text-[12px] text-fg truncate">{c.name}</span><span className="text-[10px] text-fg3">{c.cat}</span></div>
-                        <span className="ml-auto w-2.5 h-2.5 rounded-full bg-fg4" />
-                      </div>
-                      <div className="border-t border-line pt-2"><Pill label="AVAILABLE" tone="neutral" /></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </DemoView>
+          <DemoConnectorsPage />
         </main>
       </>
     );
