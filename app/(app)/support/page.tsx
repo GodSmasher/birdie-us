@@ -1,10 +1,23 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card } from '@/components/ui';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { SupportGuide } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
 export default function SupportPage() {
+  if (isDemoMode()) {
+    return (
+      <>
+        <Sidebar active="support" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Support" subtitle="Personal · no hold times" />
+          <SupportGuide />
+        </main>
+      </>
+    );
+  }
   return (
     <>
       <Sidebar active="support" />

@@ -913,3 +913,252 @@ export function ConnectorsGuide() {
     )},
   ]} />;
 }
+
+export function SettingsGuide() {
+  return <GuideStepper title="Settings" welcomeMessage="This is your control panel — profile, connected tools, security, and data hosting. Let me show you what lives here." ctaLabel="your first tool" steps={[
+    { message: "Your company profile — name, region, industry. This data feeds into documents, emails, and customer-facing materials.", content: (
+      <Card className="p-5 flex flex-col gap-4">
+        <h3 className="font-semibold text-[13px] text-fg">Profile</h3>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-bg font-semibold">SV</div>
+          <div className="flex flex-col"><span className="text-sm font-medium text-fg">Sarah Vogel</span><span className="text-xs text-fg2">Volta Solar Systems · Administrator</span></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          {[['Company','Volta Solar Systems'],['Industry','Solar'],['Region','Austin, TX (US)'],['Language','English']].map(([k,v]) => (
+            <div key={k} className="g-slide flex items-center justify-between bg-surface-2 rounded-lg px-3 py-2" style={{ animationDelay: '0.3s' }}>
+              <span className="text-fg3">{k}</span><span className="text-fg font-medium">{v}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+    )},
+    { message: "Connected connectors show up here too — a quick overview of everything that's live.", content: (
+      <Card className="p-5 flex flex-col gap-4">
+        <div className="flex items-center"><h3 className="font-semibold text-[13px] text-fg">Connected Connectors</h3><span className="ml-auto text-[11px] font-medium text-accent">View all →</span></div>
+        <div className="flex flex-wrap gap-2">
+          {['Aurora Solar','Google Workspace','QuickBooks','SolarEdge','Slack'].map((c, i) => (
+            <span key={c} className="g-slide inline-flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-line rounded-lg text-xs text-fg" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-success" /> {c}
+            </span>
+          ))}
+        </div>
+      </Card>
+    )},
+    { message: "Security — your data lives on US servers with SOC 2 compliance. Connector credentials are encrypted on Vercel's edge. We recommend enabling 2FA.", pose: 'celebrate', content: (
+      <Card className="p-5 flex flex-col gap-4">
+        <h3 className="font-semibold text-[13px] text-fg">Security</h3>
+        <div className="flex flex-col gap-2.5">
+          {[{ label: 'Password access (Gate)', status: 'ACTIVE', tone: 'success' as const },{ label: '2FA for login', status: 'RECOMMENDED', tone: 'warning' as const },{ label: 'Data hosting', status: 'US / SOC 2', tone: 'success' as const },{ label: 'Connector secrets', status: 'ENCRYPTED (VERCEL)', tone: 'success' as const }].map((s, i) => (
+            <div key={s.label} className="g-slide flex items-center" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
+              <span className="text-xs text-fg2">{s.label}</span>
+              <span className="ml-auto"><Pill label={s.status} tone={s.tone} /></span>
+            </div>
+          ))}
+        </div>
+      </Card>
+    )},
+  ]} />;
+}
+
+export function SupportGuide() {
+  return <GuideStepper title="Support" welcomeMessage="Need help? You get a direct line to us — no ticket queues, no hold music. Connector setup, custom bots, data exports — just ask." ctaLabel="the team" ctaHref="mailto:sarah@birdie.app" steps={[
+    { message: "Reach out anytime — we handle connector setup, custom bots, and everything in between. Typical response: under 24 hours.", content: (
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="g-slide p-5 flex flex-col gap-1.5" style={{ animationDelay: '0.3s' }}>
+          <span className="text-[11px] font-semibold text-fg3 tracking-[0.18em]">EMAIL</span>
+          <span className="text-sm font-medium text-fg">sarah@birdie.app</span>
+          <span className="text-xs text-fg3">for all requests & new connectors</span>
+        </Card>
+        <Card className="g-slide p-5 flex flex-col gap-1.5" style={{ animationDelay: '0.4s' }}>
+          <span className="text-[11px] font-semibold text-fg3 tracking-[0.18em]">RESPONSE TIME</span>
+          <span className="text-sm font-medium text-fg">&lt; 24 hrs</span>
+          <span className="text-xs text-fg3">Mon–Fri · urgent matters even faster</span>
+        </Card>
+      </div>
+    )},
+    { message: "Here's what people usually ask for — we handle all of it personally.", pose: 'celebrate', content: (
+      <Card className="p-5 flex flex-col gap-3">
+        <h3 className="font-semibold text-[13px] text-fg">Common Requests</h3>
+        {[['Connect a new connector','e.g. additional inverter, CRM, or accounting tool'],['Customize or create a bot','new automation or changes to existing ones'],['Manage users / access','add or remove team members, change roles'],['Request data export','CSV / Excel of your pipeline, fleet, or finance data']].map(([t,d], i) => (
+          <div key={t} className={`g-slide flex items-center gap-3 ${i > 0 ? 'border-t border-line pt-3' : ''}`} style={{ animationDelay: `${0.3 + i * 0.1}s` }}>
+            <span className="text-accent">→</span>
+            <div className="flex flex-col"><span className="text-[13px] text-fg">{t}</span><span className="text-[11px] text-fg3">{d}</span></div>
+          </div>
+        ))}
+      </Card>
+    )},
+  ]} />;
+}
+
+// ════════════════════════════════════════════════════════
+//  SIDEBAR TOUR — full app walkthrough for first-time users
+// ════════════════════════════════════════════════════════
+
+function NavPreview({ icon, label, desc, active = false }: { icon: string; label: string; desc: string; active?: boolean }) {
+  return (
+    <div className={`flex items-center gap-3 px-3 py-2.5 rounded-lg ${active ? 'bg-surface-2 border border-accent/20' : 'bg-surface border border-line'}`}>
+      <span className={`text-sm w-6 text-center ${active ? 'text-accent' : 'text-fg3'}`}>{icon}</span>
+      <div className="flex flex-col min-w-0">
+        <span className={`text-[12px] font-medium ${active ? 'text-accent' : 'text-fg'}`}>{label}</span>
+        <span className="text-[10px] text-fg3">{desc}</span>
+      </div>
+    </div>
+  );
+}
+
+export function SidebarTourGuide() {
+  return <GuideStepper
+    title="Welcome to .birdie"
+    welcomeMessage="Hey! I'm birdie — your solar business co-pilot. Let me give you a quick tour of the whole platform. It takes about 2 minutes and I promise it's worth it."
+    ctaLabel="Aurora Solar"
+    steps={[
+      {
+        message: "Let's start with the sidebar. It's split into four sections: Core, Monitoring, Automation, and your Account. Here's the Core section — your daily command center.",
+        pose: 'wave',
+        content: (
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-semibold text-fg4 tracking-[0.18em] uppercase mb-1 px-1">CORE</p>
+            <NavPreview icon="◇" label="Dashboard" desc="KPIs, insights, schedule — your daily overview" active />
+            <NavPreview icon="⚡" label="Interconnection" desc="Track every project from application to PTO" />
+            <NavPreview icon="↗" label="Sales" desc="Full pipeline — deals, reps, funnel, lead sources" />
+            <NavPreview icon="₣" label="Finance" desc="Invoices, collections, dunning automation" />
+          </div>
+        ),
+      },
+      {
+        message: "The Monitoring section keeps you informed in real-time. Fleet shows live solar production from every system you've installed. Inbox auto-categorizes your emails.",
+        content: (
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-semibold text-fg4 tracking-[0.18em] uppercase mb-1 px-1">MONITORING</p>
+            <NavPreview icon="☀" label="Fleet" desc="Live production, alerts, uptime across all systems" active />
+            <NavPreview icon="✉" label="Inbox" desc="Auto-categorized emails matched to projects" active />
+          </div>
+        ),
+      },
+      {
+        message: "This is where the magic happens. Bots run your repetitive tasks. Workflows chain them together. Connectors bridge birdie to your existing tools.",
+        content: (
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-semibold text-fg4 tracking-[0.18em] uppercase mb-1 px-1">AUTOMATION</p>
+            <NavPreview icon="◈" label="Bots" desc="CRM sync, doc filler, dunning, email classifier — 24/7" active />
+            <NavPreview icon="→" label="Workflows" desc="End-to-end automations: deal won → project → invoice" active />
+            <NavPreview icon="⌘" label="Connectors" desc="Aurora, Salesforce, QuickBooks, SolarEdge, and more" active />
+          </div>
+        ),
+      },
+      {
+        message: "You'll also find Calendar, Files, Catalog, and Team pages. Calendar syncs your schedule. Files stores all project documents. Catalog is your product database. Team manages roles and access.",
+        content: (
+          <div className="grid grid-cols-2 gap-2">
+            <NavPreview icon="📅" label="Calendar" desc="Site surveys, installs, inspections — all synced" />
+            <NavPreview icon="📁" label="Files" desc="Documents auto-organized by project" />
+            <NavPreview icon="📦" label="Catalog" desc="Modules, inverters, batteries with pricing" />
+            <NavPreview icon="👥" label="Team" desc="Members, roles, permissions" />
+          </div>
+        ),
+      },
+      {
+        message: "Down at the bottom: Settings for your profile and security, and Support for a direct line to us. No ticket queues — you talk to a human.",
+        content: (
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-semibold text-fg4 tracking-[0.18em] uppercase mb-1 px-1">ACCOUNT</p>
+            <NavPreview icon="✱" label="Settings" desc="Profile, connected tools, security, data hosting" />
+            <NavPreview icon="?" label="Support" desc="Direct line to the birdie team — < 24hr response" />
+            <div className="mt-3 bg-surface rounded-xl p-3 border border-line">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-success shrink-0" />
+                <span className="text-[11px] font-medium text-fg">All systems online</span>
+              </div>
+              <span className="text-[10px] text-fg3 mt-1 block pl-4">n8n · Supabase · Connectors</span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        message: "Now let me show you what birdie looks like when everything is connected. Here's your Dashboard with live data from Aurora Solar, QuickBooks, and SolarEdge.",
+        pose: 'point',
+        content: (
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-4 gap-3">
+              {[{ label: 'PIPELINE', val: 245000, pre: '$' },{ label: 'WON', val: 92400, pre: '$', color: 'text-success' },{ label: 'CLOSE RATE', val: 38, suf: '%', color: 'text-success' },{ label: 'INTERCONNECTION', val: 12 }].map(k => (
+                <div key={k.label} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-1.5">
+                  <span className="font-medium text-[10px] text-fg2 tracking-[0.16em]">{k.label}</span>
+                  <div className={`font-semibold text-[24px] leading-none tracking-tightest ${k.color || 'text-fg'}`}><Counter end={k.val} prefix={k.pre || ''} suffix={k.suf || ''} duration={1500} /></div>
+                </div>
+              ))}
+            </div>
+            <Card className="overflow-hidden">
+              <div className="px-4 py-2 border-b border-line flex items-center justify-between">
+                <h3 className="font-semibold text-[11px] text-fg">Action Required</h3>
+                <Pill label="3 OPEN" tone="warning" />
+              </div>
+              {[{ icon: '📋', msg: '3 proposals waiting for signature (oldest: 6 days)', c: 'text-warning' },{ icon: '🔧', msg: 'Martinez — inspection Friday 10am', c: 'text-info' },{ icon: '✅', msg: 'Chen — PTO approved, ready to energize', c: 'text-success' }].map((r, i) => (
+                <div key={i} className={`g-slide flex items-start gap-2.5 px-4 py-2 ${i < 2 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.3 + i * 0.1}s` }}>
+                  <span className="text-sm">{r.icon}</span><p className={`text-[11px] leading-[16px] ${r.c}`}>{r.msg}</p>
+                </div>
+              ))}
+            </Card>
+          </div>
+        ),
+      },
+      {
+        message: "And here's your Sales pipeline — live from your CRM. Every deal, every rep, every lead source in one place.",
+        content: (
+          <Card className="overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-line flex items-center justify-between"><h3 className="font-semibold text-[12px] text-fg">Sales Pipeline</h3><span className="text-[10px] text-fg3">Live from Aurora Solar</span></div>
+            <div className="grid grid-cols-[1fr_80px_100px_100px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>CUSTOMER</span><span>SIZE</span><span>VALUE</span><span>STATUS</span></div>
+            {[['Martinez','8.4 kW','$32,500','Proposal'],['Johnson','45 kW','$128,000','Negotiation'],['Williams','6.2 kW','$24,800','New Lead'],['Chen','12.6 kW','$48,200','Won'],['Davis','9.8 kW','$38,400','Survey']].map((row, i) => (
+              <div key={i} className={`g-slide grid grid-cols-[1fr_80px_100px_100px] h-[36px] items-center px-4 ${i < 4 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.3 + i * 0.06}s` }}>
+                <span className="text-[11px] text-accent font-medium">{row[0]}</span><span className="text-[10px] text-fg2">{row[1]}</span><span className="text-[11px] font-semibold text-fg">{row[2]}</span><span className="text-[10px] text-fg2">{row[3]}</span>
+              </div>
+            ))}
+          </Card>
+        ),
+      },
+      {
+        message: "Fleet monitoring — live production data from SolarEdge. If a system underperforms, you know before the customer calls.",
+        content: (
+          <div className="grid grid-cols-3 gap-3">
+            {[{ name: 'Martinez', kw: '8.4 kW', prod: '6.2 kW', s: 'Online', t: 'success' as const },{ name: 'Johnson', kw: '45 kW', prod: '38.1 kW', s: 'Online', t: 'success' as const },{ name: 'Chen', kw: '12.6 kW', prod: '0 kW', s: 'Alert', t: 'warning' as const },{ name: 'Williams', kw: '6.2 kW', prod: '5.1 kW', s: 'Online', t: 'success' as const },{ name: 'Davis', kw: '9.8 kW', prod: '7.4 kW', s: 'Online', t: 'success' as const },{ name: 'Brown', kw: '7.1 kW', prod: '5.8 kW', s: 'Online', t: 'success' as const }].map((sys, i) => (
+              <Card key={sys.name} className="g-slide p-3 flex flex-col gap-1.5" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
+                <div className="flex items-center justify-between"><span className="text-[11px] font-semibold text-fg">{sys.name}</span><Pill label={sys.s.toUpperCase()} tone={sys.t} /></div>
+                <div className="text-[16px] font-bold text-fg">{sys.prod}</div>
+                <span className="text-[9px] text-fg3">{sys.kw} installed</span>
+              </Card>
+            ))}
+          </div>
+        ),
+      },
+      {
+        message: "Here's how connectors look once you're set up. Green means live and syncing. This is what powers everything else.",
+        content: (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <SampleConnector name="Aurora Solar" cat="CRM · Proposals" connected={true} />
+            <SampleConnector name="Google Workspace" cat="Email · Calendar · Drive" connected={true} />
+            <SampleConnector name="QuickBooks" cat="Accounting" connected={true} />
+            <SampleConnector name="SolarEdge" cat="Monitoring · Fleet" connected={true} />
+            <SampleConnector name="Slack" cat="Team Chat" connected={true} />
+            <SampleConnector name="Enphase" cat="Monitoring" connected={false} />
+            <SampleConnector name="HubSpot" cat="CRM · Marketing" connected={false} />
+            <SampleConnector name="Stripe" cat="Payments" connected={false} />
+          </div>
+        ),
+      },
+      {
+        message: "That's the full tour! Every feature you just saw lights up automatically when you connect your tools. Start with your CRM — everything else follows.",
+        pose: 'celebrate',
+        content: (
+          <Card className="p-5 flex flex-col gap-4">
+            <h3 className="font-semibold text-[13px] text-fg">Your Setup Checklist</h3>
+            {[{ label: 'Connect your CRM', desc: 'Aurora Solar, Salesforce, or HubSpot' },{ label: 'Connect Google Workspace', desc: 'Email, Calendar, Drive sync' },{ label: 'Connect your accounting tool', desc: 'QuickBooks or Stripe' },{ label: 'Connect your monitoring', desc: 'SolarEdge or Enphase' },{ label: 'Invite your team', desc: 'Sales reps, installers, admins' }].map((item, i) => (
+              <div key={item.label} className={`g-slide flex items-center gap-3 ${i > 0 ? 'border-t border-line pt-3' : ''}`} style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
+                <div className="w-6 h-6 rounded-full border-2 border-accent/30 flex items-center justify-center text-[10px] text-fg3">{i + 1}</div>
+                <div className="flex flex-col"><span className="text-[12px] font-medium text-fg">{item.label}</span><span className="text-[10px] text-fg3">{item.desc}</span></div>
+              </div>
+            ))}
+          </Card>
+        ),
+      },
+    ]}
+  />;
+}

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
-import { DashboardGuide } from '@/components/birdie-guide';
+import { SidebarTourGuide } from '@/components/birdie-guide';
 import { loadDashboard, type DashboardData } from '@/app/lib/reonic-data';
 import { getRegistrations } from '@/app/lib/netzanmeldung';
 import { generateInsights, type Insight, type InsightSeverity } from '@/app/lib/insights';
@@ -49,7 +49,7 @@ export default async function DashboardPage() {
           title={`${greeting()}, Sarah`}
           subtitle={data.configured ? `${today} · Volta · ${data.source === 'DB-Cache' ? 'from DB cache' : 'live from Aurora Solar'}` : today}
         />
-        {data.configured ? <RealDashboard data={data} netzStats={netzStats} insights={insights} /> : <DashboardGuide />}
+        {data.configured ? <RealDashboard data={data} netzStats={netzStats} insights={insights} /> : <SidebarTourGuide />}
       </main>
     </>
   );

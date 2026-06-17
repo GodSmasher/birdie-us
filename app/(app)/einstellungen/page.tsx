@@ -3,10 +3,23 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
 import { getConnectorStatuses } from '@/app/lib/connector-status';
+import { isDemoMode } from '@/app/lib/demo-mode';
+import { SettingsGuide } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
 export default async function EinstellungenPage() {
+  if (isDemoMode()) {
+    return (
+      <>
+        <Sidebar active="einstellungen" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Settings" subtitle="Profile · Connectors · Security" />
+          <SettingsGuide />
+        </main>
+      </>
+    );
+  }
   const { connected } = await getConnectorStatuses();
   return (
     <>
