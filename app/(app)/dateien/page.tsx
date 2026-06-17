@@ -4,7 +4,8 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { getDrive } from '@/app/lib/google-server';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DEMO_DRIVE } from '@/app/lib/demo-data';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_FILES } from '@/app/lib/onboarding-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +14,17 @@ const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-US') :
 export default async function DateienPage({ searchParams }: { searchParams: { folder?: string; name?: string } }) {
   let drive = await getDrive(searchParams.folder);
   if (!drive.configured && isDemoMode()) {
-    drive = DEMO_DRIVE as any;
+    return (
+      <>
+        <Sidebar active="dateien" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Files & Knowledge" subtitle="Documents · Templates · Cloud Sync" />
+          <div className="flex-1 px-8 py-7">
+            <OnboardingView {...ONBOARDING_FILES} />
+          </div>
+        </main>
+      </>
+    );
   }
   const inFolder = !!searchParams.folder;
 

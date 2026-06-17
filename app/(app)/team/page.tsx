@@ -3,7 +3,8 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 import { getEntities } from '@/app/lib/db';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DEMO_USERS, DEMO_TEAMS } from '@/app/lib/demo-data';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_TEAM } from '@/app/lib/onboarding-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,8 +19,17 @@ export default async function TeamPage() {
   let [users, teams] = await Promise.all([getEntities<User>('user'), getEntities<Team>('team')]);
 
   if (!users.length && !teams.length && isDemoMode()) {
-    users = DEMO_USERS;
-    teams = DEMO_TEAMS;
+    return (
+      <>
+        <Sidebar active="team" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Team" subtitle="Members · Roles · Access Control" />
+          <div className="flex-1 px-8 py-7">
+            <OnboardingView {...ONBOARDING_TEAM} />
+          </div>
+        </main>
+      </>
+    );
   }
 
   const configured = users.length > 0 || teams.length > 0;

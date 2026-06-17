@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, KpiCard, Tag } from '@/components/ui';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_SALES } from '@/app/lib/onboarding-data';
 import { type SellerStat } from '@/app/lib/reonic-server';
 import { loadPipeline, loadLeads } from '@/app/lib/reonic-data';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DEMO_PIPELINE, DEMO_LEADS } from '@/app/lib/demo-data';
 import { OffersTable } from './offers-table';
 
 export const dynamic = 'force-dynamic';
@@ -58,13 +59,18 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
     loadLeads(),
   ]);
 
-  // Demo mode: inject realistic data when no real data
   if (!pipe.data.configured && isDemoMode()) {
-    const dp = DEMO_PIPELINE;
-    const dl = DEMO_LEADS;
-    // Re-assign with demo data using same shape
-    pipe = { data: { ...dp, recent: dp.recent } as any, source: 'DB-Cache' as const };
-    leadsRes = { data: dl as any, source: 'DB-Cache' as const };
+    return (
+      <>
+        <Sidebar active="vertrieb" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Sales" subtitle="CRM · Pipeline · Teams" />
+          <div className="flex-1 px-8 py-7">
+            <OnboardingView {...ONBOARDING_SALES} />
+          </div>
+        </main>
+      </>
+    );
   }
   const p = pipe.data;
   const leads = leadsRes.data;

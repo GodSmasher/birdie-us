@@ -5,7 +5,8 @@ import { KpiCard, Pill } from '@/components/ui';
 import { getWonProjects } from '@/app/lib/reonic-server';
 import { getProjectDataBatch } from '@/app/lib/projektdaten';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DEMO_ANLAGEN } from '@/app/lib/demo-data';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_FLEET } from '@/app/lib/onboarding-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,17 @@ export default async function AnlagenPage() {
   });
 
   if (anlagen.length === 0 && isDemoMode()) {
-    anlagen = DEMO_ANLAGEN;
+    return (
+      <>
+        <Sidebar active="anlagen" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Fleet Monitoring" subtitle="Systems · Production · Alerts" />
+          <div className="flex-1 px-8 py-7">
+            <OnboardingView {...ONBOARDING_FLEET} />
+          </div>
+        </main>
+      </>
+    );
   }
 
   const totalKwp = anlagen.reduce((n, a) => n + a.kwp, 0);

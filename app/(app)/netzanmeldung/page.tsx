@@ -17,7 +17,8 @@ import { getWpOfferIds } from '@/app/lib/waermepumpe';
 import { getNetzEmails, getNetzEmailStats } from '@/app/lib/netz-email';
 import { NetzEmailKanban } from '@/components/netz-email-kanban';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DEMO_REGISTRATIONS, DEMO_NETZ_EMAIL_STATS } from '@/app/lib/demo-data';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_INTERCONNECTION } from '@/app/lib/onboarding-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +61,17 @@ export default async function NetzanmeldungPage({
     getNetzEmailStats(),
   ]);
   if (allRegs.length === 0 && isDemoMode()) {
-    allRegs = DEMO_REGISTRATIONS as any;
+    return (
+      <>
+        <Sidebar active="netzanmeldung" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Interconnection" subtitle="Utility Applications · AHJ Tracking · PTO" />
+          <div className="flex-1 px-8 py-7">
+            <OnboardingView {...ONBOARDING_INTERCONNECTION} />
+          </div>
+        </main>
+      </>
+    );
   }
   // Filter to only unmatched + netz-relevant emails
   const unmatched = unmatchedEmails.filter((e) => !e.matched_registration_id && e.category !== 'general');

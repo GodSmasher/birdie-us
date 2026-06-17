@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_DASHBOARD } from '@/app/lib/onboarding-data';
 import { loadDashboard, type DashboardData } from '@/app/lib/reonic-data';
 import { getRegistrations } from '@/app/lib/netzanmeldung';
 import { generateInsights, type Insight, type InsightSeverity } from '@/app/lib/insights';
@@ -48,7 +50,11 @@ export default async function DashboardPage() {
           title={`${greeting()}, Sarah`}
           subtitle={data.configured ? `${today} · Volta · ${data.source === 'DB-Cache' ? 'from DB cache' : 'live from Aurora Solar'}` : today}
         />
-        {data.configured ? <RealDashboard data={data} netzStats={netzStats} insights={insights} /> : <MockDashboard />}
+        {data.configured ? <RealDashboard data={data} netzStats={netzStats} insights={insights} /> : (
+          <div className="flex-1 px-8 py-7">
+            <OnboardingView {...ONBOARDING_DASHBOARD} />
+          </div>
+        )}
       </main>
     </>
   );
@@ -263,60 +269,3 @@ function RealDashboard({ data, netzStats, insights }: { data: DashboardData; net
   );
 }
 
-// ============ MOCK — public demo fallback ============
-const activities = [
-  ['10:42', 'Dunning Bot', "3 invoices flagged as 'overdue' — reminder emails sent", 'success'],
-  ['10:38', 'Lead Sync (Aurora Solar)', '12 new leads imported, 2 flagged with missing phone number', 'info'],
-  ['10:31', 'Appointment Bot', 'Consultation with Michael K. confirmed + Google Meet created', 'success'],
-  ['10:24', 'Accounting Sync', "Invoice #2026-0341 created for 'Johnson Family' ($24,500)", 'info'],
-  ['10:12', 'WhatsApp Bot', '5 customer inquiries auto-replied · 1 escalated to Sarah', 'warning'],
-  ['09:58', 'Call Bot', '8 missed calls detected — callback appointments suggested', 'info'],
-] as const;
-
-const toneBg: Record<string, string> = {
-  success: 'bg-success-bg text-success',
-  warning: 'bg-warning-bg text-warning',
-  info: 'bg-info-bg text-info',
-  error: 'bg-error-bg text-error',
-};
-
-function MockDashboard() {
-  return (
-    <div className="flex-1 px-8 py-7 flex flex-col gap-6">
-      <div className="flex flex-wrap gap-4">
-        <KpiCard label="ACTIVE BOTS" value="12" sub="of 14 configured" delta="+2" spark={[10, 10, 11, 11, 12, 11, 12]} sparkColor="#4ADE80" />
-        <KpiCard label="EXECUTED TODAY" value="347" sub="vs. yesterday" delta="+18%" spark={[212, 238, 254, 271, 289, 294, 347]} sparkColor="#4ADE80" />
-        <KpiCard label="ERROR RATE" value="0.4%" sub="last 24h" delta="−0.2%" spark={[1.1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]} sparkColor="#4ADE80" />
-        <KpiCard label="CONNECTORS" value="8/8" sub="all in sync" spark={[8, 8, 7, 8, 8, 8, 8]} sparkColor="#FACC15" />
-      </div>
-      <div className="flex flex-wrap gap-4">
-        <Card className="flex-1 min-w-0 overflow-hidden">
-          <CardHeader title="Live Activity" right={<Pill label="DEMO" tone="neutral" />} />
-          {activities.map(([time, bot, msg, kind], i) => (
-            <div key={i} className={`flex gap-3.5 px-5 py-3.5 ${i < activities.length - 1 ? 'border-b border-line' : ''}`}>
-              <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${toneBg[kind]}`}>✓</div>
-              <div className="min-w-0 flex flex-col gap-0.5">
-                <div className="flex items-center gap-2 text-[13px]">
-                  <span className="font-medium text-fg">{bot}</span>
-                  <span className="text-fg3">·</span>
-                  <span className="text-fg3">{time}</span>
-                </div>
-                <p className="text-xs text-fg2 leading-[18px]">{msg}</p>
-              </div>
-            </div>
-          ))}
-        </Card>
-        <Card className="w-[412px] shrink-0 p-5 flex flex-col gap-3.5 self-start">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-accent-bg flex items-center justify-center text-accent font-bold text-sm">✦</div>
-            <h3 className="font-semibold text-[13px] text-fg">Demo Mode</h3>
-          </div>
-          <p className="text-xs text-fg2 leading-[18px]">
-            This view shows sample data. Once the Aurora Solar connector is linked, the real pipeline,
-            lead sources, and upcoming appointments will appear here.
-          </p>
-        </Card>
-      </div>
-    </div>
-  );
-}

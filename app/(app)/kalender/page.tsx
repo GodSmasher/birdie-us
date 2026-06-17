@@ -3,7 +3,8 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { getGoogleCalendar } from '@/app/lib/google-server';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DEMO_CALENDAR } from '@/app/lib/demo-data';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_CALENDAR } from '@/app/lib/onboarding-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,17 @@ export default async function KalenderPage() {
   let cal = await getGoogleCalendar();
 
   if (!cal.configured && isDemoMode()) {
-    cal = DEMO_CALENDAR as any;
+    return (
+      <>
+        <Sidebar active="kalender" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Calendar" subtitle="Scheduling · Inspections · Site Surveys" />
+          <div className="flex-1 px-8 py-7">
+            <OnboardingView {...ONBOARDING_CALENDAR} />
+          </div>
+        </main>
+      </>
+    );
   }
 
   // group events by day

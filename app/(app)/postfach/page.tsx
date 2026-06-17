@@ -3,7 +3,8 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 import { getMailbox } from '@/app/lib/google-server';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { DEMO_MAILBOX } from '@/app/lib/demo-data';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_INBOX } from '@/app/lib/onboarding-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,11 +67,20 @@ function MailRow({
 export default async function PostfachPage() {
   let mailbox = await getMailbox();
 
-  if (!mailbox.configured && isDemoMode()) {
-    mailbox = DEMO_MAILBOX as any;
-  }
-
   if (!mailbox.configured) {
+    if (isDemoMode()) {
+      return (
+        <>
+          <Sidebar active="postfach" />
+          <main className="flex-1 min-w-0 flex flex-col bg-bg">
+            <TopBar title="Inbox" subtitle="Email · Auto-Categorization · Project Matching" />
+            <div className="flex-1 px-8 py-7">
+              <OnboardingView {...ONBOARDING_INBOX} />
+            </div>
+          </main>
+        </>
+      );
+    }
     return (
       <>
         <Sidebar active="postfach" />
