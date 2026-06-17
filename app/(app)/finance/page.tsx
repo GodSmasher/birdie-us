@@ -5,6 +5,9 @@ import { getSevdeskInvoices, getSevdeskExpenses, type Invoices, type Expenses } 
 import Link from 'next/link';
 import { getCashflowSummary, type CashflowSummary, type CashflowProject, categoryLabels } from '@/app/lib/cashflow-server';
 import { getDunningTemplates } from '@/app/lib/dunning-server';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_FINANCE } from '@/app/lib/onboarding-data';
+import { isDemoMode } from '@/app/lib/demo-mode';
 import { FinanceTabs } from './tabs';
 import { ImportButton } from './import-button';
 import { SyncButton } from './sync-button';
@@ -33,7 +36,7 @@ export default async function FinancePage() {
           subtitle={hasInvoices ? `${inv.total} invoices · live from accounting` : 'Accounting · automated dunning runs'}
         />
         <FinanceTabs
-          invoiceTab={hasInvoices ? <RealFinance inv={inv} /> : <MockFinance />}
+          invoiceTab={hasInvoices ? <RealFinance inv={inv} /> : isDemoMode() ? <div className="flex-1 px-8 py-7"><OnboardingView {...ONBOARDING_FINANCE} /></div> : <MockFinance />}
           cashflowTab={<CashflowView cf={cf} />}
           dunningTab={<DunningEditor initial={dunning} />}
           internTab={<InternView inv={inv} exp={exp} />}

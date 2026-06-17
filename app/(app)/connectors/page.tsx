@@ -1,6 +1,9 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
+import { OnboardingView } from '@/components/onboarding';
+import { ONBOARDING_CONNECTORS } from '@/app/lib/onboarding-data';
+import { isDemoMode } from '@/app/lib/demo-mode';
 import { getConnectorStatuses, type ConnStatus } from '@/app/lib/connector-status';
 
 export const dynamic = 'force-dynamic';
@@ -39,6 +42,19 @@ function ConnectorCard({ c }: { c: ConnStatus }) {
 }
 
 export default async function ConnectorsPage() {
+  if (isDemoMode()) {
+    return (
+      <>
+        <Sidebar active="connectors" />
+        <main className="flex-1 min-w-0 flex flex-col bg-bg">
+          <TopBar title="Connectors" subtitle="Integrations · APIs · Data Bridges" />
+          <div className="flex-1 px-8 py-7">
+            <OnboardingView {...ONBOARDING_CONNECTORS} />
+          </div>
+        </main>
+      </>
+    );
+  }
   const { connected, available } = await getConnectorStatuses();
 
   return (
