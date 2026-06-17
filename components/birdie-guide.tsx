@@ -961,12 +961,12 @@ export function SettingsGuide() {
 }
 
 export function SupportGuide() {
-  return <GuideStepper title="Support" welcomeMessage="Need help? You get a direct line to us — no ticket queues, no hold music. Connector setup, custom bots, data exports — just ask." ctaLabel="the team" ctaHref="mailto:sarah@birdie.app" steps={[
+  return <GuideStepper title="Support" welcomeMessage="Need help? You get a direct line to us — no ticket queues, no hold music. Connector setup, custom bots, data exports — just ask." ctaLabel="the team" ctaHref="mailto:support@birdiesolar.com" steps={[
     { message: "Reach out anytime — we handle connector setup, custom bots, and everything in between. Typical response: under 24 hours.", content: (
       <div className="grid grid-cols-2 gap-4">
         <Card className="g-slide p-5 flex flex-col gap-1.5" style={{ animationDelay: '0.3s' }}>
           <span className="text-[11px] font-semibold text-fg3 tracking-[0.18em]">EMAIL</span>
-          <span className="text-sm font-medium text-fg">sarah@birdie.app</span>
+          <span className="text-sm font-medium text-fg">support@birdiesolar.com</span>
           <span className="text-xs text-fg3">for all requests & new connectors</span>
         </Card>
         <Card className="g-slide p-5 flex flex-col gap-1.5" style={{ animationDelay: '0.4s' }}>
