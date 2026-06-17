@@ -344,6 +344,68 @@ export function DemoView({ message, children, pose = 'point' }: { message: strin
 }
 
 // ════════════════════════════════════════════════════════
+//  BOOK-A-CALL CTA — floating bottom-right birdie prompt
+// ════════════════════════════════════════════════════════
+const BOOK_URL = 'https://app.apollo.io/#/meet/sarah-vogel-zdy/birdie-intro';
+
+export function DemoBookCTA() {
+  const [open, setOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setOpen(true), 4000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (dismissed) return null;
+
+  return (
+    <>
+      <GuideStyles />
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl bg-accent shadow-lg shadow-accent/25 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
+        >
+          <BirdieChar size={36} pose="wave" />
+        </button>
+      )}
+      {open && (
+        <div className="fixed bottom-6 right-6 z-40 g-spring flex flex-col items-end gap-3">
+          <div className="bg-surface border border-line rounded-2xl p-5 shadow-2xl w-[320px] flex flex-col gap-4">
+            <div className="flex items-start gap-3">
+              <div className="g-float shrink-0 w-11 h-11 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+                <BirdieChar size={32} pose="wave" />
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <span className="font-semibold text-[13px] text-fg">Like what you see?</span>
+                <p className="text-[12px] text-fg2 leading-[17px]">
+                  Book a quick intro call and we&apos;ll set up your account personally — connectors, bots, everything tailored to your workflow.
+                </p>
+              </div>
+              <button onClick={() => { setOpen(false); setDismissed(true); }} className="text-fg3 hover:text-fg text-lg leading-none shrink-0 -mt-1">&times;</button>
+            </div>
+            <p className="text-[11px] text-fg3 leading-[16px]">
+              Got specific needs? Custom automations, special integrations — we build them for you. No templates, no limits.
+            </p>
+            <a
+              href={BOOK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center gap-2 h-[42px] rounded-xl bg-accent text-bg font-bold text-[13px] shadow-md shadow-accent/15 hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              <span>Book your intro call</span>
+              <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+            </a>
+            <span className="text-[10px] text-fg3 text-center">15 min · no commitment · we handle setup</span>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ════════════════════════════════════════════════════════
 //  GUIDE STEPPER — the core click-through engine
 // ════════════════════════════════════════════════════════
 type GuideStep = {

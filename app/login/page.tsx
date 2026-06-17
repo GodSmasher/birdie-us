@@ -13,6 +13,7 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -107,6 +108,27 @@ function LoginForm() {
               {loading ? 'Signing in…' : 'Continue'} <span className="font-bold">→</span>
             </button>
           </form>
+
+          <div className="relative flex items-center gap-3 mt-1">
+            <div className="flex-1 h-px bg-line" />
+            <span className="text-[11px] text-fg3">or</span>
+            <div className="flex-1 h-px bg-line" />
+          </div>
+
+          <button
+            type="button"
+            disabled={demoLoading}
+            onClick={async () => {
+              setDemoLoading(true);
+              await fetch('/api/auth/demo', { method: 'POST' });
+              router.replace('/dashboard');
+              router.refresh();
+            }}
+            className="h-[46px] bg-surface border border-line-2 rounded-[10px] flex items-center justify-center gap-2.5 font-semibold text-sm text-fg hover:border-accent/40 hover:bg-surface-2/50 transition-colors disabled:opacity-50"
+          >
+            <span className="text-lg">🐦</span>
+            {demoLoading ? 'Loading demo…' : 'Try the interactive demo'}
+          </button>
 
           <div className="flex flex-col items-center gap-1.5 mt-2">
             <span className="text-xs text-fg3">Don&apos;t have access yet?</span>

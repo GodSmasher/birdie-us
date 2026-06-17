@@ -16,5 +16,12 @@ export async function POST() {
     path: '/',
     maxAge: 0,
   });
+  res.cookies.set('birdie_demo', '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  });
   return res;
 }

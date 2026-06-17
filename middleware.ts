@@ -35,6 +35,10 @@ export async function middleware(req: NextRequest) {
   const session = req.cookies.get('birdie_session')?.value;
   if (session) return NextResponse.next();
 
+  // Demo mode cookie
+  const demo = req.cookies.get('birdie_demo')?.value;
+  if (demo === '1') return NextResponse.next();
+
   // Legacy gate cookie fallback
   const password = process.env.BIRDIE_ACCESS_PASSWORD;
   if (password) {
