@@ -83,6 +83,7 @@ export function GuideStyles() {
         0%, 100% { border-color: rgba(250, 204, 21, 0.06); box-shadow: 0 0 0 0 rgba(250,204,21,0); }
         50% { border-color: rgba(250, 204, 21, 0.3); box-shadow: 0 0 20px 2px rgba(250,204,21,0.06); }
       }
+      @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
       @keyframes barGrow { from { width: 0; } }
       @keyframes pulseScale { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
       @keyframes wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
@@ -1462,8 +1463,30 @@ function DemoPopulated({ message, pose = 'point' as const, children }: { message
   );
 }
 
+function DetailSlideout({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative w-full max-w-[520px] bg-bg border-l border-line shadow-2xl overflow-y-auto animate-[slideIn_0.25s_ease-out]" onClick={e => e.stopPropagation()} style={{ animation: 'slideIn 0.25s ease-out' }}>
+        <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-surface-2 flex items-center justify-center text-fg3 hover:text-fg transition-colors">&times;</button>
+        <div className="p-6 flex flex-col gap-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+const SALES_DATA = [
+  { name: 'Martinez Residence', size: '8.4 kW', value: '$32,500', stage: 'Proposal', rep: 'Jake', phone: '(480) 555-0142', email: 'tom.martinez@email.com', addr: '4521 E Camelback Rd, Phoenix AZ', panels: '21× REC Alpha Pure-R 400W', inverter: 'SolarEdge SE7600H', notes: 'Wants battery add-on. Follow up next week on financing options.' },
+  { name: 'Johnson Commercial', size: '45 kW', value: '$128,000', stage: 'Negotiation', rep: 'Sarah', phone: '(602) 555-0398', email: 'l.johnson@johnsoncorp.com', addr: '8900 N Central Ave, Phoenix AZ', panels: '112× Canadian Solar 400W', inverter: '2× SMA Sunny Tripower 25kW', notes: 'Parking lot carport install. Need structural engineer sign-off.' },
+  { name: 'Williams Home', size: '6.2 kW', value: '$24,800', stage: 'New Lead', rep: 'Mike', phone: '(520) 555-0276', email: 'williams.j@gmail.com', addr: '1120 S Mill Ave, Tempe AZ', panels: '16× Q.CELLS Q.PEAK DUO 390W', inverter: 'Enphase IQ8+', notes: 'Inbound from website. Scheduled site survey for next Tuesday.' },
+  { name: 'Chen Duplex', size: '12.6 kW', value: '$48,200', stage: 'Won', rep: 'Sarah', phone: '(480) 555-0815', email: 'david.chen@email.com', addr: '2340 W Baseline Rd, Mesa AZ', panels: '32× REC Alpha Pure-R 400W', inverter: 'SolarEdge SE10000H', notes: 'Contract signed. Install scheduled for next month. Net metering approved.' },
+  { name: 'Davis Property', size: '9.8 kW', value: '$38,400', stage: 'Survey', rep: 'Jake', phone: '(623) 555-0461', email: 'rdavis@outlook.com', addr: '6780 W Glendale Ave, Glendale AZ', panels: '25× LG Neon H 395W', inverter: 'SolarEdge SE10000H', notes: 'Roof needs inspection. Possible tile replacement before install.' },
+];
+
 export function DemoSalesView() {
   const connected = useDemoConnected();
+  const [selected, setSelected] = useState<number | null>(null);
   if (!connected) return (
     <DemoView message="Your sales pipeline — leads, proposals, contracts, all in one view. Connect your CRM to see live deals flowing in.">
       <Card className="overflow-hidden opacity-75">
@@ -1476,6 +1499,7 @@ export function DemoSalesView() {
       </Card>
     </DemoView>
   );
+  const deal = selected !== null ? SALES_DATA[selected] : null;
   return (
     <DemoPopulated message="Here's your pipeline with live data from Aurora Solar. Every lead, every deal, every stage — updated in real time.">
       <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
@@ -1486,20 +1510,59 @@ export function DemoSalesView() {
       <Card className="overflow-hidden g-slide" style={{ animationDelay: '0.25s' }}>
         <div className="px-4 py-2.5 border-b border-line flex items-center justify-between"><h3 className="font-semibold text-[12px] text-fg">Sales Pipeline</h3><span className="text-[10px] text-fg3">Live from Aurora Solar</span></div>
         <div className="grid grid-cols-[1fr_80px_100px_100px_90px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>CUSTOMER</span><span>SIZE</span><span>VALUE</span><span>STAGE</span><span>REP</span></div>
-        {[['Martinez Residence','8.4 kW','$32,500','Proposal','Jake'],['Johnson Commercial','45 kW','$128,000','Negotiation','Sarah'],['Williams Home','6.2 kW','$24,800','New Lead','Mike'],['Chen Duplex','12.6 kW','$48,200','Won','Sarah'],['Davis Property','9.8 kW','$38,400','Survey','Jake']].map((row, i) => (
-          <div key={i} className={`g-slide grid grid-cols-[1fr_80px_100px_100px_90px] h-[40px] items-center px-4 ${i < 4 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.35 + i * 0.06}s` }}>
-            <span className="text-[11px] text-accent font-medium">{row[0]}</span><span className="text-[10px] text-fg2">{row[1]}</span><span className="text-[11px] font-semibold text-fg">{row[2]}</span>
-            <Pill label={row[3].toUpperCase()} tone={row[3] === 'Won' ? 'success' : row[3] === 'New Lead' ? 'info' : 'warning'} />
-            <span className="text-[10px] text-fg3">{row[4]}</span>
+        {SALES_DATA.map((row, i) => (
+          <div key={i} onClick={() => setSelected(i)} className={`g-slide grid grid-cols-[1fr_80px_100px_100px_90px] h-[40px] items-center px-4 cursor-pointer hover:bg-surface-2/50 transition-colors ${i < 4 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.35 + i * 0.06}s` }}>
+            <span className="text-[11px] text-accent font-medium">{row.name}</span><span className="text-[10px] text-fg2">{row.size}</span><span className="text-[11px] font-semibold text-fg">{row.value}</span>
+            <Pill label={row.stage.toUpperCase()} tone={row.stage === 'Won' ? 'success' : row.stage === 'New Lead' ? 'info' : 'warning'} />
+            <span className="text-[10px] text-fg3">{row.rep}</span>
           </div>
         ))}
       </Card>
+      <DetailSlideout open={!!deal} onClose={() => setSelected(null)}>
+        {deal && (<>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent font-bold text-lg">{deal.name.slice(0, 2)}</div>
+            <div><h2 className="font-bold text-lg text-fg">{deal.name}</h2><p className="text-xs text-fg3">{deal.addr}</p></div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">VALUE</span><span className="font-bold text-fg">{deal.value}</span></div>
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">SIZE</span><span className="font-bold text-fg">{deal.size}</span></div>
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">STAGE</span><Pill label={deal.stage.toUpperCase()} tone={deal.stage === 'Won' ? 'success' : deal.stage === 'New Lead' ? 'info' : 'warning'} /></div>
+          </div>
+          <Card className="p-4 flex flex-col gap-3">
+            <h3 className="font-semibold text-xs text-fg">Contact</h3>
+            <div className="flex flex-col gap-1.5 text-xs text-fg2">
+              <span>{deal.phone}</span><span>{deal.email}</span><span>Rep: {deal.rep}</span>
+            </div>
+          </Card>
+          <Card className="p-4 flex flex-col gap-3">
+            <h3 className="font-semibold text-xs text-fg">System</h3>
+            <div className="flex flex-col gap-1.5 text-xs text-fg2">
+              <span>{deal.panels}</span><span>{deal.inverter}</span>
+            </div>
+          </Card>
+          <Card className="p-4 flex flex-col gap-3">
+            <h3 className="font-semibold text-xs text-fg">Notes</h3>
+            <p className="text-xs text-fg2 leading-relaxed">{deal.notes}</p>
+          </Card>
+        </>)}
+      </DetailSlideout>
     </DemoPopulated>
   );
 }
 
+const IX_DATA: Record<string, { utility: string; app: string; addr: string; kw: string; panels: string; inverter: string; meter: string; notes: string }> = {
+  'Williams Home': { utility: 'APS', app: '#IX-5102', addr: '1120 S Mill Ave, Tempe AZ', kw: '6.2 kW', panels: '16× Q.CELLS 390W', inverter: 'Enphase IQ8+', meter: 'Pending', notes: 'Application submitted. Standard residential review — expected 2-3 weeks.' },
+  'Davis Property': { utility: 'SRP', app: '#IX-5118', addr: '6780 W Glendale Ave, Glendale AZ', kw: '9.8 kW', panels: '25× LG Neon H 395W', inverter: 'SolarEdge SE10000H', meter: 'Pending', notes: 'Submitted yesterday. SRP typically takes 10-15 business days for residential.' },
+  'Martinez Residence': { utility: 'APS', app: '#IX-4956', addr: '4521 E Camelback Rd, Phoenix AZ', kw: '8.4 kW', panels: '21× REC Alpha Pure-R 400W', inverter: 'SolarEdge SE7600H', meter: 'Pending', notes: 'Under utility review for 12 days. Follow up with APS if no response by day 15.' },
+  'Chen Duplex': { utility: 'APS', app: '#IX-4821', addr: '2340 W Baseline Rd, Mesa AZ', kw: '12.6 kW', panels: '32× REC Alpha Pure-R 400W', inverter: 'SolarEdge SE10000H', meter: 'Jun 25', notes: 'Approved! PTO date June 28. Meter exchange scheduled. Net metering plan: APS RCP-E.' },
+  'Brown Residence': { utility: 'SRP', app: '#IX-4887', addr: '3450 E University Dr, Mesa AZ', kw: '7.1 kW', panels: '18× Canadian Solar 395W', inverter: 'Enphase IQ8+', meter: 'Jul 2', notes: 'Approved by SRP. Awaiting inspection date confirmation.' },
+  'Johnson Commercial': { utility: 'APS', app: '#IX-4612', addr: '8900 N Central Ave, Phoenix AZ', kw: '45 kW', panels: '112× Canadian Solar 400W', inverter: '2× SMA Sunny Tripower 25kW', meter: 'Active', notes: 'Fully activated. Commercial net metering active since June 2. Producing at expected output.' },
+};
+
 export function DemoInterconnectionView() {
   const connected = useDemoConnected();
+  const [selected, setSelected] = useState<string | null>(null);
   if (!connected) return (
     <DemoView message="Interconnection tracking — every permit application from submission to activation. Connect your tools to see the full pipeline.">
       <div className="grid grid-cols-4 gap-3">
@@ -1512,8 +1575,9 @@ export function DemoInterconnectionView() {
       </div>
     </DemoView>
   );
+  const proj = selected ? IX_DATA[selected] : null;
   return (
-    <DemoPopulated message="Interconnection pipeline — every permit tracked from application to activation. Drag cards between columns as they progress.">
+    <DemoPopulated message="Interconnection pipeline — every permit tracked from application to activation. Click any project for details.">
       <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
         {[
           { stage: 'Applied', tone: 'info' as const, items: [{ name: 'Williams Home', kw: '6.2 kW', days: '3 days ago' },{ name: 'Davis Property', kw: '9.8 kW', days: '1 day ago' }] },
@@ -1527,20 +1591,53 @@ export function DemoInterconnectionView() {
               <Pill label={String(col.items.length)} tone={col.tone} />
             </div>
             {col.items.map((item, ii) => (
-              <Card key={item.name} className="g-slide p-3 flex flex-col gap-1" style={{ animationDelay: `${0.25 + ci * 0.1 + ii * 0.06}s` }}>
-                <span className="text-[11px] font-semibold text-fg">{item.name}</span>
+              <div key={item.name} onClick={() => setSelected(item.name)} className="g-slide bg-surface border border-line rounded-xl p-3 flex flex-col gap-1 cursor-pointer hover:bg-surface-2/50 transition-colors" style={{ animationDelay: `${0.25 + ci * 0.1 + ii * 0.06}s` }}>
+                <span className="text-[11px] font-semibold text-accent">{item.name}</span>
                 <span className="text-[10px] text-fg3">{item.kw} · {item.days}</span>
-              </Card>
+              </div>
             ))}
           </div>
         ))}
       </div>
+      <DetailSlideout open={!!proj} onClose={() => setSelected(null)}>
+        {proj && selected && (<>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-info/10 flex items-center justify-center text-info font-bold text-sm">⚡</div>
+            <div><h2 className="font-bold text-lg text-fg">{selected}</h2><p className="text-xs text-fg3">{proj.addr}</p></div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">APPLICATION</span><span className="font-bold text-fg text-sm">{proj.app}</span></div>
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">UTILITY</span><span className="font-bold text-fg text-sm">{proj.utility}</span></div>
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">METER</span><span className="font-bold text-fg text-sm">{proj.meter}</span></div>
+          </div>
+          <Card className="p-4 flex flex-col gap-3">
+            <h3 className="font-semibold text-xs text-fg">System</h3>
+            <div className="flex flex-col gap-1.5 text-xs text-fg2">
+              <span>{proj.kw} — {proj.panels}</span><span>{proj.inverter}</span>
+            </div>
+          </Card>
+          <Card className="p-4 flex flex-col gap-3">
+            <h3 className="font-semibold text-xs text-fg">Status Notes</h3>
+            <p className="text-xs text-fg2 leading-relaxed">{proj.notes}</p>
+          </Card>
+        </>)}
+      </DetailSlideout>
     </DemoPopulated>
   );
 }
 
+const FLEET_DATA = [
+  { name: 'Martinez Residence', kw: '8.4', prod: '6.2', s: 'Online', t: 'success' as const, addr: '4521 E Camelback Rd, Phoenix AZ', panels: '21× REC Alpha Pure-R 400W', inverter: 'SolarEdge SE7600H', installed: 'Mar 2026', today: '38.4 kWh', month: '1,180 kWh', selfCons: '82%', co2: '0.84 tons saved' },
+  { name: 'Johnson Commercial', kw: '45', prod: '38.1', s: 'Online', t: 'success' as const, addr: '8900 N Central Ave, Phoenix AZ', panels: '112× Canadian Solar 400W', inverter: '2× SMA Sunny Tripower 25kW', installed: 'Jun 2026', today: '286 kWh', month: '8,420 kWh', selfCons: '91%', co2: '5.96 tons saved' },
+  { name: 'Chen Duplex', kw: '12.6', prod: '0', s: 'Alert', t: 'warning' as const, addr: '2340 W Baseline Rd, Mesa AZ', panels: '32× REC Alpha Pure-R 400W', inverter: 'SolarEdge SE10000H', installed: 'Apr 2026', today: '0 kWh', month: '920 kWh', selfCons: '—', co2: '0.65 tons saved' },
+  { name: 'Williams Home', kw: '6.2', prod: '5.1', s: 'Online', t: 'success' as const, addr: '1120 S Mill Ave, Tempe AZ', panels: '16× Q.CELLS 390W', inverter: 'Enphase IQ8+', installed: 'May 2026', today: '31.2 kWh', month: '940 kWh', selfCons: '76%', co2: '0.67 tons saved' },
+  { name: 'Davis Property', kw: '9.8', prod: '7.4', s: 'Online', t: 'success' as const, addr: '6780 W Glendale Ave, Glendale AZ', panels: '25× LG Neon H 395W', inverter: 'SolarEdge SE10000H', installed: 'May 2026', today: '44.8 kWh', month: '1,340 kWh', selfCons: '79%', co2: '0.95 tons saved' },
+  { name: 'Brown Residence', kw: '7.1', prod: '5.8', s: 'Online', t: 'success' as const, addr: '3450 E University Dr, Mesa AZ', panels: '18× Canadian Solar 395W', inverter: 'Enphase IQ8+', installed: 'Apr 2026', today: '35.6 kWh', month: '1,060 kWh', selfCons: '74%', co2: '0.75 tons saved' },
+];
+
 export function DemoFleetView() {
   const connected = useDemoConnected();
+  const [selected, setSelected] = useState<number | null>(null);
   if (!connected) return (
     <DemoView message="Fleet monitoring shows live production data from every system you've installed. Connect SolarEdge or Enphase to see real-time performance.">
       <div className="grid grid-cols-3 gap-3">
@@ -1554,23 +1651,51 @@ export function DemoFleetView() {
       </div>
     </DemoView>
   );
+  const sys = selected !== null ? FLEET_DATA[selected] : null;
   return (
-    <DemoPopulated message="Fleet monitoring — live from SolarEdge. Every system, every panel, every alert. If something underperforms, you know before the customer calls.">
+    <DemoPopulated message="Fleet monitoring — live from SolarEdge. Every system, every panel, every alert. Click any system for details.">
       <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
         {[{ l: 'TOTAL SYSTEMS', v: '6' },{ l: 'POWER NOW', v: '62.6 kW' },{ l: 'AVG SELF-CONS.', v: '78%' },{ l: 'ALERTS', v: '1' }].map(k => (
           <div key={k.l} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-1"><span className="font-medium text-[10px] text-fg3 tracking-[0.14em]">{k.l}</span><span className="font-bold text-[20px] text-fg">{k.v}</span></div>
         ))}
       </div>
       <div className="grid grid-cols-3 gap-3 g-slide" style={{ animationDelay: '0.25s' }}>
-        {[{ name: 'Martinez Residence', kw: '8.4', prod: '6.2', s: 'Online', t: 'success' as const },{ name: 'Johnson Commercial', kw: '45', prod: '38.1', s: 'Online', t: 'success' as const },{ name: 'Chen Duplex', kw: '12.6', prod: '0', s: 'Alert', t: 'warning' as const },{ name: 'Williams Home', kw: '6.2', prod: '5.1', s: 'Online', t: 'success' as const },{ name: 'Davis Property', kw: '9.8', prod: '7.4', s: 'Online', t: 'success' as const },{ name: 'Brown Residence', kw: '7.1', prod: '5.8', s: 'Online', t: 'success' as const }].map((sys, i) => (
-          <Card key={sys.name} className="g-slide p-4 flex flex-col gap-2" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
-            <div className="flex items-center justify-between"><span className="text-[12px] font-semibold text-fg">{sys.name}</span><Pill label={sys.s.toUpperCase()} tone={sys.t} /></div>
-            <span className="text-[22px] font-bold text-fg">{sys.prod} kW</span>
-            <div className="flex items-center justify-between"><span className="text-[10px] text-fg3">{sys.kw} kW installed</span><span className="text-[10px] text-fg3">self-cons. 82%</span></div>
-            <div className="w-full bg-surface-2 rounded-full h-1.5"><div className="h-full bg-accent rounded-full" style={{ width: `${(parseFloat(sys.prod) / parseFloat(sys.kw)) * 100}%` }} /></div>
-          </Card>
+        {FLEET_DATA.map((f, i) => (
+          <div key={f.name} onClick={() => setSelected(i)} className="g-slide bg-surface border border-line rounded-xl p-4 flex flex-col gap-2 cursor-pointer hover:bg-surface-2/50 transition-colors" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
+            <div className="flex items-center justify-between"><span className="text-[12px] font-semibold text-accent">{f.name}</span><Pill label={f.s.toUpperCase()} tone={f.t} /></div>
+            <span className="text-[22px] font-bold text-fg">{f.prod} kW</span>
+            <div className="flex items-center justify-between"><span className="text-[10px] text-fg3">{f.kw} kW installed</span><span className="text-[10px] text-fg3">self-cons. {f.selfCons}</span></div>
+            <div className="w-full bg-surface-2 rounded-full h-1.5"><div className="h-full bg-accent rounded-full" style={{ width: `${(parseFloat(f.prod) / parseFloat(f.kw)) * 100}%` }} /></div>
+          </div>
         ))}
       </div>
+      <DetailSlideout open={!!sys} onClose={() => setSelected(null)}>
+        {sys && (<>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center text-success font-bold text-sm">☀️</div>
+            <div><h2 className="font-bold text-lg text-fg">{sys.name}</h2><p className="text-xs text-fg3">{sys.addr}</p></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">POWER NOW</span><span className="font-bold text-[20px] text-fg">{sys.prod} kW</span></div>
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">STATUS</span><Pill label={sys.s.toUpperCase()} tone={sys.t} /></div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">TODAY</span><span className="font-bold text-fg text-sm">{sys.today}</span></div>
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">THIS MONTH</span><span className="font-bold text-fg text-sm">{sys.month}</span></div>
+            <div className="bg-surface border border-line rounded-xl p-3 flex flex-col gap-1"><span className="text-[9px] text-fg3 tracking-widest">SELF-CONS.</span><span className="font-bold text-fg text-sm">{sys.selfCons}</span></div>
+          </div>
+          <Card className="p-4 flex flex-col gap-3">
+            <h3 className="font-semibold text-xs text-fg">Equipment</h3>
+            <div className="flex flex-col gap-1.5 text-xs text-fg2">
+              <span>{sys.panels}</span><span>{sys.inverter}</span><span>Installed: {sys.installed}</span>
+            </div>
+          </Card>
+          <Card className="p-4 flex flex-col gap-3">
+            <h3 className="font-semibold text-xs text-fg">Environmental Impact</h3>
+            <span className="text-xs text-success">{sys.co2}</span>
+          </Card>
+        </>)}
+      </DetailSlideout>
     </DemoPopulated>
   );
 }
@@ -1603,8 +1728,17 @@ export function DemoFinanceView() {
   );
 }
 
+const INBOX_DATA = [
+  { from: 'Tom Martinez', subj: 'Re: Proposal for 8.4 kW system', time: '2h ago', unread: true, email: 'tom.martinez@email.com', body: 'Hi Jake,\n\nThanks for the updated proposal! The 8.4 kW system looks great. A couple of questions:\n\n1. Can we add a Tesla Powerwall to the design? We get frequent outages in summer.\n2. What financing options are available? We\'d prefer a loan over lease.\n3. Is the $32,500 price before or after the federal tax credit?\n\nLooking forward to your response.\n\nBest,\nTom Martinez' },
+  { from: 'APS Utility', subj: 'Interconnection application #IX-4821 approved', time: '5h ago', unread: true, email: 'no-reply@aps.com', body: 'Dear birdie Solar,\n\nYour interconnection application #IX-4821 for the Chen Duplex project (12.6 kW) has been APPROVED.\n\nPermission to Operate (PTO) Date: June 28, 2026\nMeter Exchange: Scheduled for June 25, 2026\nNet Metering Plan: APS RCP-E\n\nPlease ensure the system is installed and inspected before the PTO date.\n\nArizona Public Service' },
+  { from: 'Lisa Johnson', subj: 'Commercial install — parking lot questions', time: 'yesterday', unread: false, email: 'l.johnson@johnsoncorp.com', body: 'Sarah,\n\nBefore we finalize the 45 kW commercial install, I need to check on a few things with our facilities team:\n\n- Will the carport structures affect parking lot drainage?\n- Do we need to repaint the parking lines after installation?\n- What\'s the expected timeline for the full install?\n\nAlso, our board meeting is next Thursday — would love to have a one-pager I can present.\n\nThanks,\nLisa' },
+  { from: 'SolarEdge Alerts', subj: 'Chen Duplex — inverter offline since 8am', time: 'yesterday', unread: false, email: 'alerts@solaredge.com', body: 'ALERT: System Offline\n\nSite: Chen Duplex (2340 W Baseline Rd, Mesa AZ)\nInverter: SolarEdge SE10000H (SN: 7F-2849-C1)\nStatus: Communication lost\nLast seen: Today 8:02 AM\nEstimated daily loss: 42 kWh ($5.88)\n\nPossible causes:\n- WiFi/internet outage at site\n- Inverter fault requiring reset\n- Communication board failure\n\nRecommended action: Check site connectivity or dispatch technician.' },
+  { from: 'Jake (Sales)', subj: 'Davis site survey photos attached', time: '2 days ago', unread: false, email: 'jake@birdiesolar.com', body: 'Hey team,\n\nJust finished the Davis Property site survey. Here are my notes:\n\n- South-facing roof, ~30° pitch — ideal orientation\n- Roof is concrete tile, about 8 years old. May need 2-3 tiles replaced.\n- Main panel is 200A, plenty of capacity\n- Slight shading from a palm tree on the west side (affects ~2 panels after 3pm)\n- Homeowner wants panels on the back roof only (not street-facing)\n\nPhotos are in Google Drive. I\'ll update the proposal with the adjusted design.\n\n— Jake' },
+];
+
 export function DemoInboxView() {
   const connected = useDemoConnected();
+  const [selected, setSelected] = useState<number | null>(null);
   if (!connected) return (
     <DemoView message="Your unified inbox — emails, notifications, and messages from every connected tool. Connect Google Workspace to see it live.">
       <div className="flex flex-col gap-2">
@@ -1616,17 +1750,197 @@ export function DemoInboxView() {
       </div>
     </DemoView>
   );
+  const mail = selected !== null ? INBOX_DATA[selected] : null;
   return (
     <DemoPopulated message="Your inbox — all customer emails and notifications from connected tools in one stream." pose="wave">
       <div className="flex flex-col gap-1 g-slide" style={{ animationDelay: '0.15s' }}>
-        {[{ from: 'Tom Martinez', subj: 'Re: Proposal for 8.4 kW system', time: '2h ago', unread: true },{ from: 'APS Utility', subj: 'Interconnection application #IX-4821 approved', time: '5h ago', unread: true },{ from: 'Lisa Johnson', subj: 'Commercial install — parking lot questions', time: 'yesterday', unread: false },{ from: 'SolarEdge Alerts', subj: 'Chen Duplex — inverter offline since 8am', time: 'yesterday', unread: false },{ from: 'Jake (Sales)', subj: 'Davis site survey photos attached', time: '2 days ago', unread: false }].map((e, i) => (
-          <div key={i} className={`g-slide flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-surface-2/50 transition-colors ${e.unread ? 'bg-accent/5 border border-accent/10' : 'bg-surface border border-line'}`} style={{ animationDelay: `${0.2 + i * 0.06}s` }}>
+        {INBOX_DATA.map((e, i) => (
+          <div key={i} onClick={() => setSelected(i)} className={`g-slide flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer hover:bg-surface-2/50 transition-colors ${e.unread ? 'bg-accent/5 border border-accent/10' : 'bg-surface border border-line'}`} style={{ animationDelay: `${0.2 + i * 0.06}s` }}>
             <div className="w-8 h-8 rounded-full bg-surface-3 flex items-center justify-center text-[10px] font-bold text-fg3">{e.from.slice(0, 2)}</div>
             <div className="flex-1 min-w-0 flex flex-col"><span className={`text-[12px] truncate ${e.unread ? 'font-semibold text-fg' : 'text-fg2'}`}>{e.from}</span><span className="text-[11px] text-fg3 truncate">{e.subj}</span></div>
             <span className="text-[10px] text-fg3 shrink-0">{e.time}</span>
             {e.unread && <span className="w-2 h-2 rounded-full bg-accent shrink-0" />}
           </div>
         ))}
+      </div>
+      <DetailSlideout open={!!mail} onClose={() => setSelected(null)}>
+        {mail && (<>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-surface-3 flex items-center justify-center text-sm font-bold text-fg3">{mail.from.slice(0, 2)}</div>
+            <div className="flex-1 min-w-0"><h2 className="font-bold text-sm text-fg">{mail.from}</h2><p className="text-[11px] text-fg3 truncate">{mail.email}</p></div>
+            <span className="text-[10px] text-fg3">{mail.time}</span>
+          </div>
+          <h3 className="font-semibold text-fg text-sm">{mail.subj}</h3>
+          <Card className="p-4">
+            <pre className="text-xs text-fg2 leading-relaxed whitespace-pre-wrap font-sans">{mail.body}</pre>
+          </Card>
+          <div className="flex gap-2">
+            <button className="flex-1 h-9 bg-accent text-bg rounded-lg text-xs font-semibold">Reply</button>
+            <button className="flex-1 h-9 bg-surface border border-line rounded-lg text-xs text-fg2">Forward</button>
+          </div>
+        </>)}
+      </DetailSlideout>
+    </DemoPopulated>
+  );
+}
+
+export function DemoCashflowView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Cash flow planning — track every dollar in and out across all your projects. Connect your tools to see the full picture."><div /></DemoView>
+  );
+  return (
+    <DemoPopulated message="Your cash flow — income, expenses, and balance across all active projects, updated in real time.">
+      <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
+        {[{ l: 'ORDER VALUE', v: '$482,300', s: '12 active projects' },{ l: 'PLANNED INCOME', v: '$341,600', s: '$218,400 received', c: 'text-success' },{ l: 'PLANNED EXPENSES', v: '$186,200', s: '$124,800 paid', c: 'text-warning' },{ l: 'OPEN BALANCE', v: '+$155,400', s: 'no warnings', c: 'text-success' }].map(k => (
+          <div key={k.l} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-1"><span className="font-medium text-[10px] text-fg3 tracking-[0.14em]">{k.l}</span><span className={`font-bold text-[20px] ${k.c || 'text-fg'}`}>{k.v}</span><span className="text-[10px] text-fg3">{k.s}</span></div>
+        ))}
+      </div>
+      <Card className="overflow-hidden g-slide" style={{ animationDelay: '0.25s' }}>
+        <div className="px-4 py-2.5 border-b border-line flex items-center justify-between"><h3 className="font-semibold text-[12px] text-fg">Cashflow Timeline</h3><span className="text-[10px] text-fg3">8 weeks</span></div>
+        <div className="overflow-x-auto">
+          <div className="grid grid-cols-[80px_repeat(8,1fr)] min-w-[700px]">
+            <div className="bg-surface-2 h-8 flex items-center px-3 text-[9px] font-semibold text-fg3">WK</div>
+            {['06/16','06/23','06/30','07/07','07/14','07/21','07/28','08/04'].map(w => (
+              <div key={w} className="bg-surface-2 h-8 flex items-center justify-center text-[9px] text-fg3">{w}</div>
+            ))}
+            <div className="h-9 flex items-center px-3 text-[10px] text-fg2 border-b border-line">Income</div>
+            {['+28k','+42k','+18k','+35k','+22k','+48k','+15k','+30k'].map((v, i) => (
+              <div key={i} className="h-9 flex items-center justify-center text-[10px] font-medium text-success border-b border-line">{v}</div>
+            ))}
+            <div className="h-9 flex items-center px-3 text-[10px] text-fg2 border-b border-line">Expenses</div>
+            {['-12k','-8k','-22k','-6k','-14k','-9k','-18k','-11k'].map((v, i) => (
+              <div key={i} className="h-9 flex items-center justify-center text-[10px] font-medium text-warning border-b border-line">{v}</div>
+            ))}
+            <div className="h-9 flex items-center px-3 text-[10px] font-semibold text-fg">Balance</div>
+            {['+16k','+50k','+46k','+75k','+83k','+122k','+119k','+138k'].map((v, i) => (
+              <div key={i} className="h-9 flex items-center justify-center text-[10px] font-bold text-success">{v}</div>
+            ))}
+          </div>
+        </div>
+      </Card>
+      <Card className="overflow-hidden g-slide" style={{ animationDelay: '0.35s' }}>
+        <div className="px-4 py-2.5 border-b border-line flex items-center justify-between"><h3 className="font-semibold text-[12px] text-fg">Projects</h3><span className="text-[10px] text-fg3">12 active</span></div>
+        <div className="grid grid-cols-[1fr_100px_100px_100px_80px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>PROJECT</span><span>ORDER</span><span>RECEIVED</span><span>PAID OUT</span><span>STATUS</span></div>
+        {[['Martinez 8.4kW','$32,500','$16,250','$8,200','50%'],['Johnson 45kW','$128,000','$64,000','$42,800','50%'],['Chen 12.6kW','$48,200','$48,200','$31,400','100%'],['Davis 9.8kW','$38,400','$0','$0','0%'],['Williams 6.2kW','$24,800','$12,400','$4,200','50%']].map((r, i) => (
+          <div key={i} className={`g-slide grid grid-cols-[1fr_100px_100px_100px_80px] h-[38px] items-center px-4 ${i < 4 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.4 + i * 0.05}s` }}>
+            <span className="text-[11px] text-accent font-medium">{r[0]}</span>
+            <span className="text-[11px] font-semibold text-fg">{r[1]}</span>
+            <span className="text-[10px] text-success">{r[2]}</span>
+            <span className="text-[10px] text-warning">{r[3]}</span>
+            <Pill label={r[4]} tone={r[4] === '100%' ? 'success' : r[4] === '0%' ? 'neutral' : 'info'} />
+          </div>
+        ))}
+      </Card>
+    </DemoPopulated>
+  );
+}
+
+export function DemoDunningView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Automated dunning — never chase a late payment manually again. Connect your accounting to activate smart reminders."><div /></DemoView>
+  );
+  return (
+    <DemoPopulated message="Your dunning engine — automated reminders for overdue invoices with escalating urgency levels.">
+      <Card className="overflow-hidden g-slide" style={{ animationDelay: '0.15s' }}>
+        <div className="px-4 py-2.5 border-b border-line flex items-center justify-between">
+          <h3 className="font-semibold text-[12px] text-fg">Dunning Automation</h3>
+          <Pill label="ACTIVE" tone="success" />
+        </div>
+        <div className="p-4 flex flex-col gap-3">
+          {[
+            { days: '+7 days', label: 'Friendly Reminder', desc: 'Polite email reminder with invoice attached', sent: '12 sent this month', tone: 'bg-info/10 text-info' },
+            { days: '+14 days', label: 'Reminder 1', desc: 'Second reminder with $15 late fee notice', sent: '4 sent this month', tone: 'bg-warning/10 text-warning' },
+            { days: '+30 days', label: 'Reminder 2', desc: 'Final notice with $30 fee and collections warning', sent: '2 sent this month', tone: 'bg-error/10 text-error' },
+            { days: '+60 days', label: 'Collections', desc: 'Manual trigger — forwarded to collections team', sent: '0 this month', tone: 'bg-surface-2 text-fg3' },
+          ].map((s, i) => (
+            <div key={i} className={`g-slide flex items-center gap-3 rounded-xl p-3 ${s.tone}`} style={{ animationDelay: `${0.2 + i * 0.08}s` }}>
+              <div className="w-16 text-center shrink-0"><span className="text-[11px] font-bold">{s.days}</span></div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[12px] font-semibold block">{s.label}</span>
+                <span className="text-[10px] opacity-80">{s.desc}</span>
+              </div>
+              <span className="text-[10px] opacity-70 shrink-0">{s.sent}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+      <Card className="overflow-hidden g-slide" style={{ animationDelay: '0.35s' }}>
+        <div className="px-4 py-2.5 border-b border-line flex items-center justify-between"><h3 className="font-semibold text-[12px] text-fg">Overdue Invoices</h3><span className="text-[10px] text-fg3">4 overdue</span></div>
+        <div className="grid grid-cols-[80px_1fr_100px_100px_120px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>NO.</span><span>CUSTOMER</span><span>DUE</span><span>AMOUNT</span><span>STATUS</span></div>
+        {[['#0298','Smith Corp','05/15','$12,400','REMINDER 2','error'],['#0287','M. Davis','05/08','$4,200','REMINDER 1','warning'],['#0341','The Johnsons','06/01','$24,500','REMINDED','info'],['#0312','Apex Builders','05/22','$8,920','REMINDED','info']].map((r, i) => (
+          <div key={i} className={`g-slide grid grid-cols-[80px_1fr_100px_100px_120px] h-[38px] items-center px-4 ${i < 3 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.4 + i * 0.05}s` }}>
+            <span className="text-[10px] text-fg2">{r[0]}</span>
+            <span className="text-[11px] font-medium text-fg">{r[1]}</span>
+            <span className="text-[10px] text-fg3">{r[2]}</span>
+            <span className="text-[11px] font-semibold text-fg">{r[3]}</span>
+            <Pill label={r[4]} tone={r[5] as 'error' | 'warning' | 'info'} />
+          </div>
+        ))}
+      </Card>
+    </DemoPopulated>
+  );
+}
+
+export function DemoInternalView() {
+  const connected = useDemoConnected();
+  if (!connected) return (
+    <DemoView message="Internal costs — operating expenses, fixed costs, and supplier invoices. Connect your accounting to track everything."><div /></DemoView>
+  );
+  return (
+    <DemoPopulated message="Your operating costs — expenses by category, monthly burn rate, and automated invoice processing.">
+      <div className="grid grid-cols-4 gap-3 g-slide" style={{ animationDelay: '0.15s' }}>
+        {[{ l: 'EXPENSES / MONTH', v: '$18,400', c: 'text-warning' },{ l: 'EXPENSES / YEAR', v: '$220,800' },{ l: 'BREAK-EVEN', v: '1 order', s: 'per month at avg $25k' },{ l: 'CATEGORIES', v: '6', s: '48 vouchers' }].map(k => (
+          <div key={k.l} className="bg-surface border border-line rounded-xl p-4 flex flex-col gap-1"><span className="font-medium text-[10px] text-fg3 tracking-[0.14em]">{k.l}</span><span className={`font-bold text-[20px] ${k.c || 'text-fg'}`}>{k.v}</span>{k.s && <span className="text-[10px] text-fg3">{k.s}</span>}</div>
+        ))}
+      </div>
+      <div className="flex gap-4 items-start g-slide" style={{ animationDelay: '0.25s' }}>
+        <Card className="flex-1 min-w-0 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-line flex items-center justify-between"><h3 className="font-semibold text-[12px] text-fg">Expenses by Category</h3><Pill label="LIVE" tone="success" /></div>
+          <div className="grid grid-cols-[1fr_100px_90px_70px] bg-surface-2 h-8 items-center px-4 text-[9px] font-semibold text-fg3 tracking-[0.14em]"><span>CATEGORY</span><span>TOTAL</span><span>AVG/MO</span><span>COUNT</span></div>
+          {[['Insurance & Licensing','$14,200','$2,367','8'],['Vehicle & Fleet','$9,800','$1,633','12'],['Office & Rent','$7,200','$1,200','6'],['Tools & Equipment','$5,400','$900','9'],['Software & SaaS','$3,600','$600','7'],['Marketing','$2,800','$467','6']].map((r, i) => (
+            <div key={i} className={`g-slide grid grid-cols-[1fr_100px_90px_70px] h-[38px] items-center px-4 ${i < 5 ? 'border-b border-line' : ''}`} style={{ animationDelay: `${0.3 + i * 0.05}s` }}>
+              <span className="text-[11px] font-medium text-fg">{r[0]}</span>
+              <span className="text-[11px] font-semibold text-warning">{r[1]}</span>
+              <span className="text-[10px] text-fg2">{r[2]}</span>
+              <span className="text-[10px] text-fg3">{r[3]}</span>
+            </div>
+          ))}
+          <div className="grid grid-cols-[1fr_100px_90px_70px] h-[36px] items-center px-4 bg-surface-2 border-t border-line">
+            <span className="text-[11px] font-bold text-fg">Total (48 vouchers)</span>
+            <span className="text-[11px] font-bold text-warning">$43,000</span>
+            <span className="text-[10px] font-semibold text-fg">$18,400</span>
+            <span className="text-[10px] text-fg3">48</span>
+          </div>
+        </Card>
+        <div className="w-[320px] shrink-0 flex flex-col gap-3">
+          <Card>
+            <div className="px-4 pt-4 pb-3 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-info/10 flex items-center justify-center text-[11px]">📨</div>
+              <div className="flex flex-col"><span className="font-semibold text-[12px] text-fg">Invoice Receipts</span><span className="text-[10px] text-fg2">Email → Expense Bot</span></div>
+              <div className="ml-auto"><Pill label="ACTIVE" tone="success" /></div>
+            </div>
+            <div className="px-4 py-2.5 border-t border-line flex flex-col gap-1.5">
+              {['n8n webhook receives emails','Extract amount & supplier','Match to project','Create expense entry'].map((s, i) => (
+                <div key={i} className="flex items-center gap-2 text-[10px]">
+                  <span className={`w-1.5 h-1.5 rounded-full ${i < 2 ? 'bg-success' : 'bg-accent'} shrink-0`} />
+                  <span className={i < 2 ? 'text-fg2' : 'text-fg3'}>{s}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card>
+            <div className="px-4 pt-4 pb-3 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center text-[11px]">📦</div>
+              <div className="flex flex-col"><span className="font-semibold text-[12px] text-fg">Delivery Confirmations</span><span className="text-[10px] text-fg2">Distributor → Customer</span></div>
+              <div className="ml-auto"><Pill label="n8n" tone="info" /></div>
+            </div>
+            <div className="px-4 py-2.5 border-t border-line text-[10px] text-fg2 leading-[16px]">
+              Distributor shipment confirmations are automatically forwarded to end customers with tracking info.
+            </div>
+          </Card>
+        </div>
       </div>
     </DemoPopulated>
   );

@@ -5,7 +5,7 @@ import { getSevdeskInvoices, getSevdeskExpenses, type Invoices, type Expenses } 
 import Link from 'next/link';
 import { getCashflowSummary, type CashflowSummary, type CashflowProject, categoryLabels } from '@/app/lib/cashflow-server';
 import { getDunningTemplates } from '@/app/lib/dunning-server';
-import { DemoFinanceView } from '@/components/birdie-guide';
+import { DemoFinanceView, DemoCashflowView, DemoDunningView, DemoInternalView } from '@/components/birdie-guide';
 import { isDemoMode } from '@/app/lib/demo-mode';
 import { FinanceTabs } from './tabs';
 import { ImportButton } from './import-button';
@@ -34,12 +34,21 @@ export default async function FinancePage() {
           title="Finance"
           subtitle={hasInvoices ? `${inv.total} invoices · live from accounting` : 'Accounting · automated dunning runs'}
         />
-        <FinanceTabs
-          invoiceTab={hasInvoices ? <RealFinance inv={inv} /> : isDemoMode() ? <DemoFinanceView /> : <MockFinance />}
-          cashflowTab={<CashflowView cf={cf} />}
-          dunningTab={<DunningEditor initial={dunning} />}
-          internTab={<InternView inv={inv} exp={exp} />}
-        />
+        {isDemoMode() ? (
+          <FinanceTabs
+            invoiceTab={<DemoFinanceView />}
+            cashflowTab={<DemoCashflowView />}
+            dunningTab={<DemoDunningView />}
+            internTab={<DemoInternalView />}
+          />
+        ) : (
+          <FinanceTabs
+            invoiceTab={hasInvoices ? <RealFinance inv={inv} /> : <MockFinance />}
+            cashflowTab={<CashflowView cf={cf} />}
+            dunningTab={<DunningEditor initial={dunning} />}
+            internTab={<InternView inv={inv} exp={exp} />}
+          />
+        )}
       </main>
     </>
   );
