@@ -502,9 +502,7 @@ export default function LandingPage() {
       <section className="py-20 md:py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <R>
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FACC15] to-[#F59E0B] flex items-center justify-center mx-auto mb-8 shadow-lg shadow-[#FACC15]/20">
-              <span className="text-[#0a0a0f] font-black text-2xl">SV</span>
-            </div>
+            <img src="/founder.jpeg" alt="Sarah Vogel" className="w-20 h-20 rounded-full object-cover mx-auto mb-8 shadow-lg shadow-[#FACC15]/20 border-2 border-[#FACC15]/30" />
             <p className="text-[20px] md:text-[26px] font-medium leading-relaxed text-white/40 max-w-2xl mx-auto mb-8">
               &ldquo;I started as a developer at a solar company and quickly realized what was missing. Interconnection apps by hand, 10 tools, no overview. birdie is the solution I wished existed.&rdquo;
             </p>
