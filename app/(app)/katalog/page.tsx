@@ -3,7 +3,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, Pill, Tag } from '@/components/ui';
 import { loadCatalog } from '@/app/lib/reonic-data';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { CatalogGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +30,17 @@ export default async function KatalogPage() {
         <Sidebar active="katalog" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Product Catalog" subtitle="Components · Pricing · Spec Sheets" />
-          <CatalogGuide />
+          <DemoView message="Your product catalog — modules, inverters, batteries, racking — with pricing and spec sheets. Import once, use in every proposal.">
+            <div className="grid grid-cols-3 gap-3">
+              {[{ name: 'REC Alpha Pure-R 430W', cat: 'Module', price: '$185' },{ name: 'SolarEdge SE10000H', cat: 'Inverter', price: '$1,420' },{ name: 'Tesla Powerwall 3', cat: 'Battery', price: '$8,500' },{ name: 'Enphase IQ8+', cat: 'Microinverter', price: '$195' },{ name: 'IronRidge XR100', cat: 'Racking', price: '$45' },{ name: 'Span Smart Panel', cat: 'Electrical', price: '$4,200' }].map(p => (
+                <Card key={p.name} className="p-4 flex flex-col gap-2 opacity-75">
+                  <div className="w-full h-16 rounded-lg bg-surface-2 flex items-center justify-center text-xl">☀️</div>
+                  <span className="text-[12px] font-semibold text-fg truncate">{p.name}</span>
+                  <div className="flex items-center justify-between"><span className="text-[10px] text-fg3">{p.cat}</span><span className="text-[13px] font-bold text-accent">{p.price}</span></div>
+                </Card>
+              ))}
+            </div>
+          </DemoView>
         </main>
       </>
     );

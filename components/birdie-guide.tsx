@@ -312,6 +312,38 @@ function SampleConnector({ name, cat, connected }: { name: string; cat: string; 
 }
 
 // ════════════════════════════════════════════════════════
+//  DEMO VIEW — static preview for non-dashboard pages
+// ════════════════════════════════════════════════════════
+
+export function DemoView({ message, children, pose = 'point' }: { message: string; children: ReactNode; pose?: 'default' | 'wave' | 'point' | 'celebrate' }) {
+  return (
+    <div className="flex-1 flex flex-col h-[calc(100vh-64px)] overflow-auto">
+      <GuideStyles />
+      <div className="px-6 py-5 flex flex-col gap-5 max-w-[960px] mx-auto w-full">
+        <div className="g-slide-in flex items-center gap-4">
+          <div className="g-float shrink-0 w-14 h-14 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+            <BirdieChar size={40} pose={pose} />
+          </div>
+          <div className="relative bg-surface-2/80 backdrop-blur-sm border border-accent/12 rounded-2xl px-5 py-3.5 max-w-[580px] shadow-sm">
+            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-surface-2/80 border-l border-b border-accent/12 rotate-45" />
+            <p className="text-[13px] text-fg2 leading-relaxed relative z-10">{message}</p>
+          </div>
+        </div>
+        <div className="g-slide" style={{ animationDelay: '0.2s' }}>
+          {children}
+        </div>
+        <div className="g-slide flex justify-center mt-2" style={{ animationDelay: '0.4s' }}>
+          <a href="/connectors" className="group flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-bg font-bold text-[13px] shadow-md shadow-accent/15 hover:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <span>Connect your tools</span>
+            <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
 //  GUIDE STEPPER — the core click-through engine
 // ════════════════════════════════════════════════════════
 type GuideStep = {

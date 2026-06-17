@@ -3,7 +3,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { getGoogleCalendar } from '@/app/lib/google-server';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { CalendarGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +27,17 @@ export default async function KalenderPage() {
         <Sidebar active="kalender" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Calendar" subtitle="Scheduling · Inspections · Site Surveys" />
-          <CalendarGuide />
+          <DemoView message="Your calendar will sync site surveys, installations, and inspections once you connect Google Calendar. Deadlines and reminders included.">
+            <Card className="overflow-hidden opacity-75">
+              <div className="px-4 py-2.5 border-b border-line"><h3 className="font-semibold text-[12px] text-fg">This Week</h3></div>
+              {['Mon','Tue','Wed','Thu','Fri'].map(d => (
+                <div key={d} className="flex items-center gap-3 px-4 py-3 border-b border-line last:border-0">
+                  <span className="text-[10px] font-bold text-fg3 w-8">{d}</span>
+                  <div className="flex-1 h-8 rounded-lg bg-surface-2 border border-line border-dashed" />
+                </div>
+              ))}
+            </Card>
+          </DemoView>
         </main>
       </>
     );

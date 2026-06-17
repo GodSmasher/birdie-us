@@ -4,7 +4,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
 import { getConnectorStatuses } from '@/app/lib/connector-status';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { SettingsGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +15,23 @@ export default async function EinstellungenPage() {
         <Sidebar active="einstellungen" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Settings" subtitle="Profile · Connectors · Security" />
-          <SettingsGuide />
+          <DemoView message="Your control panel — company profile, connected tools, security settings. Everything configurable once you're set up.">
+            <div className="flex flex-col gap-4 max-w-[820px]">
+              <Card className="p-5 flex flex-col gap-4 opacity-75">
+                <h3 className="font-semibold text-[13px] text-fg">Profile</h3>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-bg font-semibold">SV</div>
+                  <div className="flex flex-col"><span className="text-sm font-medium text-fg">Sarah Vogel</span><span className="text-xs text-fg2">Volta Solar Systems · Administrator</span></div>
+                </div>
+              </Card>
+              <Card className="p-5 flex flex-col gap-3 opacity-75">
+                <h3 className="font-semibold text-[13px] text-fg">Security</h3>
+                {['Password access (Gate)','2FA for login','Data hosting — US / SOC 2','Connector secrets — encrypted'].map(s => (
+                  <div key={s} className="flex items-center text-xs text-fg2 py-1 border-t border-line first:border-0">{s}</div>
+                ))}
+              </Card>
+            </div>
+          </DemoView>
         </main>
       </>
     );

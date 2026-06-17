@@ -5,7 +5,7 @@ import { getSevdeskInvoices, getSevdeskExpenses, type Invoices, type Expenses } 
 import Link from 'next/link';
 import { getCashflowSummary, type CashflowSummary, type CashflowProject, categoryLabels } from '@/app/lib/cashflow-server';
 import { getDunningTemplates } from '@/app/lib/dunning-server';
-import { FinanceGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 import { isDemoMode } from '@/app/lib/demo-mode';
 import { FinanceTabs } from './tabs';
 import { ImportButton } from './import-button';
@@ -35,7 +35,7 @@ export default async function FinancePage() {
           subtitle={hasInvoices ? `${inv.total} invoices · live from accounting` : 'Accounting · automated dunning runs'}
         />
         <FinanceTabs
-          invoiceTab={hasInvoices ? <RealFinance inv={inv} /> : isDemoMode() ? <FinanceGuide /> : <MockFinance />}
+          invoiceTab={hasInvoices ? <RealFinance inv={inv} /> : isDemoMode() ? <DemoView message="Connect QuickBooks to see live invoices, overdue tracking, and automated dunning. The dunning bot handles collections so you don't have to."><div /></DemoView> : <MockFinance />}
           cashflowTab={<CashflowView cf={cf} />}
           dunningTab={<DunningEditor initial={dunning} />}
           internTab={<InternView inv={inv} exp={exp} />}

@@ -4,7 +4,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { getDrive } from '@/app/lib/google-server';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { FilesGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,16 @@ export default async function DateienPage({ searchParams }: { searchParams: { fo
         <Sidebar active="dateien" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Files & Knowledge" subtitle="Documents · Templates · Cloud Sync" />
-          <FilesGuide />
+          <DemoView message="All your documents in one place — proposals, permits, datasheets, contracts. Auto-organized by project when you connect Google Drive.">
+            <div className="grid grid-cols-4 gap-3">
+              {[{ name: 'Martinez Residence', files: 8, icon: '📁' },{ name: 'Johnson Commercial', files: 12, icon: '📁' },{ name: 'Templates', files: 6, icon: '📋' },{ name: 'Spec Sheets', files: 24, icon: '📄' }].map(f => (
+                <Card key={f.name} className="p-4 flex items-center gap-3 opacity-75">
+                  <span className="text-xl">{f.icon}</span>
+                  <div className="flex flex-col min-w-0"><span className="text-[12px] font-medium text-fg truncate">{f.name}</span><span className="text-[10px] text-fg3">{f.files} files</span></div>
+                </Card>
+              ))}
+            </div>
+          </DemoView>
         </main>
       </>
     );

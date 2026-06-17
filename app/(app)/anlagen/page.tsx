@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
-import { KpiCard, Pill } from '@/components/ui';
+import { Card, KpiCard, Pill } from '@/components/ui';
 import { getWonProjects } from '@/app/lib/reonic-server';
 import { getProjectDataBatch } from '@/app/lib/projektdaten';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { FleetGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +47,17 @@ export default async function AnlagenPage() {
         <Sidebar active="anlagen" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Fleet Monitoring" subtitle="Systems · Production · Alerts" />
-          <FleetGuide />
+          <DemoView message="Fleet monitoring shows live production data from every system you've installed. Connect SolarEdge or Enphase to see real-time performance, alerts, and uptime.">
+            <div className="grid grid-cols-3 gap-3">
+              {[{ name: 'Martinez Residence', kw: '8.4 kW', s: 'Waiting' },{ name: 'Johnson Commercial', kw: '45 kW', s: 'Waiting' },{ name: 'Chen Duplex', kw: '12.6 kW', s: 'Waiting' },{ name: 'Williams Home', kw: '6.2 kW', s: 'Waiting' },{ name: 'Davis Property', kw: '9.8 kW', s: 'Waiting' },{ name: 'Brown Residence', kw: '7.1 kW', s: 'Waiting' }].map(sys => (
+                <Card key={sys.name} className="p-4 flex flex-col gap-2 opacity-75">
+                  <span className="text-[12px] font-semibold text-fg">{sys.name}</span>
+                  <span className="text-[18px] font-bold text-fg3">— kW</span>
+                  <span className="text-[10px] text-fg3">{sys.kw} installed · awaiting connection</span>
+                </Card>
+              ))}
+            </div>
+          </DemoView>
         </main>
       </>
     );

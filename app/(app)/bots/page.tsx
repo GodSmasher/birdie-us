@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
-import { Pill } from '@/components/ui';
+import { Pill, Card } from '@/components/ui';
 import { Sparkline } from '@/components/sparkline';
-import { BotsGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 import { isDemoMode } from '@/app/lib/demo-mode';
 import { voltaBots as bots } from '@/lib/volta-bots';
 
@@ -23,7 +23,20 @@ export default function BotsPage() {
         <Sidebar active="bots" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Bots" subtitle="Automation · Background Tasks · 24/7" />
-          <BotsGuide />
+          <DemoView message="Your automation bots live here. Once you connect your tools, these bots handle CRM syncing, document filling, dunning, and more — 24/7.">
+            <div className="grid grid-cols-3 gap-4">
+              {[{ name: 'CRM Sync Bot', cat: 'CRM', desc: 'Pulls leads, deals, contacts from your CRM every hour.', status: 'READY' },{ name: 'Document Filler', cat: 'PRJ', desc: 'Auto-fills interconnection forms and permit applications.', status: 'READY' },{ name: 'Dunning Bot', cat: 'FIN', desc: 'Payment reminders. Escalates: reminder, warning, collections.', status: 'READY' },{ name: 'Email Classifier', cat: 'KOM', desc: 'Scans emails, routes: utility, customer, vendor, internal.', status: 'READY' },{ name: 'Fleet Monitor', cat: 'IOT', desc: 'Checks inverter APIs for underperforming systems.', status: 'READY' },{ name: 'Enrichment Bot', cat: 'CRM', desc: 'Fills missing data — utility lookup, AHJ rules, NEC reqs.', status: 'READY' }].map(b => (
+                <Card key={b.name} className="p-5 flex flex-col gap-3 opacity-75">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-surface-2 flex items-center justify-center"><span className="text-accent font-semibold text-[9px] tracking-[0.18em]">{b.cat}</span></div>
+                    <span className="font-semibold text-[13px] text-fg truncate flex-1">{b.name}</span>
+                    <Pill label={b.status} tone="neutral" />
+                  </div>
+                  <p className="text-[11px] text-fg2 leading-[16px]">{b.desc}</p>
+                </Card>
+              ))}
+            </div>
+          </DemoView>
         </main>
       </>
     );

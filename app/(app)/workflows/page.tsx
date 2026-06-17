@@ -1,7 +1,7 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
-import { WorkflowsGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 import { isDemoMode } from '@/app/lib/demo-mode';
 import { voltaBots as bots } from '@/lib/volta-bots';
 import { getConnectorStatuses } from '@/app/lib/connector-status';
@@ -28,7 +28,17 @@ export default async function WorkflowsPage() {
         <Sidebar active="workflows" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Workflows" subtitle="Automations · Triggers · End-to-End" />
-          <WorkflowsGuide />
+          <DemoView message="Workflows chain bots and connectors into end-to-end automations. Won deal? Auto-create interconnection app, schedule install, notify customer — all hands-free.">
+            <div className="flex flex-col gap-3">
+              {[{ name: 'Deal → Project', trigger: 'Won deal', desc: 'Creates project, imports data, triggers interconnection flow.' },{ name: 'Invoice on Milestone', trigger: 'Stage change', desc: 'Generates invoice at deposit, rough-in, or final.' },{ name: 'Customer Updates', trigger: 'Stage change', desc: 'Emails customer at each milestone: filed, approved, PTO.' },{ name: 'Overdue Escalation', trigger: '7+ days overdue', desc: 'Reminder → warning → final notice.' }].map(w => (
+                <Card key={w.name} className="p-4 flex items-center gap-4 opacity-75">
+                  <div className="w-8 h-8 rounded-lg bg-surface-2 flex items-center justify-center text-accent text-sm">→</div>
+                  <div className="flex flex-col min-w-0 flex-1"><span className="font-semibold text-[12px] text-fg">{w.name}</span><span className="text-[10px] text-fg3">{w.trigger}</span></div>
+                  <p className="text-[11px] text-fg2 max-w-[300px]">{w.desc}</p>
+                </Card>
+              ))}
+            </div>
+          </DemoView>
         </main>
       </>
     );

@@ -2,7 +2,7 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card } from '@/components/ui';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { SupportGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,20 @@ export default function SupportPage() {
         <Sidebar active="support" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Support" subtitle="Personal · no hold times" />
-          <SupportGuide />
+          <DemoView message="Need help? Reach us at support@birdiesolar.com — no ticket queues. We handle connector setup, custom bots, and everything in between. Response time: under 24 hours." pose="wave">
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="p-5 flex flex-col gap-1.5 opacity-75">
+                <span className="text-[11px] font-semibold text-fg3 tracking-[0.18em]">EMAIL</span>
+                <span className="text-sm font-medium text-fg">support@birdiesolar.com</span>
+                <span className="text-xs text-fg3">for all requests & new connectors</span>
+              </Card>
+              <Card className="p-5 flex flex-col gap-1.5 opacity-75">
+                <span className="text-[11px] font-semibold text-fg3 tracking-[0.18em]">RESPONSE TIME</span>
+                <span className="text-sm font-medium text-fg">&lt; 24 hrs</span>
+                <span className="text-xs text-fg3">Mon–Fri · urgent matters even faster</span>
+              </Card>
+            </div>
+          </DemoView>
         </main>
       </>
     );

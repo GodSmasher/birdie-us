@@ -3,7 +3,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 import { getEntities } from '@/app/lib/db';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { TeamGuide } from '@/components/birdie-guide';
+import { DemoView } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +23,17 @@ export default async function TeamPage() {
         <Sidebar active="team" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Team" subtitle="Members · Roles · Access Control" />
-          <TeamGuide />
+          <DemoView message="Invite your team — sales reps, installers, admins. Everyone sees only what they need. Role-based access keeps things clean.">
+            <div className="grid grid-cols-3 gap-3">
+              {[{ name: 'Sarah Vogel', role: 'Owner', team: 'Admin' },{ name: 'John Miller', role: 'Sales Rep', team: 'Sales West' },{ name: 'Sarah Parker', role: 'Sales Rep', team: 'Sales East' },{ name: 'Mike Chen', role: 'Project Mgr', team: 'Operations' },{ name: 'Lisa Torres', role: 'Installer', team: 'Crew A' }].map(u => (
+                <Card key={u.name} className="p-4 flex items-center gap-3 opacity-75">
+                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold text-sm">{u.name.split(' ').map(w => w[0]).join('')}</div>
+                  <div className="flex flex-col min-w-0"><span className="text-[12px] font-semibold text-fg truncate">{u.name}</span><span className="text-[10px] text-fg3">{u.role} · {u.team}</span></div>
+                </Card>
+              ))}
+              <Card className="p-4 flex items-center justify-center border-dashed border-accent/20 opacity-75"><span className="text-accent text-[13px] font-medium">+ Invite Member</span></Card>
+            </div>
+          </DemoView>
         </main>
       </>
     );
