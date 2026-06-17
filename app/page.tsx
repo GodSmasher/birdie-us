@@ -508,7 +508,7 @@ export default function LandingPage() {
             <p className="text-[20px] md:text-[26px] font-medium leading-relaxed text-white/40 max-w-2xl mx-auto mb-8">
               &ldquo;I started as a developer at a solar company and quickly realized what was missing. Interconnection apps by hand, 10 tools, no overview. birdie is the solution I wished existed.&rdquo;
             </p>
-            <p className="text-[15px] font-bold">Sarah Vogel</p>
+            <p className="text-[15px] font-bold">Alex Rivera</p>
             <p className="text-[13px] text-white/25">Founder, .birdie</p>
           </R>
         </div>

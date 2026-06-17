@@ -94,7 +94,7 @@ export const DEMO_MAILBOX = {
 };
 
 export const DEMO_USERS = [
-  { id: 'u1', name: 'Sarah Vogel', email: 'sarah@sunpeaksolar.com', role: 'owner' },
+  { id: 'u1', name: 'Alex Rivera', email: 'alex@sunpeaksolar.com', role: 'owner' },
   { id: 'u2', name: 'Jake Morrison', email: 'jake@sunpeaksolar.com', role: 'admin' },
   { id: 'u3', name: 'Maria Santos', email: 'maria@sunpeaksolar.com', role: 'member' },
   { id: 'u4', name: 'Tyler Brooks', email: 'tyler@sunpeaksolar.com', role: 'member' },
@@ -154,12 +154,12 @@ export const DEMO_CALENDAR = {
   calendarCount: 3,
   events: [
     { id: 'e1', title: 'Site Survey — Henderson (882 Maple Dr)', start: futureDate(0, 10, 0), end: futureDate(0, 11, 30), allDay: false, location: '882 Maple Dr, Denver CO', attendees: 2, owner: 'jake@sunpeaksolar.com' },
-    { id: 'e2', title: 'Weekly Pipeline Review', start: futureDate(0, 14, 0), end: futureDate(0, 14, 45), allDay: false, location: 'Zoom', attendees: 5, owner: 'sarah@sunpeaksolar.com' },
+    { id: 'e2', title: 'Weekly Pipeline Review', start: futureDate(0, 14, 0), end: futureDate(0, 14, 45), allDay: false, location: 'Zoom', attendees: 5, owner: 'alex@sunpeaksolar.com' },
     { id: 'e3', title: 'Utility Call — Oncor Permits Dept', start: futureDate(1, 9, 0), end: futureDate(1, 9, 30), allDay: false, location: undefined, attendees: 1, owner: 'priya@sunpeaksolar.com' },
     { id: 'e4', title: 'Installation — Rodriguez Family', start: futureDate(1, 8, 0), end: futureDate(1, 16, 0), allDay: false, location: '4521 Oak Lane, Austin TX', attendees: 3, owner: 'tyler@sunpeaksolar.com' },
     { id: 'e5', title: 'AHJ Inspection — Park Residence', start: futureDate(2, 10, 0), end: futureDate(2, 12, 0), allDay: false, location: '2200 Pine Rd, Charlotte NC', attendees: 2, owner: 'jake@sunpeaksolar.com' },
     { id: 'e6', title: 'Customer Consultation — Mitchell', start: futureDate(2, 15, 0), end: futureDate(2, 16, 0), allDay: false, location: 'Google Meet', attendees: 2, owner: 'maria@sunpeaksolar.com' },
-    { id: 'e7', title: 'SolarEdge Training Webinar', start: futureDate(3, 11, 0), end: futureDate(3, 12, 30), allDay: false, location: 'Zoom', attendees: 4, owner: 'sarah@sunpeaksolar.com' },
+    { id: 'e7', title: 'SolarEdge Training Webinar', start: futureDate(3, 11, 0), end: futureDate(3, 12, 30), allDay: false, location: 'Zoom', attendees: 4, owner: 'alex@sunpeaksolar.com' },
     { id: 'e8', title: 'Q2 Sales Close Deadline', start: futureDate(4, 0, 0), end: undefined, allDay: true, location: undefined, attendees: 0, owner: undefined },
   ],
 };

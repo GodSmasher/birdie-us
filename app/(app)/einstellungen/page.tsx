@@ -21,7 +21,7 @@ export default async function EinstellungenPage() {
                 <h3 className="font-semibold text-[13px] text-fg">Profile</h3>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-bg font-semibold">SV</div>
-                  <div className="flex flex-col"><span className="text-sm font-medium text-fg">Sarah Vogel</span><span className="text-xs text-fg2">Volta Solar Systems · Administrator</span></div>
+                  <div className="flex flex-col"><span className="text-sm font-medium text-fg">Alex Rivera</span><span className="text-xs text-fg2">Volta Solar Systems · Administrator</span></div>
                 </div>
               </Card>
               <Card className="p-5 flex flex-col gap-3 opacity-75">
@@ -48,7 +48,7 @@ export default async function EinstellungenPage() {
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-bg font-semibold">SV</div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-fg">Sarah Vogel</span>
+                <span className="text-sm font-medium text-fg">Alex Rivera</span>
                 <span className="text-xs text-fg2">Volta Solar Systems · Administrator</span>
               </div>
             </div>

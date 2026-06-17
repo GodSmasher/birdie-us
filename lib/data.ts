@@ -130,7 +130,7 @@ export const bots: Bot[] = [
     lastRun: '1 hr ago',
     activity24h: [2, 0, 0, 0, 0, 0, 1, 3, 6, 8, 9, 12, 11, 9, 8, 7, 6, 5, 4, 2, 1, 1, 0, 1],
     envVars: [
-      { key: 'CAL_OWNER', value: 'sarah@sunridge-energy.com' },
+      { key: 'CAL_OWNER', value: 'alex@sunridge-energy.com' },
       { key: 'MEETING_DURATION', value: '60' },
       { key: 'BUFFER_BEFORE', value: '15' },
     ],
@@ -265,7 +265,7 @@ export const bots: Bot[] = [
     lastRun: '3 hrs ago',
     activity24h: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     envVars: [
-      { key: 'REPORT_RECIPIENTS', value: 'sarah@..., max@...' },
+      { key: 'REPORT_RECIPIENTS', value: 'alex@..., max@...' },
       { key: 'AI_MODEL', value: 'claude-sonnet-4-6' },
       { key: 'INCLUDE_PDF', value: 'true' },
     ],
@@ -398,7 +398,7 @@ export const connectorGroups: { group: string; desc: string; items: Connector[] 
       { name: 'Aurora Solar', letter: 'R', protocol: 'REST API', detail: 'Leads · Quotes · Projects', access: 'read · write', sync: '4 min ago', state: 'online' },
       { name: 'QuickBooks', letter: 'Bx', protocol: 'REST API', detail: 'Invoices · Accounting', access: 'read · write', sync: '12 min ago', state: 'online' },
       { name: 'FreshBooks', letter: 'Sv', protocol: 'REST API', detail: 'Accounting', access: 'read · write', sync: '18 min ago', state: 'online' },
-      { name: 'Gmail (Sarah)', letter: 'G', protocol: 'OAuth', detail: 'Communication', access: 'read · write (authorized)', sync: '2 min ago', state: 'online' },
+      { name: 'Gmail (Alex)', letter: 'G', protocol: 'OAuth', detail: 'Communication', access: 'read · write (authorized)', sync: '2 min ago', state: 'online' },
       { name: 'Google Calendar', letter: 'C', protocol: 'OAuth', detail: 'Appointments & Consultations', access: 'read · write', sync: '8 min ago', state: 'online' },
       { name: 'WhatsApp Business', letter: 'W', protocol: 'Webhook', detail: 'Customer support', access: 'read · write', sync: '1 min ago', state: 'online' },
       { name: 'QuickBooks Payroll', letter: 'D', protocol: 'QB Connect', detail: 'Payroll · Export', access: 'read · write', sync: '—', state: 'paused' },

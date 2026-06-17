@@ -25,7 +25,7 @@ export default async function TeamPage() {
           <TopBar title="Team" subtitle="Members · Roles · Access Control" />
           <DemoView message="Invite your team — sales reps, installers, admins. Everyone sees only what they need. Role-based access keeps things clean.">
             <div className="grid grid-cols-3 gap-3">
-              {[{ name: 'Sarah Vogel', role: 'Owner', team: 'Admin' },{ name: 'John Miller', role: 'Sales Rep', team: 'Sales West' },{ name: 'Sarah Parker', role: 'Sales Rep', team: 'Sales East' },{ name: 'Mike Chen', role: 'Project Mgr', team: 'Operations' },{ name: 'Lisa Torres', role: 'Installer', team: 'Crew A' }].map(u => (
+              {[{ name: 'Alex Rivera', role: 'Owner', team: 'Admin' },{ name: 'John Miller', role: 'Sales Rep', team: 'Sales West' },{ name: 'Sarah Parker', role: 'Sales Rep', team: 'Sales East' },{ name: 'Mike Chen', role: 'Project Mgr', team: 'Operations' },{ name: 'Lisa Torres', role: 'Installer', team: 'Crew A' }].map(u => (
                 <Card key={u.name} className="p-4 flex items-center gap-3 opacity-75">
                   <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold text-sm">{u.name.split(' ').map(w => w[0]).join('')}</div>
                   <div className="flex flex-col min-w-0"><span className="text-[12px] font-semibold text-fg truncate">{u.name}</span><span className="text-[10px] text-fg3">{u.role} · {u.team}</span></div>

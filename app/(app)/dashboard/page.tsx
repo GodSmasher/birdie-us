@@ -46,7 +46,7 @@ export default async function DashboardPage() {
       <Sidebar active="dashboard" />
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar
-          title={`${greeting()}, Sarah`}
+          title={`${greeting()}, Alex`}
           subtitle={data.configured ? `${today} · Volta · ${data.source === 'DB-Cache' ? 'from DB cache' : 'live from Aurora Solar'}` : today}
         />
         {data.configured ? <RealDashboard data={data} netzStats={netzStats} insights={insights} /> : <SidebarTourGuide />}

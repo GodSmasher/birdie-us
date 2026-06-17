@@ -92,7 +92,7 @@ function SidebarContent({ active, onNavigate }: { active: NavKey; onNavigate?: (
           SV
         </div>
         <div className="flex flex-col leading-tight">
-          <span className="text-[12px] font-medium text-fg">Sarah Vogel</span>
+          <span className="text-[12px] font-medium text-fg">Alex Rivera</span>
           <span className="text-[10px] text-fg3">birdie</span>
         </div>
       </div>

@@ -830,7 +830,7 @@ export function TeamGuide() {
   return <GuideStepper title="Team Management" welcomeMessage="Your team at a glance. Invite members, assign roles, control who sees what. Sales reps see their pipeline, installers see the fleet, admins see everything." ctaLabel="your team" ctaHref="/team" steps={[
     { message: "Team member cards — role, last active, and team assignment. Invite new members by email.", content: (
       <div className="grid grid-cols-3 gap-3">
-        {[{ name: 'Sarah Vogel', role: 'Owner', team: 'Admin', active: 'Online' },{ name: 'John Miller', role: 'Sales Rep', team: 'Sales West', active: '2h ago' },{ name: 'Sarah Parker', role: 'Sales Rep', team: 'Sales East', active: '4h ago' },{ name: 'Mike Chen', role: 'Project Mgr', team: 'Operations', active: '1h ago' },{ name: 'Lisa Torres', role: 'Installer', team: 'Crew A', active: 'Yesterday' }].map((u, i) => (
+        {[{ name: 'Alex Rivera', role: 'Owner', team: 'Admin', active: 'Online' },{ name: 'John Miller', role: 'Sales Rep', team: 'Sales West', active: '2h ago' },{ name: 'Sarah Parker', role: 'Sales Rep', team: 'Sales East', active: '4h ago' },{ name: 'Mike Chen', role: 'Project Mgr', team: 'Operations', active: '1h ago' },{ name: 'Lisa Torres', role: 'Installer', team: 'Crew A', active: 'Yesterday' }].map((u, i) => (
           <Card key={u.name} className="g-slide p-4 flex items-center gap-3" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
             <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold text-sm">{u.name.split(' ').map(w => w[0]).join('')}</div>
             <div className="flex flex-col min-w-0"><span className="text-[12px] font-semibold text-fg truncate">{u.name}</span><span className="text-[10px] text-fg3">{u.role} · {u.team}</span><span className="text-[9px] text-fg4">{u.active}</span></div>
@@ -1015,8 +1015,8 @@ export function SettingsGuide() {
       <Card className="p-5 flex flex-col gap-4">
         <h3 className="font-semibold text-[13px] text-fg">Profile</h3>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-bg font-semibold">SV</div>
-          <div className="flex flex-col"><span className="text-sm font-medium text-fg">Sarah Vogel</span><span className="text-xs text-fg2">Volta Solar Systems · Administrator</span></div>
+          <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-bg font-semibold">AR</div>
+          <div className="flex flex-col"><span className="text-sm font-medium text-fg">Alex Rivera</span><span className="text-xs text-fg2">Sun Peak Solar · Administrator</span></div>
         </div>
         <div className="grid grid-cols-2 gap-3 text-xs">
           {[['Company','Volta Solar Systems'],['Industry','Solar'],['Region','Austin, TX (US)'],['Language','English']].map(([k,v]) => (
