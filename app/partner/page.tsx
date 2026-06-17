@@ -91,8 +91,8 @@ export default function PartnerPage() {
         <div className="max-w-2xl mx-auto px-6">
           <h2 className="text-3xl md:text-5xl font-extrabold mb-6">Interested?</h2>
           <p className="text-white/40 mb-10 text-lg">Drop us a line — we&apos;ll get back to you within 24 hours.</p>
-          <a href="mailto:partner@birdiesolar.com?subject=Partnership" className="inline-flex px-8 py-4 bg-white text-[#1a1a1a] font-bold rounded-full text-[15px] hover:bg-white/90 transition-all">
-            partner@birdiesolar.com &rarr;
+          <a href="mailto:info@birdiesolar.com?subject=Partnership" className="inline-flex px-8 py-4 bg-white text-[#1a1a1a] font-bold rounded-full text-[15px] hover:bg-white/90 transition-all">
+            info@birdiesolar.com &rarr;
           </a>
         </div>
       </section>
