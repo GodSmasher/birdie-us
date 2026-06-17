@@ -347,7 +347,7 @@ export function DemoView({ message, children, pose = 'point' }: { message: strin
 // ════════════════════════════════════════════════════════
 //  BOOK-A-CALL CTA — floating bottom-right birdie prompt
 // ════════════════════════════════════════════════════════
-const BOOK_URL = 'https://app.apollo.io/#/meet/sarah-vogel-zdy/birdie-intro';
+const BOOK_URL = 'https://app.apollo.io/#/meet/sarah_vogel_429';
 
 export function DemoBookCTA() {
   const [open, setOpen] = useState(false);
