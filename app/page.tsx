@@ -547,7 +547,7 @@ export default function LandingPage() {
               Book a Demo
               <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
             </a>
-            <a href="https://calendly.com" target="_blank" rel="noopener noreferrer" className="px-10 py-5 bg-white/[0.05] border border-white/[0.1] text-white/60 font-medium rounded-full text-[16px] hover:bg-white/[0.1] hover:text-white transition-all">
+            <a href="https://app.apollo.io/#/meet/sarah_vogel_429" target="_blank" rel="noopener noreferrer" className="px-10 py-5 bg-white/[0.05] border border-white/[0.1] text-white/60 font-medium rounded-full text-[16px] hover:bg-white/[0.1] hover:text-white transition-all">
               Schedule a Call
             </a>
           </div>
