@@ -217,6 +217,7 @@ export default function LandingPage() {
           }}
         />
 
+        <div className="relative z-10">
         <R>
           <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.05] border border-white/[0.08] mb-8">
             <span className="w-2 h-2 rounded-full bg-[#4ADE80] animate-pulse" />
@@ -261,6 +262,7 @@ export default function LandingPage() {
             <span>White-glove setup</span>
           </div>
         </R>
+        </div>
       </section>
 
       {/* ━━━ LOGO CAROUSEL ━━━ */}
