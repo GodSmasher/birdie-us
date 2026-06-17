@@ -198,6 +198,11 @@ export default function LandingPage() {
 
       {/* ━━━ HERO ━━━ */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 text-center px-6 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img src="/hero-bg.jpg" alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-[#08080c]/85" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#08080c] via-transparent to-[#08080c]/90" />
+        </div>
         <FloatingOrb className="w-[600px] h-[600px] bg-[#FACC15]/[0.04] top-[-200px] left-[-200px] float" />
         <FloatingOrb className="w-[500px] h-[500px] bg-blue-500/[0.03] top-[-100px] right-[-200px] float-slow" />
         <FloatingOrb className="w-[300px] h-[300px] bg-[#FACC15]/[0.06] bottom-0 left-[50%] glow" />
