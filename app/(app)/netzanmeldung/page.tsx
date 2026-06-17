@@ -17,8 +17,7 @@ import { getWpOfferIds } from '@/app/lib/waermepumpe';
 import { getNetzEmails, getNetzEmailStats } from '@/app/lib/netz-email';
 import { NetzEmailKanban } from '@/components/netz-email-kanban';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_INTERCONNECTION } from '@/app/lib/onboarding-data';
+import { InterconnectionGuide } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,9 +65,7 @@ export default async function NetzanmeldungPage({
         <Sidebar active="netzanmeldung" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Interconnection" subtitle="Utility Applications · AHJ Tracking · PTO" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_INTERCONNECTION} />
-          </div>
+          <InterconnectionGuide />
         </main>
       </>
     );

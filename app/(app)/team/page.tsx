@@ -3,8 +3,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
 import { getEntities } from '@/app/lib/db';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_TEAM } from '@/app/lib/onboarding-data';
+import { TeamGuide } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,9 +23,7 @@ export default async function TeamPage() {
         <Sidebar active="team" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Team" subtitle="Members · Roles · Access Control" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_TEAM} />
-          </div>
+          <TeamGuide />
         </main>
       </>
     );

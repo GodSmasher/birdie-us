@@ -1,8 +1,7 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_CONNECTORS } from '@/app/lib/onboarding-data';
+import { ConnectorsGuide } from '@/components/birdie-guide';
 import { isDemoMode } from '@/app/lib/demo-mode';
 import { getConnectorStatuses, type ConnStatus } from '@/app/lib/connector-status';
 
@@ -48,9 +47,7 @@ export default async function ConnectorsPage() {
         <Sidebar active="connectors" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Connectors" subtitle="Integrations · APIs · Data Bridges" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_CONNECTORS} />
-          </div>
+          <ConnectorsGuide />
         </main>
       </>
     );

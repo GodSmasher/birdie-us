@@ -1,8 +1,7 @@
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, Pill } from '@/components/ui';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_WORKFLOWS } from '@/app/lib/onboarding-data';
+import { WorkflowsGuide } from '@/components/birdie-guide';
 import { isDemoMode } from '@/app/lib/demo-mode';
 import { voltaBots as bots } from '@/lib/volta-bots';
 import { getConnectorStatuses } from '@/app/lib/connector-status';
@@ -29,9 +28,7 @@ export default async function WorkflowsPage() {
         <Sidebar active="workflows" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Workflows" subtitle="Automations · Triggers · End-to-End" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_WORKFLOWS} />
-          </div>
+          <WorkflowsGuide />
         </main>
       </>
     );

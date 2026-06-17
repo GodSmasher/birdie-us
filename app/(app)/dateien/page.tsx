@@ -4,8 +4,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { getDrive } from '@/app/lib/google-server';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_FILES } from '@/app/lib/onboarding-data';
+import { FilesGuide } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,9 +18,7 @@ export default async function DateienPage({ searchParams }: { searchParams: { fo
         <Sidebar active="dateien" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Files & Knowledge" subtitle="Documents · Templates · Cloud Sync" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_FILES} />
-          </div>
+          <FilesGuide />
         </main>
       </>
     );

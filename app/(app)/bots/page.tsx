@@ -3,8 +3,7 @@ import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Pill } from '@/components/ui';
 import { Sparkline } from '@/components/sparkline';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_BOTS } from '@/app/lib/onboarding-data';
+import { BotsGuide } from '@/components/birdie-guide';
 import { isDemoMode } from '@/app/lib/demo-mode';
 import { voltaBots as bots } from '@/lib/volta-bots';
 
@@ -24,9 +23,7 @@ export default function BotsPage() {
         <Sidebar active="bots" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Bots" subtitle="Automation · Background Tasks · 24/7" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_BOTS} />
-          </div>
+          <BotsGuide />
         </main>
       </>
     );

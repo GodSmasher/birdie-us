@@ -123,8 +123,8 @@ export function KpiCard({
   );
 }
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`bg-surface border border-line rounded-xl ${className}`}>{children}</div>;
+export function Card({ children, className = '', style }: { children: ReactNode; className?: string; style?: React.CSSProperties }) {
+  return <div className={`bg-surface border border-line rounded-xl ${className}`} style={style}>{children}</div>;
 }
 
 export function CardHeader({ title, right }: { title: string; right?: ReactNode }) {

@@ -3,8 +3,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, Pill } from '@/components/ui';
 import { getGoogleCalendar } from '@/app/lib/google-server';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_CALENDAR } from '@/app/lib/onboarding-data';
+import { CalendarGuide } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,9 +27,7 @@ export default async function KalenderPage() {
         <Sidebar active="kalender" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Calendar" subtitle="Scheduling · Inspections · Site Surveys" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_CALENDAR} />
-          </div>
+          <CalendarGuide />
         </main>
       </>
     );

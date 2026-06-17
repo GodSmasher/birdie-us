@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, KpiCard, Tag } from '@/components/ui';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_SALES } from '@/app/lib/onboarding-data';
+import { SalesGuide } from '@/components/birdie-guide';
 import { type SellerStat } from '@/app/lib/reonic-server';
 import { loadPipeline, loadLeads } from '@/app/lib/reonic-data';
 import { isDemoMode } from '@/app/lib/demo-mode';
@@ -65,9 +64,7 @@ export default async function VertriebPage({ searchParams }: { searchParams: { p
         <Sidebar active="vertrieb" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Sales" subtitle="CRM · Pipeline · Teams" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_SALES} />
-          </div>
+          <SalesGuide />
         </main>
       </>
     );

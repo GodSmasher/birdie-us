@@ -3,8 +3,7 @@ import { TopBar } from '@/components/topbar';
 import { Card, Pill, Tag } from '@/components/ui';
 import { loadCatalog } from '@/app/lib/reonic-data';
 import { isDemoMode } from '@/app/lib/demo-mode';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_CATALOG } from '@/app/lib/onboarding-data';
+import { CatalogGuide } from '@/components/birdie-guide';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,9 +30,7 @@ export default async function KatalogPage() {
         <Sidebar active="katalog" />
         <main className="flex-1 min-w-0 flex flex-col bg-bg">
           <TopBar title="Product Catalog" subtitle="Components · Pricing · Spec Sheets" />
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_CATALOG} />
-          </div>
+          <CatalogGuide />
         </main>
       </>
     );

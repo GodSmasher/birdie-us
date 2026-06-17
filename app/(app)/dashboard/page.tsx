@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, CardHeader, KpiCard, Pill } from '@/components/ui';
-import { OnboardingView } from '@/components/onboarding';
-import { ONBOARDING_DASHBOARD } from '@/app/lib/onboarding-data';
+import { DashboardGuide } from '@/components/birdie-guide';
 import { loadDashboard, type DashboardData } from '@/app/lib/reonic-data';
 import { getRegistrations } from '@/app/lib/netzanmeldung';
 import { generateInsights, type Insight, type InsightSeverity } from '@/app/lib/insights';
@@ -50,11 +49,7 @@ export default async function DashboardPage() {
           title={`${greeting()}, Sarah`}
           subtitle={data.configured ? `${today} · Volta · ${data.source === 'DB-Cache' ? 'from DB cache' : 'live from Aurora Solar'}` : today}
         />
-        {data.configured ? <RealDashboard data={data} netzStats={netzStats} insights={insights} /> : (
-          <div className="flex-1 px-8 py-7">
-            <OnboardingView {...ONBOARDING_DASHBOARD} />
-          </div>
-        )}
+        {data.configured ? <RealDashboard data={data} netzStats={netzStats} insights={insights} /> : <DashboardGuide />}
       </main>
     </>
   );
