@@ -17,7 +17,7 @@ export default function LegalNotice() {
         <div className="flex flex-col gap-6 text-[15px] text-[#1a1a1a]/60 leading-relaxed">
           <div>
             <h2 className="font-bold text-[#1a1a1a] mb-2">Company Information</h2>
-            <p>.birdie<br />Sarah Vogel<br />Am Schenkberg 12<br />04349 Leipzig</p>
+            <p>.birdie<br />Sarah Vogel<br />Coppistra&szlig;e 83<br />04157 Leipzig</p>
           </div>
           <div>
             <h2 className="font-bold text-[#1a1a1a] mb-2">Contact</h2>
@@ -25,7 +25,7 @@ export default function LegalNotice() {
           </div>
           <div>
             <h2 className="font-bold text-[#1a1a1a] mb-2">Responsible for content</h2>
-            <p>Sarah Vogel<br />Am Schenkberg 12<br />04349 Leipzig</p>
+            <p>Sarah Vogel<br />Coppistra&szlig;e 83<br />04157 Leipzig</p>
           </div>
         </div>
       </main>

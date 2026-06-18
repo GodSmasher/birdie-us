@@ -20,8 +20,8 @@ export default function PrivacyPolicy() {
             <h2 className="font-bold text-[#1a1a1a] mb-2">1. Who We Are</h2>
             <p>
               .birdie &mdash; Sarah Vogel<br />
-              Am Schenkberg 12<br />
-              04349 Leipzig, Germany<br />
+              Coppistra&szlig;e 83<br />
+              04157 Leipzig, Germany<br />
               Email: info@birdie.solar
             </p>
           </section>
