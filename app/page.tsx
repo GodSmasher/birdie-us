@@ -542,15 +542,24 @@ export default function LandingPage() {
             Ready for <span className="gradient-text">transparency?</span>
           </h2>
           <p className="text-white/30 mb-12 text-lg leading-relaxed">20 minutes. We&apos;ll show you what birdie can do for your business.<br />Personal, no sales pitch.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:hello@birdiesolar.com?subject=Demo%20Request" className="group px-10 py-5 bg-[#FACC15] text-[#0a0a0f] font-bold rounded-full text-[16px] hover:bg-[#fde047] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-xl shadow-[#FACC15]/25 flex items-center gap-2 justify-center">
+          <form action="https://formspree.io/f/hello@birdiesolar.com" method="POST" className="max-w-md mx-auto space-y-4 mb-8">
+            <div className="grid grid-cols-2 gap-3">
+              <input type="text" name="first_name" placeholder="First Name" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+              <input type="text" name="last_name" placeholder="Last Name" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+            </div>
+            <input type="email" name="email" required placeholder="Work Email *" className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+            <div className="grid grid-cols-2 gap-3">
+              <input type="text" name="company" placeholder="Company" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+              <input type="text" name="job_title" placeholder="Job Title" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+            </div>
+            <button type="submit" className="w-full group px-10 py-4 bg-[#FACC15] text-[#0a0a0f] font-bold rounded-full text-[16px] hover:bg-[#fde047] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-xl shadow-[#FACC15]/25 flex items-center gap-2 justify-center">
               Book a Demo
               <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
-            </a>
-            <a href="https://app.apollo.io/#/meet/sarah_vogel_429" target="_blank" rel="noopener noreferrer" className="px-10 py-5 bg-white/[0.05] border border-white/[0.1] text-white/60 font-medium rounded-full text-[16px] hover:bg-white/[0.1] hover:text-white transition-all">
-              Schedule a Call
-            </a>
-          </div>
+            </button>
+          </form>
+          <a href="https://app.apollo.io/#/meet/sarah_vogel_429" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 text-white/30 text-sm hover:text-white/50 transition">
+            Or schedule a call directly &rarr;
+          </a>
         </R>
       </section>
 
