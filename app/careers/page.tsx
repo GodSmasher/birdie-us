@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ApplyForm from '@/components/apply-form';
 
 export const metadata = {
   title: 'Careers | .birdie — Join the Solar Transparency Movement',
@@ -198,21 +199,14 @@ export default function CareersPage() {
 
       {/* Apply CTA */}
       <section id="apply" className="bg-[#1a1a1a] text-white">
-        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Ready to earn?</h2>
-          <p className="text-white/50 text-lg mb-8">
-            Drop us an email with a quick intro about yourself and your solar experience.
-            We&apos;ll get back to you within 48 hours.
-          </p>
-          <a
-            href="mailto:sarah@birdiesolar.com?subject=Sales Partner Application&body=Hi Sarah,%0D%0A%0D%0AMy name is _____ and I'm interested in the birdie sales partner program.%0D%0A%0D%0AAbout me:%0D%0A- Current role: %0D%0A- Solar experience: %0D%0A- Location: %0D%0A%0D%0ALooking forward to hearing from you!"
-            className="inline-flex items-center justify-center px-10 py-4 rounded-full bg-[#FACC15] text-[#1a1a1a] font-bold text-lg hover:bg-[#fbbf24] transition"
-          >
-            Apply Now →
-          </a>
-          <p className="mt-6 text-white/30 text-sm">
-            Or email directly: sarah@birdiesolar.com
-          </p>
+        <div className="max-w-2xl mx-auto px-6 py-20">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Ready to earn?</h2>
+            <p className="text-white/50 text-lg">
+              Fill out the form below and we&apos;ll get back to you within 48 hours.
+            </p>
+          </div>
+          <ApplyForm />
         </div>
       </section>
 
