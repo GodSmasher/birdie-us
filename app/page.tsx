@@ -585,6 +585,7 @@ export default function LandingPage() {
               <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider mb-4">Company</p>
               <div className="flex flex-col gap-2.5 text-[13px] text-white/20">
                 <Link href="/partner" className="hover:text-white/40 transition">Partners</Link>
+                <Link href="/careers" className="hover:text-white/40 transition">Careers</Link>
                 <Link href="/privacy" className="hover:text-white/40 transition">Privacy Policy</Link>
                 <Link href="/impressum" className="hover:text-white/40 transition">Legal Notice</Link>
                 <a href="mailto:hello@birdiesolar.com" className="hover:text-white/40 transition">Contact</a>
