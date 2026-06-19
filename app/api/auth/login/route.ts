@@ -26,7 +26,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: 'Invalid credentials' }, { status: 401 });
   }
 
-  const res = NextResponse.json({ ok: true, user: { email: data.user.email } });
+  // Look up tenant from profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('tenant_id, name, role, tenants(slug, name)')
+    .eq('id', data.user.id)
+    .single();
+
+  const res = NextResponse.json({
+    ok: true,
+    user: { email: data.user.email, name: profile?.name },
+    tenant: profile?.tenants ?? null,
+  });
   res.cookies.set('birdie_session', data.session.access_token, {
     httpOnly: true,
     secure: true,
@@ -34,5 +45,14 @@ export async function POST(req: Request) {
     path: '/',
     maxAge: 60 * 60 * 24 * 7,
   });
+  if (profile?.tenant_id) {
+    res.cookies.set('birdie_tenant', profile.tenant_id, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  }
   return res;
 }

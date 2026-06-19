@@ -29,6 +29,16 @@ export async function tenantId(slug = DEFAULT_SLUG): Promise<string | null> {
   return data?.id ?? null;
 }
 
+/** Get tenant_id from request cookie (set at login), falls back to default. */
+export async function tenantIdFromRequest(req?: Request): Promise<string | null> {
+  if (req) {
+    const cookie = req.headers.get('cookie') ?? '';
+    const match = cookie.match(/birdie_tenant=([^;]+)/);
+    if (match) return match[1];
+  }
+  return tenantId();
+}
+
 export interface Reading {
   connector: string;
   installationId?: string;
