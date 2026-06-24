@@ -145,7 +145,7 @@ export default function InterconnectionDemo() {
           </div>
 
           {/* Kanban Board */}
-          <div className="flex gap-3 flex-1 min-h-0 overflow-x-auto pb-2">
+          <div className="flex gap-3 min-h-[420px] overflow-x-auto pb-2">
             {byStage.filter(s => s.projects.length > 0).map(col => (
               <div key={col.stage} className="flex flex-col w-[280px] shrink-0">
                 <div className="flex items-center gap-2 mb-2 px-1">
