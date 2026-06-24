@@ -9,8 +9,8 @@ type NavKey = 'dashboard' | 'interconnection' | 'sales' | 'fleet';
 const mainItems = [
   { label: 'Dashboard', icon: '◇', href: '/demo/dashboard', key: 'dashboard' as NavKey },
   { label: 'Interconnection', icon: '⚡', href: '/demo/interconnection', key: 'interconnection' as NavKey },
-  { label: 'Sales', icon: '↗', href: '/demo/dashboard', key: 'sales' as NavKey },
-  { label: 'Fleet', icon: '☀', href: '/demo/dashboard', key: 'fleet' as NavKey },
+  { label: 'Sales', icon: '↗', href: '/demo/sales', key: 'sales' as NavKey },
+  { label: 'Fleet', icon: '☀', href: '/demo/fleet', key: 'fleet' as NavKey },
 ];
 
 const autoItems = [
@@ -35,7 +35,10 @@ function NavItem({ label, icon, href, active }: { label: string; icon: string; h
 
 export function DemoSidebar({ active }: { active: NavKey }) {
   const pathname = usePathname();
-  const resolvedActive = pathname.includes('/interconnection') ? 'interconnection' : active;
+  const resolvedActive = pathname.includes('/interconnection') ? 'interconnection'
+    : pathname.includes('/sales') ? 'sales'
+    : pathname.includes('/fleet') ? 'fleet'
+    : active;
 
   return (
     <>
