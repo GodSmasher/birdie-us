@@ -5,6 +5,7 @@ const PUBLIC_PREFIXES = [
   '/gate', '/api/gate', '/api/auth',
   '/api/sync', '/api/netzanmeldung/bot', '/api/netzanmeldung/emails',
   '/api/dunning', '/api/emails', '/sign', '/api/sign',
+  '/demo',
 ];
 
 async function sha256Hex(input: string): Promise<string> {
