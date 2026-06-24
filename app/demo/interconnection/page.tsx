@@ -1,9 +1,10 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import { DemoSidebar } from '@/components/demo-sidebar';
 import { TopBar } from '@/components/topbar';
 import { Card, KpiCard, Pill, Tag } from '@/components/ui';
-
-export const metadata = { title: 'birdie — Interconnection Demo (NES / Nashville)' };
 
 type Stage = 'open' | 'review' | 'approved' | 'signed' | 'submitted' | 'complete';
 const STAGE_LABELS: Record<Stage, string> = {
@@ -117,7 +118,69 @@ const STAGES_ORDER: Stage[] = ['open', 'review', 'approved', 'signed', 'submitte
 
 const usd = (n: number) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
 
+const STAGE_STEP_INDEX: Record<Stage, number> = { open: 0, review: 3, approved: 6, signed: 7, submitted: 8, complete: 10 };
+
+function getWorkflowSteps(p: Project) {
+  const done = STAGE_STEP_INDEX[p.stage];
+  return [
+    { label: 'NES Application PDF', detail: `Auto-filled — ${p.systemKw} kW, ${p.inverter}`, date: 'Jun 10' },
+    { label: 'Email to nesrenewables@nespower.com', detail: 'PDF + one-line diagram + equipment cut sheets', date: 'Jun 10' },
+    { label: 'NEC 690 Compliance Check', detail: 'Rapid shutdown · Conductor sizing · Overcurrent protection', date: 'Jun 10' },
+    { label: 'IEEE 1547 Validation', detail: 'Voltage ride-through · Frequency ride-through · Anti-islanding', date: 'Jun 11' },
+    { label: 'Metro Nashville Building Permit', detail: p.permitNumber ? `Permit #${p.permitNumber}` : 'Pending filing', date: 'Jun 12' },
+    { label: 'NES Review & Approval', detail: p.applicationId ? `Application ${p.applicationId}` : 'Awaiting submission', date: 'Jun 18' },
+    { label: 'TVA DPP Registration', detail: 'Enrolled via green.mytva.com — IA uploaded, QCN verified', date: 'Jun 19' },
+    { label: 'NES Inspection & Meter Swap', detail: p.inspectionDate ? `Scheduled ${new Date(p.inspectionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Commissioning test + bi-directional meter', date: p.inspectionDate ? new Date(p.inspectionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' },
+    { label: 'Permission to Operate (PTO)', detail: 'NES final sign-off after inspection', date: '—' },
+    { label: 'IRA §48 Tax Credit Filing', detail: `30% ITC — ${usd(Math.round(p.value * 0.3))} credit`, date: '—' },
+  ].map((s, i) => ({
+    ...s,
+    step: i + 1,
+    status: i < done ? 'complete' as const : i === done ? 'active' as const : 'waiting' as const,
+  }));
+}
+
+function getBotLog(p: Project) {
+  const logs: { icon: string; action: string; detail: string; status: 'done' | 'pending' }[] = [];
+  const stage = STAGE_STEP_INDEX[p.stage];
+
+  if (stage >= 1) {
+    logs.push({ icon: '📄', action: 'Auto-filled NES Interconnection Application', detail: `${p.customer} — ${p.systemKw} kW, ${p.inverter}`, status: 'done' });
+    logs.push({ icon: '📧', action: 'Sent application to nesrenewables@nespower.com', detail: `${p.customer} — PDF + one-line diagram + cut sheets`, status: 'done' });
+  }
+  if (stage >= 3) {
+    logs.push({ icon: '📋', action: 'NEC 690 compliance check passed', detail: `${p.customer} — rapid shutdown, conductor sizing verified`, status: 'done' });
+    logs.push({ icon: '📋', action: 'IEEE 1547 validation passed', detail: `${p.customer} — anti-islanding, voltage ride-through`, status: 'done' });
+  }
+  if (p.permitNumber) {
+    logs.push({ icon: '🏛️', action: 'Metro Nashville building permit filed', detail: `${p.customer} — permit #${p.permitNumber}`, status: stage >= 5 ? 'done' : 'pending' });
+  }
+  if (stage >= 6 && p.applicationId) {
+    logs.push({ icon: '✅', action: 'NES approval received via email', detail: `${p.customer} — ${p.applicationId} approved`, status: 'done' });
+    logs.push({ icon: '🔄', action: 'TVA DPP enrollment on green.mytva.com', detail: `${p.customer} — registered, IA uploaded`, status: 'done' });
+  }
+  if (stage >= 8) {
+    logs.push({ icon: '🔍', action: 'NES inspection passed', detail: `${p.customer} — commissioning test completed`, status: 'done' });
+  }
+  if (stage >= 10) {
+    logs.push({ icon: '✅', action: 'Permission to Operate granted', detail: `${p.customer} — PTO received, system live`, status: 'done' });
+    logs.push({ icon: '💰', action: 'IRA §48 tax credit docs generated', detail: `${p.customer} — ${usd(Math.round(p.value * 0.3))} ITC`, status: 'done' });
+  }
+
+  if (stage < 1) {
+    logs.push({ icon: '⏳', action: 'Awaiting site survey completion', detail: `${p.customer} — survey needed before NES application`, status: 'pending' });
+  } else if (stage < 6) {
+    logs.push({ icon: '⏳', action: 'Awaiting NES review', detail: `${p.customer} — application under review`, status: 'pending' });
+  } else if (stage < 8) {
+    logs.push({ icon: '📅', action: 'NES inspection scheduling', detail: `${p.customer} — waiting for inspection slot`, status: 'pending' });
+  }
+
+  return logs;
+}
+
 export default function InterconnectionDemo() {
+  const [selected, setSelected] = useState<Project | null>(null);
+
   const byStage = STAGES_ORDER.map(s => ({
     stage: s,
     label: STAGE_LABELS[s],
@@ -125,6 +188,9 @@ export default function InterconnectionDemo() {
   }));
   const totalValue = PROJECTS.reduce((a, p) => a + p.value, 0);
   const submitted = PROJECTS.filter(p => p.stage === 'submitted' || p.stage === 'complete').length;
+
+  const steps = selected ? getWorkflowSteps(selected) : [];
+  const botLog = selected ? getBotLog(selected) : [];
 
   return (
     <>
@@ -134,153 +200,162 @@ export default function InterconnectionDemo() {
           title="Interconnection"
           subtitle="Nashville Electric Service · Nashville Metro · NEC 690 / IEEE 1547 / IRA §48"
         />
-        <div className="flex-1 px-6 py-5 flex flex-col gap-4 overflow-auto">
-          {/* KPIs */}
-          <div className="grid grid-cols-5 gap-3 shrink-0">
-            <KpiCard label="TOTAL PROJECTS" value={String(PROJECTS.length)} sub="active" />
-            <KpiCard label="PIPELINE VALUE" value={usd(totalValue)} sub="across all stages" />
-            <KpiCard label="SUBMITTED" value={String(submitted)} sub="to NES" valueColor="text-success" />
-            <KpiCard label="AVG SYSTEM" value={`${(PROJECTS.reduce((a, p) => a + p.systemKw, 0) / PROJECTS.length).toFixed(1)} kW`} sub="per project" />
-            <KpiCard label="IRA ELIGIBLE" value={`${PROJECTS.filter(p => p.iraEligible).length}/${PROJECTS.length}`} sub="§48 tax credit" valueColor="text-success" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-6 py-5 flex flex-col gap-4 shrink-0">
+            {/* KPIs */}
+            <div className="grid grid-cols-5 gap-3">
+              <KpiCard label="TOTAL PROJECTS" value={String(PROJECTS.length)} sub="active" />
+              <KpiCard label="PIPELINE VALUE" value={usd(totalValue)} sub="across all stages" />
+              <KpiCard label="SUBMITTED" value={String(submitted)} sub="to NES" valueColor="text-success" />
+              <KpiCard label="AVG SYSTEM" value={`${(PROJECTS.reduce((a, p) => a + p.systemKw, 0) / PROJECTS.length).toFixed(1)} kW`} sub="per project" />
+              <KpiCard label="IRA ELIGIBLE" value={`${PROJECTS.filter(p => p.iraEligible).length}/${PROJECTS.length}`} sub="§48 tax credit" valueColor="text-success" />
+            </div>
           </div>
 
-          {/* Kanban Board */}
-          <div className="flex gap-3 min-h-[420px] overflow-x-auto pb-2">
-            {byStage.filter(s => s.projects.length > 0).map(col => (
-              <div key={col.stage} className="flex flex-col w-[280px] shrink-0">
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <Pill label={col.label.toUpperCase()} tone={STAGE_TONE[col.stage]} dot={false} />
-                  <span className="text-[11px] text-fg3 font-medium">{col.projects.length}</span>
-                </div>
-                <div className="flex flex-col gap-2 flex-1 overflow-y-auto">
-                  {col.projects.map(p => (
-                    <Card key={p.id} className="p-3.5 flex flex-col gap-2 hover:border-line-2 transition-colors cursor-pointer">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-semibold text-fg">{p.customer}</span>
-                        <span className="text-[10px] text-fg3">{p.id}</span>
-                      </div>
-                      <div className="text-[11px] text-fg2">{p.address}, {p.city}, {p.state} {p.zip}</div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <Tag label={`${p.systemKw} kW`} tone="accent" />
-                        <Tag label={p.utility} tone="info" />
-                        {p.necCompliant && <Tag label="NEC 690" tone="success" />}
-                        {p.ieeeCompliant && <Tag label="IEEE 1547" tone="success" />}
-                        {p.iraEligible && <Tag label="IRA §48" tone="purple" />}
-                      </div>
-                      {p.applicationId && (
-                        <div className="text-[10px] text-fg3">App: {p.applicationId}</div>
-                      )}
-                      {p.meterNumber && (
-                        <div className="text-[10px] text-fg3">Meter: {p.meterNumber}</div>
-                      )}
-                      {p.permitNumber && (
-                        <div className="text-[10px] text-fg3">Permit: {p.permitNumber}</div>
-                      )}
-                      {p.inspectionDate && (
-                        <div className="text-[10px] text-accent">Inspection: {new Date(p.inspectionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                      )}
-                      <div className="flex items-center justify-between mt-1 pt-1.5 border-t border-line">
-                        <span className="text-[11px] font-medium text-fg">{usd(p.value)}</span>
-                        {p.notes && <span className="text-[9px] text-fg3 truncate max-w-[140px]" title={p.notes}>{p.notes}</span>}
-                      </div>
-                      {p.inverter && (
-                        <div className="text-[10px] text-fg3 truncate" title={`${p.modules} · ${p.inverter}`}>
-                          {p.inverter}
+          {/* Main area: Kanban + Detail panel */}
+          <div className="flex-1 flex min-h-0">
+            {/* Kanban Board */}
+            <div className={`flex gap-3 overflow-x-auto px-6 pb-4 transition-all ${selected ? 'w-[55%]' : 'w-full'}`}>
+              {byStage.filter(s => s.projects.length > 0).map(col => (
+                <div key={col.stage} className="flex flex-col w-[260px] shrink-0">
+                  <div className="flex items-center gap-2 mb-2 px-1">
+                    <Pill label={col.label.toUpperCase()} tone={STAGE_TONE[col.stage]} dot={false} />
+                    <span className="text-[11px] text-fg3 font-medium">{col.projects.length}</span>
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1 overflow-y-auto">
+                    {col.projects.map(p => (
+                      <Card
+                        key={p.id}
+                        className={`p-3.5 flex flex-col gap-2 transition-colors cursor-pointer ${
+                          selected?.id === p.id ? 'border-accent bg-accent/5' : 'hover:border-line-2'
+                        }`}
+                        onClick={() => setSelected(selected?.id === p.id ? null : p)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-semibold text-fg">{p.customer}</span>
+                          <span className="text-[10px] text-fg3">{p.id}</span>
                         </div>
-                      )}
-                    </Card>
-                  ))}
+                        <div className="text-[11px] text-fg2">{p.address}, {p.city}, {p.state} {p.zip}</div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Tag label={`${p.systemKw} kW`} tone="accent" />
+                          <Tag label={p.utility} tone="info" />
+                          {p.necCompliant && <Tag label="NEC 690" tone="success" />}
+                          {p.ieeeCompliant && <Tag label="IEEE 1547" tone="success" />}
+                          {p.iraEligible && <Tag label="IRA §48" tone="purple" />}
+                        </div>
+                        {p.applicationId && <div className="text-[10px] text-fg3">App: {p.applicationId}</div>}
+                        {p.permitNumber && <div className="text-[10px] text-fg3">Permit: {p.permitNumber}</div>}
+                        {p.inspectionDate && (
+                          <div className="text-[10px] text-accent">Inspection: {new Date(p.inspectionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                        )}
+                        <div className="flex items-center justify-between mt-1 pt-1.5 border-t border-line">
+                          <span className="text-[11px] font-medium text-fg">{usd(p.value)}</span>
+                          {p.notes && <span className="text-[9px] text-fg3 truncate max-w-[140px]" title={p.notes}>{p.notes}</span>}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Detail Panel — slides in on card click */}
+            {selected && (
+              <div className="w-[45%] border-l border-line bg-bg flex flex-col overflow-y-auto">
+                {/* Header */}
+                <div className="px-5 py-4 border-b border-line flex items-center justify-between shrink-0">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-[14px] font-semibold text-fg">{selected.customer}</h2>
+                      <Pill label={STAGE_LABELS[selected.stage].toUpperCase()} tone={STAGE_TONE[selected.stage]} dot={false} />
+                    </div>
+                    <p className="text-[11px] text-fg3 mt-0.5">{selected.address}, {selected.city}, {selected.state} {selected.zip} · {selected.systemKw} kW</p>
+                  </div>
+                  <button onClick={() => setSelected(null)} className="text-fg3 hover:text-fg text-[18px] w-7 h-7 flex items-center justify-center rounded-lg hover:bg-surface">×</button>
+                </div>
+
+                {/* Project info strip */}
+                <div className="px-5 py-3 border-b border-line grid grid-cols-3 gap-3 shrink-0">
+                  <div>
+                    <p className="text-[9px] text-fg4 uppercase tracking-wider">System</p>
+                    <p className="text-[11px] text-fg font-medium">{selected.systemKw} kW</p>
+                    <p className="text-[10px] text-fg3">{selected.inverter}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-fg4 uppercase tracking-wider">Application</p>
+                    <p className="text-[11px] text-fg font-medium">{selected.applicationId || '—'}</p>
+                    <p className="text-[10px] text-fg3">Meter: {selected.meterNumber || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-fg4 uppercase tracking-wider">Value</p>
+                    <p className="text-[11px] text-fg font-medium">{usd(selected.value)}</p>
+                    <p className="text-[10px] text-fg3">ITC: {usd(Math.round(selected.value * 0.3))}</p>
+                  </div>
+                </div>
+
+                {/* Automation Workflow */}
+                <div className="px-5 py-4 border-b border-line shrink-0">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                    <h3 className="text-[12px] font-semibold text-fg">Automation Workflow</h3>
+                    <span className="text-[9px] text-fg4 ml-auto">{steps.filter(s => s.status === 'complete').length}/{steps.length} complete</span>
+                  </div>
+                  <div className="flex flex-col">
+                    {steps.map((s, i) => (
+                      <div key={s.step} className="flex items-start gap-3">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                            s.status === 'complete' ? 'bg-success text-white' :
+                            s.status === 'active' ? 'bg-accent text-white' :
+                            'bg-surface-3 text-fg3'
+                          }`}>
+                            {s.status === 'complete' ? '✓' : s.step}
+                          </div>
+                          {i < steps.length - 1 && <div className={`w-px min-h-[24px] ${
+                            s.status === 'complete' ? 'bg-success/30' : 'bg-line'
+                          }`} />}
+                        </div>
+                        <div className="flex-1 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[11px] font-medium ${
+                              s.status === 'complete' ? 'text-fg' : s.status === 'active' ? 'text-accent' : 'text-fg3'
+                            }`}>{s.label}</span>
+                            <span className="text-[9px] text-fg4">{s.date}</span>
+                          </div>
+                          <p className="text-[10px] text-fg3 leading-[14px]">{s.detail}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Bot Activity */}
+                <div className="px-5 py-4 flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-[12px] font-semibold text-fg">NES Bot Activity</h3>
+                    <Pill label="LIVE" tone="success" dot={false} />
+                  </div>
+                  <div className="flex flex-col gap-0 divide-y divide-line/50">
+                    {botLog.map((entry, i) => (
+                      <div key={i} className="flex gap-2.5 py-2">
+                        <span className="text-[13px] shrink-0">{entry.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-medium text-fg">{entry.action}</span>
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${entry.status === 'done' ? 'bg-success' : 'bg-warning'}`} />
+                          </div>
+                          <p className="text-[9px] text-fg3 truncate">{entry.detail}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* NES Interconnection Bot — Automation */}
-          <div className="shrink-0 grid lg:grid-cols-[1fr_1fr] gap-3">
-            {/* Bot Activity Feed */}
-            <Card className="overflow-hidden flex flex-col">
-              <div className="px-4 py-2.5 border-b border-line flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                  <h3 className="font-semibold text-[12px] text-fg">NES Interconnection Bot</h3>
-                </div>
-                <Pill label="LIVE" tone="success" dot={false} />
-              </div>
-              <div className="flex flex-col divide-y divide-line max-h-[280px] overflow-y-auto">
-                {[
-                  { time: '2 min ago', icon: '📄', action: 'Auto-filled NES Interconnection Application', detail: 'Rivera Family — 11.2 kW system, Enphase IQ8M-72', status: 'done' as const },
-                  { time: '2 min ago', icon: '📧', action: 'Sent application to nesrenewables@nespower.com', detail: 'Rivera Family — PDF + one-line diagram + equipment cut sheets attached', status: 'done' as const },
-                  { time: '18 min ago', icon: '✅', action: 'NES approval received via email', detail: 'Thompson Solar — NES-2026-43891 approved, meter swap authorized', status: 'done' as const },
-                  { time: '18 min ago', icon: '🔄', action: 'TVA DPP enrollment started on green.mytva.com', detail: 'Thompson Solar — registered on TVA Green Hub, IA uploaded', status: 'done' as const },
-                  { time: '1 hr ago', icon: '🏛️', action: 'Metro Nashville building permit filed', detail: 'Martinez Residence — permit #MN-2026-4412, awaiting review', status: 'pending' as const },
-                  { time: '1 hr ago', icon: '📋', action: 'NEC 690 compliance check passed', detail: 'Martinez Residence — rapid shutdown, conductor sizing verified', status: 'done' as const },
-                  { time: '3 hrs ago', icon: '📄', action: 'Auto-filled NES Interconnection Application', detail: 'Chen Family — 9.6 kW, Hendersonville TN', status: 'done' as const },
-                  { time: '3 hrs ago', icon: '📧', action: 'Sent application to nesrenewables@nespower.com', detail: 'Chen Family — awaiting NES review', status: 'pending' as const },
-                  { time: 'Yesterday', icon: '🔔', action: 'Follow-up email sent to NES', detail: 'Davis Home — application NES-2026-44622 pending 5 business days', status: 'pending' as const },
-                  { time: 'Yesterday', icon: '✅', action: 'NES inspection passed', detail: 'Johnson Family — commissioning test completed, PTO granted', status: 'done' as const },
-                ].map((entry, i) => (
-                  <div key={i} className="flex gap-3 px-4 py-2.5">
-                    <span className="text-[14px] shrink-0 mt-0.5">{entry.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-medium text-fg">{entry.action}</span>
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${entry.status === 'done' ? 'bg-success' : 'bg-warning'}`} />
-                      </div>
-                      <p className="text-[10px] text-fg3 truncate">{entry.detail}</p>
-                    </div>
-                    <span className="text-[9px] text-fg4 shrink-0 mt-0.5">{entry.time}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Automation Workflow — Project Detail */}
-            <Card className="overflow-hidden flex flex-col">
-              <div className="px-4 py-2.5 border-b border-line flex items-center justify-between shrink-0">
-                <h3 className="font-semibold text-[12px] text-fg">Automation Workflow — Thompson Solar (P-1003)</h3>
-                <Tag label="NES APPROVED" tone="success" />
-              </div>
-              <div className="px-4 py-3 flex flex-col gap-0">
-                {[
-                  { step: 1, label: 'NES Application PDF', detail: 'Auto-filled from project data — 14.4 kW, Canadian Solar, SMA inverter', status: 'complete' as const, date: 'Jun 10' },
-                  { step: 2, label: 'Email to nesrenewables@nespower.com', detail: 'PDF + one-line diagram + equipment cut sheets + customer authorization', status: 'complete' as const, date: 'Jun 10' },
-                  { step: 3, label: 'NEC 690 Compliance Check', detail: 'Rapid shutdown ✓ · Conductor sizing ✓ · Overcurrent protection ✓', status: 'complete' as const, date: 'Jun 10' },
-                  { step: 4, label: 'IEEE 1547 Validation', detail: 'Voltage ride-through ✓ · Frequency ride-through ✓ · Anti-islanding ✓', status: 'complete' as const, date: 'Jun 10' },
-                  { step: 5, label: 'Metro Nashville Building Permit', detail: 'Permit #MN-2026-2987 — filed online, approved Jun 14', status: 'complete' as const, date: 'Jun 12' },
-                  { step: 6, label: 'NES Review & Approval', detail: 'Application NES-2026-43891 — approval email received, parsed by bot', status: 'complete' as const, date: 'Jun 18' },
-                  { step: 7, label: 'TVA DPP Registration', detail: 'Enrolled via green.mytva.com — IA uploaded, QCN contractor verified', status: 'complete' as const, date: 'Jun 19' },
-                  { step: 8, label: 'NES Inspection & Meter Swap', detail: 'Scheduled Jun 27 — commissioning test + bi-directional meter install', status: 'scheduled' as const, date: 'Jun 27' },
-                  { step: 9, label: 'Permission to Operate (PTO)', detail: 'Awaiting NES final sign-off after inspection', status: 'waiting' as const, date: '—' },
-                  { step: 10, label: 'IRA §48 Tax Credit Filing', detail: '30% ITC — $10,560 credit, documentation auto-generated', status: 'waiting' as const, date: '—' },
-                ].map((s, i) => (
-                  <div key={s.step} className="flex items-start gap-3">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
-                        s.status === 'complete' ? 'bg-success text-white' :
-                        s.status === 'scheduled' ? 'bg-accent text-white' :
-                        'bg-surface-3 text-fg3'
-                      }`}>
-                        {s.status === 'complete' ? '✓' : s.step}
-                      </div>
-                      {i < 9 && <div className={`w-px h-full min-h-[28px] ${
-                        s.status === 'complete' ? 'bg-success/30' : 'bg-line'
-                      }`} />}
-                    </div>
-                    <div className="flex-1 pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[11px] font-medium ${s.status === 'complete' ? 'text-fg' : s.status === 'scheduled' ? 'text-accent' : 'text-fg3'}`}>{s.label}</span>
-                        <span className="text-[9px] text-fg4">{s.date}</span>
-                      </div>
-                      <p className="text-[10px] text-fg3 leading-[14px]">{s.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            )}
           </div>
 
           {/* Compliance footer */}
-          <div className="shrink-0 rounded-xl bg-surface border border-line p-4 flex items-center gap-6">
+          <div className="shrink-0 mx-6 mb-4 rounded-xl bg-surface border border-line p-3 flex items-center gap-6">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-success" />
               <span className="text-[11px] text-fg2">NEC 690 — rapid shutdown, conductor sizing, overcurrent protection</span>
