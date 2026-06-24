@@ -212,10 +212,9 @@ export default function InterconnectionDemo() {
             </div>
           </div>
 
-          {/* Main area: Kanban + Detail panel */}
+          {/* Main area: Kanban */}
           <div className="flex-1 flex min-h-0">
-            {/* Kanban Board */}
-            <div className={`flex gap-3 overflow-x-auto px-6 pb-4 transition-all ${selected ? 'w-[55%]' : 'w-full'}`}>
+            <div className="flex gap-3 overflow-x-auto px-6 pb-4 w-full">
               {byStage.filter(s => s.projects.length > 0).map(col => (
                 <div key={col.stage} className="flex flex-col w-[260px] shrink-0">
                   <div className="flex items-center gap-2 mb-2 px-1">
@@ -258,10 +257,13 @@ export default function InterconnectionDemo() {
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Detail Panel — slides in on card click */}
-            {selected && (
-              <div className="w-[45%] border-l border-line bg-bg flex flex-col overflow-y-auto">
+          {/* Detail Panel — overlay from right */}
+          {selected && (
+            <>
+              <div className="fixed inset-0 bg-black/20 z-30" onClick={() => setSelected(null)} />
+              <div className="fixed top-0 right-0 h-full w-[480px] bg-bg border-l border-line shadow-2xl z-40 flex flex-col overflow-y-auto animate-in slide-in-from-right duration-200">
                 {/* Header */}
                 <div className="px-5 py-4 border-b border-line flex items-center justify-between shrink-0">
                   <div>
@@ -351,8 +353,8 @@ export default function InterconnectionDemo() {
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
 
           {/* Compliance footer */}
           <div className="shrink-0 mx-6 mb-4 rounded-xl bg-surface border border-line p-3 flex items-center gap-6">
