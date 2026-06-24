@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BirdieLogo } from './ui';
 
-type NavKey = 'dashboard' | 'interconnection' | 'sales' | 'fleet';
+type NavKey = 'dashboard' | 'interconnection' | 'sales' | 'fleet' | 'bots' | 'workflows' | 'connectors';
 
 const mainItems = [
   { label: 'Dashboard', icon: '◇', href: '/demo/dashboard', key: 'dashboard' as NavKey },
@@ -14,9 +14,9 @@ const mainItems = [
 ];
 
 const autoItems = [
-  { label: 'Bots', icon: '◈', href: '/demo/dashboard' },
-  { label: 'Workflows', icon: '→', href: '/demo/dashboard' },
-  { label: 'Connectors', icon: '⌘', href: '/demo/dashboard' },
+  { label: 'Bots', icon: '◈', href: '/demo/bots', key: 'bots' as NavKey },
+  { label: 'Workflows', icon: '→', href: '/demo/workflows', key: 'workflows' as NavKey },
+  { label: 'Connectors', icon: '⌘', href: '/demo/connectors', key: 'connectors' as NavKey },
 ];
 
 function NavItem({ label, icon, href, active }: { label: string; icon: string; href: string; active: boolean }) {
@@ -38,6 +38,9 @@ export function DemoSidebar({ active }: { active: NavKey }) {
   const resolvedActive = pathname.includes('/interconnection') ? 'interconnection'
     : pathname.includes('/sales') ? 'sales'
     : pathname.includes('/fleet') ? 'fleet'
+    : pathname.includes('/bots') ? 'bots'
+    : pathname.includes('/workflows') ? 'workflows'
+    : pathname.includes('/connectors') ? 'connectors'
     : active;
 
   return (
@@ -62,7 +65,7 @@ export function DemoSidebar({ active }: { active: NavKey }) {
           <p className="text-[9px] font-semibold text-fg4 tracking-[0.18em] uppercase mb-1.5 px-2.5">AUTOMATION</p>
           <nav className="flex flex-col gap-0.5">
             {autoItems.map(it => (
-              <NavItem key={it.label} label={it.label} icon={it.icon} href={it.href} active={false} />
+              <NavItem key={it.key} label={it.label} icon={it.icon} href={it.href} active={it.key === resolvedActive} />
             ))}
           </nav>
         </div>
