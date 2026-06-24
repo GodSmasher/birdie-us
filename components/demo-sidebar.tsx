@@ -66,7 +66,7 @@ export function DemoSidebar({ active }: { active: NavKey }) {
         <div className="mt-auto px-2.5">
           <div className="rounded-xl bg-accent-bg p-3 flex flex-col gap-1.5">
             <span className="text-[10px] font-semibold text-accent tracking-wider">DEMO MODE</span>
-            <span className="text-[10px] text-fg2 leading-tight">Live preview with sample Oncor data</span>
+            <span className="text-[10px] text-fg2 leading-tight">Live preview with Nashville / NES data</span>
           </div>
         </div>
       </aside>

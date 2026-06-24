@@ -8,7 +8,7 @@ export const metadata = { title: 'birdie — US Demo Dashboard' };
 const usd = (n: number) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
 
 function greeting(): string {
-  const h = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', hour: '2-digit', hour12: false }));
+  const h = Number(new Date().toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', hour12: false }));
   if (h < 5) return 'Good evening';
   if (h < 11) return 'Good morning';
   if (h < 18) return 'Good afternoon';
@@ -36,16 +36,16 @@ const LEAD_SOURCES = [
 const NETZ_STATS = { total: 12, open: 3, review: 2, approved: 2, signed: 2, submitted: 3 };
 
 const EVENTS = [
-  { id: '1', title: 'Site Survey — Martinez, 4521 Elm Creek', start: '2026-06-25T09:00:00-05:00' },
-  { id: '2', title: 'Permit Review — City of Plano', start: '2026-06-25T14:00:00-05:00' },
-  { id: '3', title: 'Install Day 1 — Thompson, 782 Oak Hill', start: '2026-06-26T07:30:00-05:00' },
-  { id: '4', title: 'Oncor Inspection — Rivera', start: '2026-06-27T10:00:00-05:00' },
+  { id: '1', title: 'Site Survey — Martinez, 4521 Elm Creek Dr', start: '2026-06-25T09:00:00-05:00' },
+  { id: '2', title: 'Permit Review — Metro Nashville', start: '2026-06-25T14:00:00-05:00' },
+  { id: '3', title: 'Install Day 1 — Thompson, 782 Oak Hill Rd', start: '2026-06-26T07:30:00-05:00' },
+  { id: '4', title: 'NES Inspection — Rivera', start: '2026-06-27T10:00:00-05:00' },
 ];
 
 const INSIGHTS = [
-  { id: 'i1', severity: 'error' as const, icon: '⚠', message: 'Oncor application for Rivera (782 Oak Hill Dr) expires in 3 days — submit signed docs now', link: '/demo/interconnection' },
-  { id: 'i2', severity: 'warning' as const, icon: '⏱', message: 'Martinez permit #PL-2026-4412 pending city review since Jun 18 — 6 business days', link: '/demo/interconnection' },
-  { id: 'i3', severity: 'info' as const, icon: '✓', message: 'Thompson interconnection approved by Oncor — meter swap scheduled Jun 27', link: '/demo/interconnection' },
+  { id: 'i1', severity: 'error' as const, icon: '⚠', message: 'NES application for Rivera (782 Oak Hill Rd) expires in 3 days — submit signed docs now', link: '/demo/interconnection' },
+  { id: 'i2', severity: 'warning' as const, icon: '⏱', message: 'Martinez permit #MN-2026-4412 pending Metro Nashville review since Jun 18 — 6 business days', link: '/demo/interconnection' },
+  { id: 'i3', severity: 'info' as const, icon: '✓', message: 'Thompson interconnection approved by NES — meter swap scheduled Jun 27', link: '/demo/interconnection' },
 ];
 
 const severityStyles = {
@@ -66,7 +66,7 @@ export default function DemoDashboard() {
   const maxStatus = Math.max(1, ...PIPELINE.byStatus.map(s => s.count));
   const maxSource = Math.max(1, ...LEAD_SOURCES.map(s => s.count));
   const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Chicago',
+    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/New_York',
   });
 
   return (
@@ -75,7 +75,7 @@ export default function DemoDashboard() {
       <main className="flex-1 min-w-0 flex flex-col bg-bg">
         <TopBar
           title={`${greeting()}, Sarah`}
-          subtitle={`${today} · ReNew Solar Demo · Oncor Service Territory`}
+          subtitle={`${today} · ReNew Solar Demo · NES / TVA Service Territory`}
         />
         <div className="flex-1 px-6 py-5 flex flex-col gap-4 h-[calc(100vh-64px)] overflow-hidden">
           {/* KPIs */}
@@ -189,7 +189,7 @@ export default function DemoDashboard() {
               <div className="flex-1 p-5 flex flex-col gap-2.5">
                 {[
                   { name: 'AI Document Filler', status: 'live' },
-                  { name: 'Oncor Interconnection Bot', status: 'live' },
+                  { name: 'NES Interconnection Bot', status: 'live' },
                   { name: 'NEC 690 Compliance Check', status: 'live' },
                   { name: 'IEEE 1547 Validator', status: 'live' },
                   { name: 'IRA Incentive Tracker', status: 'live' },
@@ -207,7 +207,7 @@ export default function DemoDashboard() {
                 <div className="mt-auto bg-surface rounded-xl p-3">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-success shrink-0" />
-                    <span className="text-[11px] text-fg2">All systems online — Oncor territory</span>
+                    <span className="text-[11px] text-fg2">All systems online — NES / Nashville</span>
                   </div>
                 </div>
               </div>
