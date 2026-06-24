@@ -195,6 +195,90 @@ export default function InterconnectionDemo() {
             ))}
           </div>
 
+          {/* NES Interconnection Bot — Automation */}
+          <div className="shrink-0 grid lg:grid-cols-[1fr_1fr] gap-3">
+            {/* Bot Activity Feed */}
+            <Card className="overflow-hidden flex flex-col">
+              <div className="px-4 py-2.5 border-b border-line flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                  <h3 className="font-semibold text-[12px] text-fg">NES Interconnection Bot</h3>
+                </div>
+                <Pill label="LIVE" tone="success" dot={false} />
+              </div>
+              <div className="flex flex-col divide-y divide-line max-h-[280px] overflow-y-auto">
+                {[
+                  { time: '2 min ago', icon: '📄', action: 'Auto-filled NES Interconnection Application', detail: 'Rivera Family — 11.2 kW system, Enphase IQ8M-72', status: 'done' as const },
+                  { time: '2 min ago', icon: '📧', action: 'Sent application to nesrenewables@nespower.com', detail: 'Rivera Family — PDF + one-line diagram + equipment cut sheets attached', status: 'done' as const },
+                  { time: '18 min ago', icon: '✅', action: 'NES approval received via email', detail: 'Thompson Solar — NES-2026-43891 approved, meter swap authorized', status: 'done' as const },
+                  { time: '18 min ago', icon: '🔄', action: 'TVA DPP enrollment started on green.mytva.com', detail: 'Thompson Solar — registered on TVA Green Hub, IA uploaded', status: 'done' as const },
+                  { time: '1 hr ago', icon: '🏛️', action: 'Metro Nashville building permit filed', detail: 'Martinez Residence — permit #MN-2026-4412, awaiting review', status: 'pending' as const },
+                  { time: '1 hr ago', icon: '📋', action: 'NEC 690 compliance check passed', detail: 'Martinez Residence — rapid shutdown, conductor sizing verified', status: 'done' as const },
+                  { time: '3 hrs ago', icon: '📄', action: 'Auto-filled NES Interconnection Application', detail: 'Chen Family — 9.6 kW, Hendersonville TN', status: 'done' as const },
+                  { time: '3 hrs ago', icon: '📧', action: 'Sent application to nesrenewables@nespower.com', detail: 'Chen Family — awaiting NES review', status: 'pending' as const },
+                  { time: 'Yesterday', icon: '🔔', action: 'Follow-up email sent to NES', detail: 'Davis Home — application NES-2026-44622 pending 5 business days', status: 'pending' as const },
+                  { time: 'Yesterday', icon: '✅', action: 'NES inspection passed', detail: 'Johnson Family — commissioning test completed, PTO granted', status: 'done' as const },
+                ].map((entry, i) => (
+                  <div key={i} className="flex gap-3 px-4 py-2.5">
+                    <span className="text-[14px] shrink-0 mt-0.5">{entry.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-medium text-fg">{entry.action}</span>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${entry.status === 'done' ? 'bg-success' : 'bg-warning'}`} />
+                      </div>
+                      <p className="text-[10px] text-fg3 truncate">{entry.detail}</p>
+                    </div>
+                    <span className="text-[9px] text-fg4 shrink-0 mt-0.5">{entry.time}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Automation Workflow — Project Detail */}
+            <Card className="overflow-hidden flex flex-col">
+              <div className="px-4 py-2.5 border-b border-line flex items-center justify-between shrink-0">
+                <h3 className="font-semibold text-[12px] text-fg">Automation Workflow — Thompson Solar (P-1003)</h3>
+                <Tag label="NES APPROVED" tone="success" />
+              </div>
+              <div className="px-4 py-3 flex flex-col gap-0">
+                {[
+                  { step: 1, label: 'NES Application PDF', detail: 'Auto-filled from project data — 14.4 kW, Canadian Solar, SMA inverter', status: 'complete' as const, date: 'Jun 10' },
+                  { step: 2, label: 'Email to nesrenewables@nespower.com', detail: 'PDF + one-line diagram + equipment cut sheets + customer authorization', status: 'complete' as const, date: 'Jun 10' },
+                  { step: 3, label: 'NEC 690 Compliance Check', detail: 'Rapid shutdown ✓ · Conductor sizing ✓ · Overcurrent protection ✓', status: 'complete' as const, date: 'Jun 10' },
+                  { step: 4, label: 'IEEE 1547 Validation', detail: 'Voltage ride-through ✓ · Frequency ride-through ✓ · Anti-islanding ✓', status: 'complete' as const, date: 'Jun 10' },
+                  { step: 5, label: 'Metro Nashville Building Permit', detail: 'Permit #MN-2026-2987 — filed online, approved Jun 14', status: 'complete' as const, date: 'Jun 12' },
+                  { step: 6, label: 'NES Review & Approval', detail: 'Application NES-2026-43891 — approval email received, parsed by bot', status: 'complete' as const, date: 'Jun 18' },
+                  { step: 7, label: 'TVA DPP Registration', detail: 'Enrolled via green.mytva.com — IA uploaded, QCN contractor verified', status: 'complete' as const, date: 'Jun 19' },
+                  { step: 8, label: 'NES Inspection & Meter Swap', detail: 'Scheduled Jun 27 — commissioning test + bi-directional meter install', status: 'scheduled' as const, date: 'Jun 27' },
+                  { step: 9, label: 'Permission to Operate (PTO)', detail: 'Awaiting NES final sign-off after inspection', status: 'waiting' as const, date: '—' },
+                  { step: 10, label: 'IRA §48 Tax Credit Filing', detail: '30% ITC — $10,560 credit, documentation auto-generated', status: 'waiting' as const, date: '—' },
+                ].map((s, i) => (
+                  <div key={s.step} className="flex items-start gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                        s.status === 'complete' ? 'bg-success text-white' :
+                        s.status === 'scheduled' ? 'bg-accent text-white' :
+                        'bg-surface-3 text-fg3'
+                      }`}>
+                        {s.status === 'complete' ? '✓' : s.step}
+                      </div>
+                      {i < 9 && <div className={`w-px h-full min-h-[28px] ${
+                        s.status === 'complete' ? 'bg-success/30' : 'bg-line'
+                      }`} />}
+                    </div>
+                    <div className="flex-1 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[11px] font-medium ${s.status === 'complete' ? 'text-fg' : s.status === 'scheduled' ? 'text-accent' : 'text-fg3'}`}>{s.label}</span>
+                        <span className="text-[9px] text-fg4">{s.date}</span>
+                      </div>
+                      <p className="text-[10px] text-fg3 leading-[14px]">{s.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
           {/* Compliance footer */}
           <div className="shrink-0 rounded-xl bg-surface border border-line p-4 flex items-center gap-6">
             <div className="flex items-center gap-2">
