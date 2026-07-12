@@ -428,32 +428,41 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">How installers work with birdie.</h2>
           </R>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <R>
-              <div className="bento-card rounded-3xl p-8 md:p-10 h-full">
-                <span className="text-[9px] font-bold text-[#FACC15] tracking-[0.2em] uppercase bg-[#FACC15]/10 px-3 py-1.5 rounded-full inline-block mb-6">TEXAS &middot; 200+ PROJECTS</span>
-                <h3 className="text-2xl font-extrabold tracking-tight mb-3">SunPeak Solar</h3>
-                <p className="text-[15px] text-white/30 leading-relaxed mb-6">
-                  From 45 minutes per interconnection application to 5 &mdash; with AI-generated documents and automatic submission to 15+ Texas utilities.
-                </p>
-                <div className="bg-white/[0.03] rounded-2xl p-5 mb-6">
-                  <p className="text-[15px] italic text-white/40 leading-relaxed">
-                    &ldquo;I just review what the AI fills in &mdash; 5 minutes, done. The bots handle the rest.&rdquo;
-                  </p>
-                  <p className="text-[11px] font-semibold text-white/20 mt-3">Office Manager &middot; SunPeak Solar</p>
+          {/* Featured Testimonial */}
+          <R>
+            <div className="bento-card rounded-3xl p-8 md:p-12 mb-6">
+              <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center">
+                <div className="shrink-0 flex flex-col items-center gap-4">
+                  <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-[#FACC15]/40 via-[#FACC15]/10 to-transparent p-[3px]">
+                    <div className="w-full h-full rounded-full bg-[#1a1a1a] flex items-center justify-center text-2xl md:text-3xl font-bold text-[#FACC15]">MR</div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[14px] font-semibold text-white/80">Mike Reynolds</p>
+                    <p className="text-[11px] text-white/25">CEO &middot; SunPeak Solar</p>
+                    <p className="text-[11px] text-white/25">Nashville, TN</p>
+                  </div>
                 </div>
-                <div className="flex gap-4">
-                  {[{ v: '45→5 min', l: 'Per app' }, { v: '200+', l: 'Projects' }, { v: '8', l: 'Bots' }].map(m => (
-                    <div key={m.l}>
-                      <div className="text-[15px] font-extrabold text-[#FACC15]">{m.v}</div>
-                      <div className="text-[9px] text-white/20">{m.l}</div>
-                    </div>
-                  ))}
+                <div className="flex-1 min-w-0">
+                  <span className="text-[9px] font-bold text-[#FACC15] tracking-[0.2em] uppercase bg-[#FACC15]/10 px-3 py-1.5 rounded-full inline-block mb-5">TENNESSEE &middot; 200+ PROJECTS</span>
+                  <blockquote className="text-[18px] md:text-[22px] font-medium text-white/70 leading-relaxed mb-6">
+                    &ldquo;Before birdie we were drowning in paperwork. <span className="text-[#FACC15] font-semibold">Duke Energy alone has twelve different forms</span> depending on the system size. Now we just plug in the project info and birdie handles the submission. Last month we pushed through <span className="text-[#FACC15] font-semibold">47 applications in a week</span>.&rdquo;
+                  </blockquote>
+                  <div className="flex gap-6">
+                    {[{ v: '47x', l: 'Apps / week' }, { v: '90%', l: 'Time saved' }, { v: '15+', l: 'Utilities' }].map(m => (
+                      <div key={m.l}>
+                        <div className="text-[17px] font-extrabold text-[#FACC15]">{m.v}</div>
+                        <div className="text-[9px] text-white/20 uppercase tracking-wider">{m.l}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </R>
+            </div>
+          </R>
 
-            <R d={150}>
+          {/* Two smaller testimonials */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <R d={100}>
               <div className="bento-card rounded-3xl p-8 md:p-10 h-full">
                 <span className="text-[9px] font-bold text-[#60A5FA] tracking-[0.2em] uppercase bg-[#60A5FA]/10 px-3 py-1.5 rounded-full inline-block mb-6">COLORADO &middot; 120+ SYSTEMS</span>
                 <h3 className="text-2xl font-extrabold tracking-tight mb-3">Mountain West Energy</h3>
@@ -464,7 +473,13 @@ export default function LandingPage() {
                   <p className="text-[15px] italic text-white/40 leading-relaxed">
                     &ldquo;I open birdie in the morning and immediately see what needs attention. No more digging through 8 tools.&rdquo;
                   </p>
-                  <p className="text-[11px] font-semibold text-white/20 mt-3">Operations Lead &middot; Mountain West Energy</p>
+                  <div className="flex items-center gap-3 mt-4">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#60A5FA]/30 to-[#60A5FA]/5 flex items-center justify-center text-[10px] font-bold text-[#60A5FA]">SC</div>
+                    <div>
+                      <p className="text-[12px] font-semibold text-white/50">Sarah Chen</p>
+                      <p className="text-[10px] text-white/20">Operations Lead &middot; Mountain West Energy</p>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex gap-4">
                   {[{ v: '120+', l: 'Systems' }, { v: '12', l: 'Bots' }, { v: '0', l: 'Tools replaced' }].map(m => (
@@ -476,7 +491,55 @@ export default function LandingPage() {
                 </div>
               </div>
             </R>
+
+            <R d={200}>
+              <div className="bento-card rounded-3xl p-8 md:p-10 h-full">
+                <span className="text-[9px] font-bold text-[#4ADE80] tracking-[0.2em] uppercase bg-[#4ADE80]/10 px-3 py-1.5 rounded-full inline-block mb-6">TEXAS &middot; 85+ INSTALLS</span>
+                <h3 className="text-2xl font-extrabold tracking-tight mb-3">BrightPath Energy</h3>
+                <p className="text-[15px] text-white/30 leading-relaxed mb-6">
+                  Cash flow was unpredictable &mdash; now automated payment reminders and real-time tracking cut average collection time from 45 to 18 days.
+                </p>
+                <div className="bg-white/[0.03] rounded-2xl p-5 mb-6">
+                  <p className="text-[15px] italic text-white/40 leading-relaxed">
+                    &ldquo;The cash flow visibility alone paid for birdie in the first month. I finally know exactly where every dollar is.&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3 mt-4">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4ADE80]/30 to-[#4ADE80]/5 flex items-center justify-center text-[10px] font-bold text-[#4ADE80]">MW</div>
+                    <div>
+                      <p className="text-[12px] font-semibold text-white/50">Marcus Williams</p>
+                      <p className="text-[10px] text-white/20">Founder &middot; BrightPath Energy</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  {[{ v: '18 days', l: 'Avg collection' }, { v: '$240k', l: 'Recovered' }, { v: '85+', l: 'Installs' }].map(m => (
+                    <div key={m.l}>
+                      <div className="text-[15px] font-extrabold text-[#4ADE80]">{m.v}</div>
+                      <div className="text-[9px] text-white/20">{m.l}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </R>
           </div>
+
+          {/* Stats bar */}
+          <R d={300}>
+            <div className="mt-8 bento-card rounded-2xl p-6 flex flex-wrap justify-center gap-8 md:gap-16">
+              {[
+                { v: '4.9/5', icon: '⭐', l: 'Avg rating' },
+                { v: <Counter target={47} suffix="x" />, icon: '⚡', l: 'Faster submissions' },
+                { v: <><Counter target={200} />+</>, icon: '🔌', l: 'Utilities supported' },
+                { v: <><Counter target={18} /> days</>, icon: '💰', l: 'Avg collection time' },
+              ].map((s, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-lg mb-1">{s.icon}</div>
+                  <div className="text-[20px] md:text-[24px] font-extrabold text-white/90">{s.v}</div>
+                  <div className="text-[10px] text-white/25 uppercase tracking-wider mt-1">{s.l}</div>
+                </div>
+              ))}
+            </div>
+          </R>
         </div>
       </section>
 

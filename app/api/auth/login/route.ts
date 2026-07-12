@@ -16,27 +16,44 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: 'Email and password required' }, { status: 400 });
   }
 
-  const supabase = createClient(url, key, {
+  const authClient = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await authClient.auth.signInWithPassword({ email, password });
 
   if (error || !data.session) {
     return NextResponse.json({ ok: false, message: 'Invalid credentials' }, { status: 401 });
   }
 
-  // Look up tenant from profile
-  const { data: profile } = await supabase
+  // Fresh admin client for DB queries (signInWithPassword taints the auth context)
+  const db = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: profile } = await db
     .from('profiles')
-    .select('tenant_id, name, role, tenants(slug, name)')
+    .select('tenant_id, name, role')
     .eq('id', data.user.id)
     .single();
+
+  let tenant: { slug?: string; name?: string } | null = null;
+  if (profile?.tenant_id) {
+    const { data: t } = await db
+      .from('tenants')
+      .select('slug, name')
+      .eq('id', profile.tenant_id)
+      .single();
+    tenant = t;
+  }
+
+  const isDemo = tenant?.slug === 'demo';
 
   const res = NextResponse.json({
     ok: true,
     user: { email: data.user.email, name: profile?.name },
-    tenant: profile?.tenants ?? null,
+    tenant,
+    redirect: isDemo ? '/demo/dashboard' : '/dashboard',
   });
   res.cookies.set('birdie_session', data.session.access_token, {
     httpOnly: true,
@@ -52,6 +69,15 @@ export async function POST(req: Request) {
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
+    });
+  }
+  if (isDemo) {
+    res.cookies.set('birdie_demo', '1', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 86400,
     });
   }
   return res;

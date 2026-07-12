@@ -5,6 +5,7 @@ const PUBLIC_PREFIXES = [
   '/gate', '/api/gate', '/api/auth',
   '/api/sync', '/api/netzanmeldung/bot', '/api/netzanmeldung/emails',
   '/api/dunning', '/api/emails', '/sign', '/api/sign',
+  '/api/crm',
   '/demo',
 ];
 
@@ -31,7 +32,17 @@ export async function middleware(req: NextRequest) {
   ) {
     return NextResponse.next();
   }
-  if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return NextResponse.next();
+  if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
+    if (pathname.startsWith('/demo/') && pathname !== '/demo') {
+      const demo = req.cookies.get('birdie_demo')?.value;
+      if (demo !== '1') {
+        const url = req.nextUrl.clone();
+        url.pathname = '/demo';
+        return NextResponse.redirect(url);
+      }
+    }
+    return NextResponse.next();
+  }
 
   // Check for session cookie (new auth)
   const session = req.cookies.get('birdie_session')?.value;

@@ -68,11 +68,11 @@ function LoginForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
+    const body = await res.json().catch(() => ({}));
     if (res.ok) {
-      router.replace(next);
+      router.replace(body.redirect || next);
       router.refresh();
     } else {
-      const body = await res.json().catch(() => ({}));
       setError(body.message || 'Invalid credentials');
       setLoading(false);
     }
@@ -164,9 +164,12 @@ function LoginForm() {
             disabled={demoLoading}
             onClick={async () => {
               setDemoLoading(true);
-              await fetch('/api/auth/demo', { method: 'POST' });
-              router.replace('/dashboard');
-              router.refresh();
+              await fetch('/api/auth/demo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: 'renew2026' }),
+              });
+              router.replace('/demo/dashboard');
             }}
             className="h-[46px] bg-surface border border-line-2 rounded-[10px] flex items-center justify-center gap-2.5 font-semibold text-sm text-fg hover:border-accent/40 hover:bg-surface-2/50 transition-colors disabled:opacity-50"
           >

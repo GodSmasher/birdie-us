@@ -34,6 +34,15 @@ const config: Config = {
       letterSpacing: {
         tightest: '-0.03em',
       },
+      keyframes: {
+        'fade-in-up': {
+          '0%': { opacity: '0', transform: 'translateX(-50%) translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateX(-50%) translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in-up': 'fade-in-up 0.3s ease-out forwards',
+      },
     },
   },
   plugins: [],

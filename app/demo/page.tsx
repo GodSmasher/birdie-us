@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Brand } from '@/components/ui';
 
-const DEMO_PASSWORD = 'renew2026';
-
 export default function DemoLoginPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
@@ -17,11 +15,21 @@ export default function DemoLoginPage() {
     setLoading(true);
     setError('');
 
-    if (password === DEMO_PASSWORD) {
-      await fetch('/api/auth/demo', { method: 'POST' });
-      router.replace('/demo/dashboard');
-    } else {
-      setError('Invalid access code');
+    try {
+      const res = await fetch('/api/auth/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+
+      if (res.ok) {
+        router.replace('/demo/dashboard');
+      } else {
+        setError('Invalid access code');
+        setLoading(false);
+      }
+    } catch {
+      setError('Something went wrong. Try again.');
       setLoading(false);
     }
   }
@@ -78,9 +86,16 @@ export default function DemoLoginPage() {
             <button
               type="submit"
               disabled={loading || !password}
-              className="h-[46px] bg-accent text-bg rounded-[10px] flex items-center justify-center gap-2 font-semibold text-sm hover:brightness-95 disabled:opacity-50"
+              className="h-[46px] bg-accent text-bg rounded-[10px] flex items-center justify-center gap-2 font-semibold text-sm hover:brightness-95 disabled:opacity-50 transition-all"
             >
-              {loading ? 'Loading…' : 'Enter Demo'} <span className="font-bold">→</span>
+              {loading ? (
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+              ) : (
+                <>Enter Demo <span className="font-bold">→</span></>
+              )}
             </button>
           </form>
 

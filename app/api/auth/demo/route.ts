@@ -1,15 +1,27 @@
 import { NextResponse } from 'next/server';
 
-export async function POST() {
-  const res = NextResponse.json({ ok: true });
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'renew2026';
 
-  res.cookies.set('birdie_demo', '1', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 86400, // 24 hours
-  });
+export async function POST(req: Request) {
+  try {
+    const { password } = await req.json();
 
-  return res;
+    if (password !== DEMO_PASSWORD) {
+      return NextResponse.json({ ok: false, error: 'Invalid access code' }, { status: 401 });
+    }
+
+    const res = NextResponse.json({ ok: true });
+
+    res.cookies.set('birdie_demo', '1', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 86400,
+    });
+
+    return res;
+  } catch {
+    return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 400 });
+  }
 }
