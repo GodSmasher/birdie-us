@@ -94,6 +94,7 @@ export default function DELandingPage() {
             <a href="#features" className="hover:text-white transition">Features</a>
             <a href="#so-funktionierts" className="hover:text-white transition">So funktioniert&apos;s</a>
             <a href="#referenzen" className="hover:text-white transition">Referenzen</a>
+            <Link href="/pricing" className="hover:text-white transition">Preise</Link>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="hidden sm:inline text-[13px] text-white/35 font-medium hover:text-white transition">Anmelden</Link>

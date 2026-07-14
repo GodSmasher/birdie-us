@@ -22,6 +22,7 @@ export async function middleware(req: NextRequest) {
   if (
     pathname === '/' ||
     pathname === '/login' ||
+    pathname.startsWith('/pricing') ||
     pathname.startsWith('/case-studies') ||
     pathname.startsWith('/partner') ||
     pathname.startsWith('/careers') ||

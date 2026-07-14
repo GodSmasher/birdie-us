@@ -185,6 +185,7 @@ export default function LandingPage() {
             <a href="#features" className="hover:text-white transition">Features</a>
             <a href="#how-it-works" className="hover:text-white transition">How it Works</a>
             <a href="#stories" className="hover:text-white transition">Stories</a>
+            <Link href="/pricing" className="hover:text-white transition">Pricing</Link>
             <Link href="/partner" className="hover:text-white transition">Partners</Link>
           </div>
           <div className="flex items-center gap-4">
