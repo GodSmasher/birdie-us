@@ -34,14 +34,6 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
-    if (pathname.startsWith('/demo/') && pathname !== '/demo') {
-      const demo = req.cookies.get('birdie_demo')?.value;
-      if (demo !== '1') {
-        const url = req.nextUrl.clone();
-        url.pathname = '/demo';
-        return NextResponse.redirect(url);
-      }
-    }
     return NextResponse.next();
   }
 
