@@ -143,7 +143,7 @@ export default function PricingPage() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="hidden sm:inline text-[13px] text-white/35 font-medium hover:text-white transition">Login</Link>
-            <Link href="/#contact" className="px-5 py-2.5 bg-[#FACC15] text-[#0a0a0f] rounded-full text-[13px] font-bold hover:bg-[#fde047] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#FACC15]/20">
+            <Link href="https://app.apollo.io/#/meet/sarah_vogel_429" target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 bg-[#FACC15] text-[#0a0a0f] rounded-full text-[13px] font-bold hover:bg-[#fde047] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#FACC15]/20">
               Book a Demo
             </Link>
           </div>
@@ -192,7 +192,7 @@ export default function PricingPage() {
                 <p className="text-[12px] text-white/20 mb-6">+ {tier.setup} setup (one-time)</p>
 
                 <Link
-                  href="/#contact"
+                  href="https://app.apollo.io/#/meet/sarah_vogel_429" target="_blank" rel="noopener noreferrer"
                   className={`w-full py-3 rounded-xl text-[14px] font-bold text-center transition-all block ${
                     isGrowth
                       ? 'bg-[#FACC15] text-[#0a0a0f] hover:bg-[#fde047] hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#FACC15]/20'
@@ -316,7 +316,7 @@ export default function PricingPage() {
       <section className="max-w-2xl mx-auto px-6 pb-20 text-center">
         <h2 className="text-[24px] font-bold mb-3">Ready to get started?</h2>
         <p className="text-[14px] text-white/30 mb-6">20 minutes. We&apos;ll show you what birdie can do for your business.</p>
-        <Link href="/#contact" className="inline-block px-8 py-3.5 bg-[#FACC15] text-[#0a0a0f] rounded-full text-[14px] font-bold hover:bg-[#fde047] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#FACC15]/20">
+        <Link href="https://app.apollo.io/#/meet/sarah_vogel_429" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3.5 bg-[#FACC15] text-[#0a0a0f] rounded-full text-[14px] font-bold hover:bg-[#fde047] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#FACC15]/20">
           Book a Free Demo →
         </Link>
       </section>
