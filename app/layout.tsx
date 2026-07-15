@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="font-sans">
-      <head>
+      <body className="bg-bg text-fg min-h-screen">
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-18323596406"
           strategy="afterInteractive"
@@ -29,8 +29,6 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'AW-18323596406');`}
         </Script>
-      </head>
-      <body className="bg-bg text-fg min-h-screen">
         {children}
         <CookieConsent />
       </body>
