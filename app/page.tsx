@@ -55,6 +55,44 @@ function FAQ({ q, a }: { q: string; a: string }) {
   );
 }
 
+function ContactForm() {
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setStatus('sending');
+    const fd = new FormData(e.currentTarget);
+    const data = Object.fromEntries(fd.entries());
+    try {
+      const res = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      setStatus(res.ok ? 'sent' : 'error');
+    } catch { setStatus('error'); }
+  };
+  if (status === 'sent') return (
+    <div className="max-w-md mx-auto text-center py-8">
+      <p className="text-2xl mb-2">✅</p>
+      <p className="text-white font-bold text-lg">Got it! We&apos;ll reach out within 24h.</p>
+      <p className="text-white/30 text-sm mt-2">Check your inbox for next steps.</p>
+    </div>
+  );
+  return (
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4 mb-8">
+      <div className="grid grid-cols-2 gap-3">
+        <input type="text" name="first_name" placeholder="First Name" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+        <input type="text" name="last_name" placeholder="Last Name" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+      </div>
+      <input type="email" name="email" required placeholder="Work Email *" className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+      <div className="grid grid-cols-2 gap-3">
+        <input type="text" name="company" placeholder="Company" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+        <input type="text" name="job_title" placeholder="Job Title" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
+      </div>
+      <button type="submit" disabled={status === 'sending'} className="w-full group px-10 py-4 bg-[#FACC15] text-[#0a0a0f] font-bold rounded-full text-[16px] hover:bg-[#fde047] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-xl shadow-[#FACC15]/25 flex items-center gap-2 justify-center disabled:opacity-50">
+        {status === 'sending' ? 'Sending...' : 'Apply for Free Pilot'}
+        <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
+      </button>
+    </form>
+  );
+}
+
 function Logo({ variant = 'dark', className = '' }: { variant?: 'dark' | 'light'; className?: string }) {
   return (
     <svg viewBox="0 0 200 48" className={className} aria-label=".birdie">
@@ -175,13 +213,16 @@ export default function LandingPage() {
         .card-glow::before { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, rgba(250,204,21,0.15), transparent 50%, rgba(250,204,21,0.1)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
         .bento-card { background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); transition: all 0.5s cubic-bezier(.16,1,.3,1); }
         .bento-card:hover { border-color: rgba(250,204,21,0.2); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(250,204,21,0.05); }
+        @keyframes bannerShimmer { 0% { background-position: 0% center; } 50% { background-position: 100% center; } 100% { background-position: 0% center; } }
+        @keyframes bannerPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
       `}</style>
 
       {/* ━━━ PILOT BANNER ━━━ */}
-      <div className="fixed top-0 w-full z-[60] bg-gradient-to-r from-[#FACC15] to-[#F59E0B] text-[#0a0a0f] text-center py-2 px-4">
-        <p className="text-[13px] font-bold">
-          3 Pilot Spots Left — Use birdie free for 3 months.{' '}
-          <a href="#contact" className="underline underline-offset-2 hover:no-underline">Apply now →</a>
+      <div className="fixed top-0 w-full z-[60] overflow-hidden bg-gradient-to-r from-[#FACC15] via-[#F59E0B] to-[#FACC15] text-[#0a0a0f] text-center py-2.5 px-4" style={{ backgroundSize: '200% 100%', animation: 'bannerShimmer 3s ease-in-out infinite' }}>
+        <p className="text-[13px] font-bold flex items-center justify-center gap-2">
+          <span style={{ animation: 'bannerPulse 2s ease-in-out infinite' }}>🔥</span>
+          <span>3 Pilot Spots Left — Use birdie free for 3 months.</span>
+          <a href="#contact" className="underline underline-offset-2 hover:no-underline font-extrabold">Apply now →</a>
         </p>
       </div>
 
@@ -613,25 +654,17 @@ export default function LandingPage() {
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-5">
             Ready for <span className="gradient-text">transparency?</span>
           </h2>
-          <p className="text-white/30 mb-12 text-lg leading-relaxed">20 minutes. We&apos;ll show you what birdie can do for your business.<br />Personal, no sales pitch.</p>
-          <form action="https://formspree.io/f/hello@birdiesolar.com" method="POST" className="max-w-md mx-auto space-y-4 mb-8">
-            <div className="grid grid-cols-2 gap-3">
-              <input type="text" name="first_name" placeholder="First Name" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
-              <input type="text" name="last_name" placeholder="Last Name" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
-            </div>
-            <input type="email" name="email" required placeholder="Work Email *" className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
-            <div className="grid grid-cols-2 gap-3">
-              <input type="text" name="company" placeholder="Company" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
-              <input type="text" name="job_title" placeholder="Job Title" className="bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#FACC15]/40 transition" />
-            </div>
-            <button type="submit" className="w-full group px-10 py-4 bg-[#FACC15] text-[#0a0a0f] font-bold rounded-full text-[16px] hover:bg-[#fde047] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-xl shadow-[#FACC15]/25 flex items-center gap-2 justify-center">
-              Book a Demo
-              <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
-            </button>
-          </form>
-          <a href="https://app.apollo.io/#/meet/sarah_vogel_429" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 text-white/30 text-sm hover:text-white/50 transition">
-            Or schedule a call directly &rarr;
-          </a>
+          <p className="text-white/30 mb-4 text-lg leading-relaxed">20 minutes. We&apos;ll show you what birdie can do for your business.<br />Personal, no sales pitch.</p>
+          <p className="text-[#FACC15] font-bold text-sm mb-10">🔥 3 pilot spots — free for 3 months. No credit card required.</p>
+          <ContactForm />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6">
+            <Link href="/demo" className="text-white/30 text-sm hover:text-white/50 transition">
+              Or try the live demo first &rarr;
+            </Link>
+            <a href="https://app.apollo.io/#/meet/sarah_vogel_429" target="_blank" rel="noopener noreferrer" className="text-white/30 text-sm hover:text-white/50 transition">
+              Schedule a call directly &rarr;
+            </a>
+          </div>
         </R>
       </section>
 
