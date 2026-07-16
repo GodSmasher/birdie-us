@@ -177,8 +177,16 @@ export default function LandingPage() {
         .bento-card:hover { border-color: rgba(250,204,21,0.2); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(250,204,21,0.05); }
       `}</style>
 
+      {/* ━━━ PILOT BANNER ━━━ */}
+      <div className="fixed top-0 w-full z-[60] bg-gradient-to-r from-[#FACC15] to-[#F59E0B] text-[#0a0a0f] text-center py-2 px-4">
+        <p className="text-[13px] font-bold">
+          3 Pilot Spots Left — Use birdie free for 3 months.{' '}
+          <a href="#contact" className="underline underline-offset-2 hover:no-underline">Apply now →</a>
+        </p>
+      </div>
+
       {/* ━━━ NAV ━━━ */}
-      <nav className="fixed top-0 w-full z-50 bg-[#08080c]/80 backdrop-blur-2xl border-b border-white/[0.04]">
+      <nav className="fixed top-[36px] w-full z-50 bg-[#08080c]/80 backdrop-blur-2xl border-b border-white/[0.04]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/"><Logo variant="light" className="h-6" /></Link>
           <div className="hidden md:flex items-center gap-8 text-[13px] text-white/35 font-medium">
